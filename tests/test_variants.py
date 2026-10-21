@@ -1,17 +1,21 @@
 """Tests for the two theme variants, Lumen and Lumen Dark: what each build holds, that the two stay
 fully separate on disk (folders, staging names, backups, locks, holds, Twig cache entries), and the
-Pro boundary of Lumen Dark (it never loads, enables or imitates the panel's own dark mode).
+Pro boundary of Lumen Dark (it never enables or unlocks the panel's own dark mode, has no dark-mode
+switch and loads none of its dark stylesheets or images).
 
 Everything runs against a fake KeyHelp tree in a temporary folder (tests/fakekeyhelp.py).
 """
 
 from __future__ import annotations
 
+import dataclasses
+import hashlib
 import io
 import json
 import re
 import shutil
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -58,7 +62,7 @@ class VariantDefinitionTest(unittest.TestCase):
 
     def test_lumen_dark_says_it_is_not_the_pro_dark_mode(self):
         self.assertIn("not the dark mode of KeyHelp Pro", LUMEN_DARK.description)
-        self.assertIn("does not enable, unlock or imitate it", LUMEN_DARK.description)
+        self.assertIn("does not enable or unlock it, has no dark-mode switch", LUMEN_DARK.description)
         self.assertIn("standard light stylesheet", LUMEN_DARK.description)
 
     def test_names_never_overlap(self):
@@ -72,6 +76,15 @@ class VariantDefinitionTest(unittest.TestCase):
                         self.assertFalse(folder.startswith(prefix), (prefix, folder))
             self.assertNotIn("bulma", names)
         self.assertEqual(set(LUMEN.stylesheets) & set(LUMEN_DARK.stylesheets), set())
+
+    def test_the_folder_defaults_to_the_variant_name(self):
+        """The theme folder (the theme id the panel stores) is the --variant value unless a variant
+        names another folder; staging and parking names follow the folder."""
+        for v in VARIANTS.values():
+            self.assertEqual(v.dir_name, v.name)
+        other = dataclasses.replace(LUMEN_DARK, folder="lumennight")
+        self.assertEqual((other.name, other.dir_name), ("lumen-dark", "lumennight"))
+        self.assertEqual(other.leftover_prefixes, (".lumennight-staging-", ".lumennight-previous-"))
 
     def test_backup_folders_and_cli_args(self):
         root = Path("/root/backups/lumen-panel")
@@ -97,15 +110,30 @@ class PatchSetTest(unittest.TestCase):
                        "night-body-class"):
             self.assertIn(wanted, ids)
 
-    def test_lumen_patch_hash_ignores_the_overlay_folder(self):
-        """Lumen's patch-set hash is computed over patches/*.json only, as before Lumen Dark."""
-        import hashlib
-
+    def test_lumen_patch_hash_is_the_one_from_before_the_folder_token(self):
+        """Lumen's patch-set hash covers patches/*.json only, with @@LUMEN_THEME_DIR@@ written out
+        as 'lumen': the hash the same set had before the token existed, so a Lumen installed then is
+        not rebuilt for the token alone. Any other edit still changes it."""
         digest = hashlib.sha256()
         for path in sorted(fk.PATCHES.glob("*.json")):
-            digest.update(path.name.encode() + b"\0" + hashlib.sha256(path.read_bytes()).digest())
-        self.assertEqual(patch_set_sha256(fk.PATCHES), digest.hexdigest())
-        self.assertNotEqual(patch_set_sha256(fk.PATCHES, "lumen-dark"), patch_set_sha256(fk.PATCHES))
+            data = path.read_bytes().replace(b"@@LUMEN_THEME_DIR@@", b"lumen")
+            digest.update(path.name.encode() + b"\0" + hashlib.sha256(data).digest())
+        lumen = patch_set_sha256(fk.PATCHES, theme_dir="lumen")
+        self.assertEqual(lumen, digest.hexdigest())
+        self.assertNotEqual(patch_set_sha256(fk.PATCHES, "lumen-dark", theme_dir="lumen-dark"), lumen)
+        with tempfile.TemporaryDirectory() as tmp:
+            patches = Path(tmp) / "patches"
+            shutil.copytree(fk.PATCHES, patches)
+            shared = patches / "30-intern-island.json"
+            self.assertIn("@@LUMEN_THEME_DIR@@", shared.read_text(encoding="utf-8"))
+            shared.write_text(shared.read_text(encoding="utf-8").replace("@@LUMEN_THEME_DIR@@", "lumen"),
+                              encoding="utf-8")
+            self.assertEqual(patch_set_sha256(patches, theme_dir="lumen"), lumen)
+            self.assertNotEqual(patch_set_sha256(patches, "lumen-dark", theme_dir="lumen-dark"),
+                                patch_set_sha256(fk.PATCHES, "lumen-dark", theme_dir="lumen-dark"),
+                                "for Lumen Dark the literal 'lumen' is a change")
+            shared.write_text(shared.read_text(encoding="utf-8") + " ", encoding="utf-8")
+            self.assertNotEqual(patch_set_sha256(patches, theme_dir="lumen"), lumen)
 
     def test_missing_overlay_fails_loudly(self):
         with self.assertRaises(PatchError):
@@ -168,6 +196,24 @@ class ProBoundaryTest(Env):
         errors = "\n".join(verify(good).errors)
         self.assertIn("can load the default theme's dark stylesheet theme/bulma/assets/css/style-dark.css", errors)
 
+    def test_lumen_dark_patches_add_no_dark_mode_branch(self):
+        """The panel's own templates keep their dark-mode branches where Lumen Dark leaves them
+        (unpatched files, or an anchor an insert_after patch keeps); Lumen Dark's patches only ever
+        remove such branches, never add one. On a panel that never reports dark mode for this theme
+        those branches stay unused."""
+        out = build(self.kh, self.tmp / "lumen-dark", variant=LUMEN_DARK, assets_dir=self.assets,
+                    screenshot_fallback=self.shot).out_dir
+        manifest = json.loads((out / "_lumen_build.json").read_text(encoding="utf-8"))
+        dark_images = re.compile(r"(?<![\w-])dark/")
+        for rel in manifest["patched_files"]:
+            built = (out / "templates" / rel).read_text(encoding="utf-8")
+            original = (self.bulma / "templates" / rel).read_text(encoding="utf-8")
+            self.assertLessEqual(built.count("is_dark_mode"), original.count("is_dark_mode"), rel)
+            self.assertLessEqual(len(dark_images.findall(built)), len(dark_images.findall(original)), rel)
+            self.assertEqual(dark_images.findall(built), [], f"{rel}: every logo is lumen-panel's own")
+        base = (out / "templates" / "layout" / "base.twig").read_text(encoding="utf-8")
+        self.assertEqual(base.count("is_dark_mode"), 1, "only the panel's own body class, kept by night-body-class")
+
     def test_lumen_dark_css_never_uses_the_panel_dark_assets(self):
         """lumen-night.css is index.css + the dark tokens + night.css (+ rtl.css): none of them may
         load or name the default theme's dark stylesheets or its 'dark/' images."""
@@ -191,7 +237,7 @@ class BuildTest(Env):
         manifest = json.loads((out / "_lumen_build.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["variant"], "lumen-dark")
         self.assertEqual(manifest["substitutions"]["LUMEN_THEME_DIR"], "lumen-dark")
-        self.assertEqual(manifest["patches_sha256"], patch_set_sha256(fk.PATCHES, "lumen-dark"))
+        self.assertEqual(manifest["patches_sha256"], patch_set_sha256(fk.PATCHES, "lumen-dark", theme_dir="lumen-dark"))
         css = sorted(p.name for p in (out / "assets").glob("*.css"))
         self.assertEqual(css, ["lumen-night-rtl.css", "lumen-night.css"], "only Lumen Dark's stylesheets")
         self.assertTrue((out / "assets" / "lumen-island.js").is_file())
@@ -432,12 +478,21 @@ class SeparationTest(Env):
         self.assertFalse(self.backups.exists())
 
     def cli(self, *args: str) -> tuple[int, str]:
+        extra = []
+        if args[0] in ("install", "sync"):
+            extra = ["--owner", ""] + ([] if "all" in args else ["--screenshot", str(self.shot)])
+        if args[0] in ("hold", "release"):
+            argv = [*args, "--backup-root", str(self.backups)]
+        else:
+            argv = [*args, "--keyhelp", str(self.kh), "--assets", str(self.assets), "--backup-root", str(self.backups),
+                    *extra]
         stdout, stderr = io.StringIO(), io.StringIO()
         with redirect_stdout(stdout), redirect_stderr(stderr):
-            code = cli.main([*args, "--keyhelp", str(self.kh), "--assets", str(self.assets),
-                             "--backup-root", str(self.backups)] + (["--screenshot", str(self.shot), "--owner", ""]
-                                                                     if args[0] in ("install", "sync") else []))
+            code = cli.main(argv)
         return code, stdout.getvalue() + stderr.getvalue()
+
+    def settings_of(self, folder: Path) -> dict:
+        return json.loads((folder / "_settings.json").read_text(encoding="utf-8"))
 
     def test_cli_variant_all(self):
         code, out = self.cli("sync", "--variant", "all")
@@ -466,6 +521,104 @@ class SeparationTest(Env):
         self.assertEqual(code, inst.EXIT_TEMPFAIL, out)
         self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], "26.2.0")
         self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.1.1")
+
+    def test_cli_variant_all_retries_a_busy_theme_before_reporting_the_other_ones_failure(self):
+        """A busy Lumen (75) and a Lumen Dark whose own patch no longer fits (1): sync --variant all
+        exits 75, so the unit retries Lumen 10 minutes later; once nothing is busy, Lumen is rebuilt
+        and the run exits 1 for Lumen Dark."""
+        self.assertEqual(self.cli("install")[0], 0)
+        self.assertEqual(self.cli("install", "--variant", "lumen-dark")[0], 0)
+        fk.set_version(self.kh, "26.2.0")
+        base = self.bulma / "templates" / "layout" / "base.twig"
+        text = base.read_text(encoding="utf-8")
+        self.assertIn('<meta name="theme-color" content="#ffffff">', text)
+        base.write_text(text.replace('<meta name="theme-color" content="#ffffff">',
+                                     '<meta name="theme-color" content="#fff">'), encoding="utf-8")
+        with inst.run_lock(self.options):
+            code, out = self.cli("sync", "--variant", "all")
+        self.assertEqual(code, inst.EXIT_TEMPFAIL, out)
+        self.assertIn("another lumen-panel run is active for Lumen", out)
+        self.assertIn("[night-theme-color]: anchor not found", out)
+        code, out = self.cli("sync", "--variant", "all")
+        self.assertEqual(code, inst.EXIT_FAILED, out)
+        self.assertEqual(self.settings_of(self.lumen)["lumen_base_version"], "26.2.0", "Lumen follows the panel")
+        self.assertEqual(self.settings_of(self.dark_theme)["lumen_base_version"], "26.1.1",
+                         "Lumen Dark keeps its previous build")
+
+    def test_cli_screenshot_needs_a_single_variant(self):
+        code, out = self.cli("sync", "--variant", "all", "--screenshot", str(self.shot))
+        self.assertEqual(code, inst.EXIT_USAGE, out)
+        self.assertIn("--screenshot needs a single --variant", out)
+        self.assertFalse(self.backups.exists())
+
+    def test_cli_hold_and_release_every_variant(self):
+        code, out = self.cli("hold", "--variant", "all")
+        self.assertEqual(code, 0, out)
+        self.assertTrue((self.backups / "HOLD").is_file())
+        self.assertTrue((self.backups / "lumen-dark" / "HOLD").is_file())
+        self.assertIn("== Lumen Dark (theme/lumen-dark)", out)
+        self.assertIn("release --variant lumen-dark", out)
+        self.assertEqual(self.cli("install", "--variant", "lumen-dark")[0], 0)   # an install ends its hold
+        self.assertFalse((self.backups / "lumen-dark" / "HOLD").exists())
+        self.assertTrue((self.backups / "HOLD").is_file(), "Lumen is still held")
+        code, out = self.cli("release", "--variant", "all")
+        self.assertEqual(code, 0, out)
+        self.assertFalse((self.backups / "HOLD").exists())
+        self.assertIn("not held; nothing to do", out)
+        with inst.run_lock(self.dark):                 # one variant busy: the other is still released
+            self.assertEqual(self.cli("hold", "--variant", "all")[0], inst.EXIT_TEMPFAIL)
+        self.assertTrue((self.backups / "HOLD").is_file())
+        self.assertFalse((self.backups / "lumen-dark" / "HOLD").exists())
+
+    def test_sync_moves_the_leftovers_of_a_theme_that_is_not_installed(self):
+        """A first install stopped after the build wrote _settings.json leaves a folder the panel may
+        list; the next sync of that theme moves it to its backups, and only that theme's folders."""
+        self.assertEqual(self.cli("install")[0], 0)
+        stale = self.kh / "theme" / ".lumen-dark-staging-20261021T030000000000Z"
+        stale.mkdir()
+        (stale / "_settings.json").write_text('{"name": "Lumen Dark"}', encoding="utf-8")
+        code, out = self.cli("sync", "--variant", "all")
+        self.assertEqual(code, 0, out)
+        self.assertIn("Lumen Dark is not installed", out)
+        self.assertEqual(self.theme_dirs(), ["bulma", "lumen"])
+        moved = list((self.backups / "lumen-dark").glob("*/stale/.lumen-dark-staging-20261021T030000000000Z"))
+        self.assertEqual(len(moved), 1, out)
+        lumen_left = self.kh / "theme" / ".lumen-previous-20261021T040000000000Z"
+        lumen_left.mkdir()
+        stale.mkdir()
+        code, out = lines(inst.sync, self.kh, options=self.dark)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.theme_dirs(), [".lumen-previous-20261021T040000000000Z", "bulma", "lumen"],
+                         "Lumen's leftover waits for a run of Lumen")
+        self.assertFalse(stale.exists())
+
+    def test_a_build_and_backup_from_before_lumen_dark_still_verify_and_roll_back(self):
+        """What Lumen looked like before variants existed (the live panel's first install): a build
+        record without "variant", substitutions without LUMEN_THEME_DIR and patch texts with the
+        literal /theme/lumen/. verify (with and without the panel), check-update and rollback --from
+        must keep reading it."""
+        with self.at("7Z"):
+            self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        record = self.lumen / "_lumen_build.json"
+        data = json.loads(record.read_text(encoding="utf-8"))
+        data.pop("variant")
+        data["substitutions"].pop("LUMEN_THEME_DIR")
+        for item in data["patches"]:
+            item["text"] = item["text"].replace("@@LUMEN_THEME_DIR@@", "lumen")
+        record.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        for report in (verify(self.lumen), verify(self.lumen, self.kh), verify(self.lumen, self.kh, variant=LUMEN)):
+            self.assertTrue(report.ok, report.errors)
+        code, out = lines(inst.check_update, self.kh, options=self.options)
+        self.assertEqual(code, 0, out)
+        saved = self.backups / "20261021T000000000000Z"
+        saved.mkdir(parents=True)
+        shutil.copytree(self.lumen, saved / "lumen")
+        with self.at("8Z"):
+            code, out = lines(inst.rollback, self.kh, saved, options=self.options)
+        self.assertEqual(code, 0, out)
+        self.assertTrue((self.backups / "HOLD").is_file())
+        self.assertFalse((self.backups / "lumen-dark").exists(), "Lumen Dark's folder is not touched")
+        self.assertTrue(verify(self.lumen, self.kh).ok)
 
     def test_cli_verify_reads_the_variant_from_the_build_record(self):
         self.assertEqual(self.cli("install", "--variant", "lumen-dark")[0], 0)

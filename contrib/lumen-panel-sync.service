@@ -9,10 +9,12 @@
 #
 # "sync --variant all" syncs every installed theme, Lumen (theme/lumen) and Lumen Dark
 # (theme/lumen-dark), one after the other; a theme that is not installed is skipped. It exits 0
-# when every installed theme is current, rebuilt or held; 1 when a rebuild was due and failed (that
-# theme's previous build stays active; the other theme is still synced), and the unit then shows
-# as failed; 75 when another run holds a theme's lock or the default theme changed during the copy
-# (a panel update was still running): the unit starts again 10 minutes later.
+# when every installed theme is current, rebuilt or held; 75 when another run holds a theme's lock
+# or the default theme changed during the copy (a panel update was still running): the unit starts
+# again 10 minutes later; 1 when a rebuild was due and failed (that theme's previous build stays
+# active; the other theme is still synced), and the unit then shows as failed. 75 wins over 1 and
+# 2, so a busy or still-updating theme is retried even when the other one failed; that failure
+# shows on the last retry, when nothing is busy any more.
 [Unit]
 Description=lumen-panel: rebuild the Lumen themes after a panel update
 Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md

@@ -609,7 +609,7 @@ def _check_update(tree: KeyHelpTree, options: Options, out: Out) -> int:
         out(f"note: {options.assets_dir} not found; the built assets were not compared")
     if options.patches_dir.is_dir():
         try:
-            current_patches = patch_set_sha256(options.patches_dir, v.patch_overlay)
+            current_patches = patch_set_sha256(options.patches_dir, v.patch_overlay, theme_dir=v.dir_name)
         except PatchError as exc:
             current_patches = f"unreadable ({'; '.join(exc.failures)})"
         if manifest.get("patches_sha256") != current_patches:
@@ -646,6 +646,9 @@ def sync(keyhelp_root: Path, *, options: Options = Options(), now: _dt.datetime 
         if code == EXIT_REBUILD_NEEDED:
             return _install(tree, options, timestamp(now), now, out)
         if code == EXIT_NOT_INSTALLED:
+            # Folders a stopped first install left (one may carry a _settings.json) go to the backups.
+            if leftovers(tree, v):
+                _clear_leftovers(tree, _new_backup(options, timestamp(now)), out, v)
             out(f"sync: {v.display_name} is not installed; nothing to do (run 'install{v.cli_args}' first)")
             return EXIT_OK
         if code == EXIT_OK and leftovers(tree, v):

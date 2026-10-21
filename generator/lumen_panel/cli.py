@@ -13,8 +13,9 @@
 
 --variant picks the theme: lumen (theme/lumen, "Lumen", the default) or lumen-dark
 (theme/lumen-dark, "Lumen Dark", always dark). check-update and sync also take --variant all,
-which checks or syncs every installed variant, one after the other. verify reads the variant from
-the build record unless --variant names the one expected.
+which checks or syncs every installed variant, one after the other; hold and release take it too
+and hold or release every variant. verify reads the variant from the build record unless
+--variant names the one expected.
 
 Exit codes: 0 ok, 1 failed, 2 usage or input error, 3 not installed, 4 the theme is still active,
 5 not confirmed, 10 rebuild needed, 75 busy or the default theme changed meanwhile (retry later).
@@ -43,7 +44,7 @@ def _variant_option(p: argparse.ArgumentParser, *, allow_all: bool = False, defa
     choices = [*variants.VARIANTS, *([ALL] if allow_all else [])]
     text = "the theme: lumen (theme/lumen) or lumen-dark (theme/lumen-dark, always dark)"
     if allow_all:
-        text += "; all: every installed variant"
+        text += "; all: every variant (sync and check-update: every installed one)"
     if default is None:
         text = "the variant the folder must hold (default: the one its build record names)"
     else:
@@ -110,7 +111,7 @@ def parser() -> argparse.ArgumentParser:
         h = sub.add_parser(name, help=text)
         h.add_argument("--backup-root", type=Path, default=DEFAULT_BACKUP_ROOT,
                        help="where the hold is recorded (default: %(default)s)")
-        _variant_option(h)
+        _variant_option(h, allow_all=True)
     sub.add_parser("version", help="print the version")
     return p
 
@@ -139,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
         previous = None
     try:
         if getattr(args, "variant", None) == ALL:
+            if args.command in ("hold", "release"):
+                return _run_each(args)
             return _run_all(args)
         return _run(args)
     finally:
@@ -146,9 +149,27 @@ def main(argv: list[str] | None = None) -> int:
             signal.signal(signal.SIGTERM, previous)
 
 
+def _run_each(args: argparse.Namespace) -> int:
+    """hold or release every variant, installed or not (they need no KeyHelp root); the first code
+    that is not 0 wins. A hold of a variant that is not installed changes nothing until it is."""
+    codes: list[int] = []
+    for v in variants.VARIANTS.values():
+        print(f"== {v.display_name} (theme/{v.dir_name})")
+        codes.append(_run(args, v))
+    return next((c for c in codes if c != EXIT_OK), EXIT_OK)
+
+
 def _run_all(args: argparse.Namespace) -> int:
     """check-update or sync for every variant, one after the other; one variant's failure does not
-    stop the others. sync skips a variant that is not installed (no lock, no backup folder)."""
+    stop the others. sync skips a variant that is not installed (no lock, no backup folder).
+
+    sync's exit code: 75 wins over 1 and 2, so that a variant that was busy or saw the default theme
+    still changing is retried (the unit restarts on 75 only); the other variant's failure then shows
+    on the last retry, when nothing is busy any more. A retry is harmless: a failing build writes
+    nothing."""
+    if getattr(args, "screenshot", None) is not None:
+        print("error: --screenshot needs a single --variant (each theme has its own preview)", file=sys.stderr)
+        return EXIT_USAGE
     try:
         tree = KeyHelpTree(args.keyhelp).validate()
     except KeyHelpError as exc:
@@ -169,7 +190,7 @@ def _run_all(args: argparse.Namespace) -> int:
         if rest:
             return rest[0]
         return EXIT_NOT_INSTALLED if all(c == EXIT_NOT_INSTALLED for c in codes) else EXIT_OK
-    for severe in (EXIT_FAILED, EXIT_USAGE, EXIT_TEMPFAIL):
+    for severe in (EXIT_TEMPFAIL, EXIT_FAILED, EXIT_USAGE):
         if severe in codes:
             return severe
     return next((c for c in codes if c not in (EXIT_OK, EXIT_NOT_INSTALLED)), EXIT_OK)

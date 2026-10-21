@@ -127,8 +127,9 @@ def _readme(result_version: str, base_version: str, variant: Variant = DEFAULT_V
     dark = ""
     if not variant.has_dark_mode:
         dark = ("The theme is always dark. Its dark design is lumen-panel's own stylesheet on top of the\n"
-                "default theme's standard (light) stylesheet; it is not the dark mode of KeyHelp Pro and does\n"
-                "not enable, unlock or imitate it.\n\n")
+                "default theme's standard (light) stylesheet. It is not the dark mode of KeyHelp Pro: it does\n"
+                "not enable or unlock it, has no dark-mode switch, and loads none of its dark stylesheets or\n"
+                "images.\n\n")
     return (
         variant.display_name + " theme for the KeyHelp hosting panel, built by lumen-panel " + result_version + ".\n"
         "a Luminare Development open-source project: https://github.com/luminare-dev/lumen-panel\n\n"
@@ -241,7 +242,7 @@ def build(keyhelp_root: Path, out_dir: Path, *, variant: Variant = DEFAULT_VARIA
         "template_sha256": template_sha,
         "patched_files": patched_files(patches),
         "patches": [patch_record(p) for p in patches],
-        "patches_sha256": patch_set_sha256(patches_dir, variant.patch_overlay),
+        "patches_sha256": patch_set_sha256(patches_dir, variant.patch_overlay, theme_dir=variant.dir_name),
         "substitutions": substitutions,
         "assets": assets,
         "asset_hash": asset_hash_value,

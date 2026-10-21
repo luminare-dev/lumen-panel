@@ -7,9 +7,10 @@
 
 Lumen Dark is a dark design, not the panel's dark mode. Its _settings.json declares no dark mode
 (has_dark_mode false), its patches load the default theme's standard stylesheet (style.css or
-style-rtl.css) whatever the panel's dark-mode setting says, and nothing of it sets, reads for
-styling or imitates the dark-mode switch, the dark stylesheets or the 'dark/' images of KeyHelp
-Pro (docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md).
+style-rtl.css) whatever the panel's dark-mode setting says, and nothing of it sets or imitates the
+dark-mode switch or loads the dark stylesheets or the 'dark/' images of KeyHelp Pro. The
+body.dark-mode hooks of the shared Lumen code stay inert in Lumen Dark, where the dark tokens are
+always on :root (docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md).
 
 Both variants are built the same way from one assets folder and one patch folder, and each keeps
 its own theme folder, staging and parking names in theme/, backup folder (with its own run lock
@@ -42,18 +43,22 @@ class Variant:
     screenshot_file: Path           # pre-rendered preview, copied without PyMuPDF
     patch_overlay: str | None = None   # subfolder of the patch folder with this variant's patches
     backup_subdir: str | None = None   # subfolder of the backup root (None: the root itself)
+    folder: str | None = None          # folder below theme/, when it differs from name
 
     @property
     def dir_name(self) -> str:
-        return self.name
+        """The theme folder below theme/, which is also the theme id the panel stores when the
+        theme is selected. It defaults to the --variant value; a different folder name is one
+        constant (``folder``) and leaves the command line as it is."""
+        return self.folder or self.name
 
     @property
     def staging_prefix(self) -> str:
-        return f".{self.name}-staging-"
+        return f".{self.dir_name}-staging-"
 
     @property
     def parking_prefix(self) -> str:
-        return f".{self.name}-previous-"
+        return f".{self.dir_name}-previous-"
 
     @property
     def leftover_prefixes(self) -> tuple[str, str]:
@@ -87,8 +92,9 @@ LUMEN_DARK = Variant(
     display_name="Lumen Dark",
     description=("A modern theme for the KeyHelp hosting panel that is always dark, a Luminare Development "
                  "open-source project (lumen-panel). The dark design is lumen-panel's own stylesheet on top of "
-                 "the panel's standard light stylesheet: it is not the dark mode of KeyHelp Pro and does not "
-                 "enable, unlock or imitate it. " + NOT_AFFILIATED),
+                 "the panel's standard light stylesheet. It is not the dark mode of KeyHelp Pro: it does not "
+                 "enable or unlock it, has no dark-mode switch, and loads none of its dark stylesheets or "
+                 "images. " + NOT_AFFILIATED),
     has_dark_mode=False,
     stylesheets=("lumen-night.css", "lumen-night-rtl.css"),
     screenshot_palette="night",

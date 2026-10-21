@@ -223,12 +223,21 @@ def apply_patches(templates_dir: Path, patches: list[Patch], substitutions: dict
     return patches
 
 
-def patch_set_sha256(directory: Path, overlay: str | None = None) -> str:
+def patch_set_sha256(directory: Path, overlay: str | None = None, *, theme_dir: str | None = None) -> str:
     """One sha256 over the source names and bytes of a variant's patch files, in the order they
-    apply (for Lumen: every patches/*.json file, sorted)."""
+    apply (for Lumen: every patches/*.json file, sorted).
+
+    With ``theme_dir``, the hash covers each file with @@LUMEN_THEME_DIR@@ written out as that
+    folder name, which is what the build applies: a change between the token and the literal
+    folder name changes no built template and no hash (Lumen's hash is the one of the patch set
+    before the token existed), while any other edit still does."""
     digest = hashlib.sha256()
+    token = b"@@LUMEN_THEME_DIR@@"
     for source, path in patch_files(directory, overlay):
-        digest.update(source.encode("utf-8") + b"\0" + hashlib.sha256(path.read_bytes()).digest())
+        data = path.read_bytes()
+        if theme_dir is not None:
+            data = data.replace(token, theme_dir.encode("utf-8"))
+        digest.update(source.encode("utf-8") + b"\0" + hashlib.sha256(data).digest())
     return digest.hexdigest()
 
 

@@ -5,8 +5,8 @@ A KeyHelp update replaces the default theme (`theme/bulma`) but leaves `theme/lu
 from the day of their last build, so after an update they can be older than the panel. The
 generator notices this and rebuilds; nothing of KeyHelp has to be downloaded, because the new
 default theme is already on the server. Every command below works on Lumen; add
-`--variant lumen-dark` for Lumen Dark, or `--variant all` (`check-update` and `sync` only) for
-every installed theme.
+`--variant lumen-dark` for Lumen Dark, or `--variant all` for every installed theme
+(`check-update` and `sync`) or every theme (`hold` and `release`).
 
 KeyHelp is a registered trademark of Keyweb AG. lumen-panel is not affiliated with or endorsed by
 Keyweb AG.
@@ -41,8 +41,10 @@ its own) or the sha256 of the theme's patch set (`patches/*.json`, for Lumen Dar
 staging folder, one atomic swap, the previous build and its compiled Twig templates go to
 `/root/backups/lumen-panel/<timestamp>/` (Lumen Dark: `/root/backups/lumen-panel/lumen-dark/<timestamp>/`).
 When nothing changed, `sync` only prints `up to date (...)`; when a theme is not installed, it
-does nothing for it and exits 0. With `--variant all`, one theme's failure does not stop the other,
-and the exit code is the worst of the two.
+does nothing for it and exits 0. With `--variant all`, one theme's failure does not stop the other.
+`sync --variant all` then exits 75 when a theme was busy or the default theme was still changing,
+even if the other theme failed, so the service retries it 10 minutes later; otherwise 1 when a
+rebuild failed, 2 for an input error, 0 when everything is current, rebuilt or held.
 
 The build reads every default template once and checks that the default theme was the same
 before, during and after copying. If a KeyHelp update rewrites it meanwhile, the build stops with
@@ -115,10 +117,11 @@ you just rolled back; the other theme is still synced. `check-update` still repo
 rebuild is due and prints the hold.
 
 ```bash
-sudo python3 -m lumen_panel hold      # hold by hand, for example for a maintenance window
-sudo python3 -m lumen_panel release   # let sync rebuild again
+sudo python3 -m lumen_panel hold      # hold Lumen by hand, for example for a maintenance window
+sudo python3 -m lumen_panel release   # let sync rebuild it again
 sudo python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp   # rebuild now; also releases the hold
 sudo python3 -m lumen_panel hold --variant lumen-dark                     # the same for Lumen Dark
+sudo python3 -m lumen_panel hold --variant all                            # both themes (release --variant all)
 ```
 
 ## When the patch set does not fit the new templates
