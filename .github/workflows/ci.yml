@@ -1,6 +1,7 @@
 # Caller: lint, tests and the full-history secret scan on every pull request and push to main,
-# plus the project's own asset build (stylesheets, command palette, gallery) and an end-to-end
-# generator build against the fake panel tree of the tests.
+# plus the project's own asset build (stylesheets, command palette, gallery: type check, unit
+# tests, build, bundle check) and an end-to-end generator build against the fake panel tree of
+# the tests. The static gallery is kept as a build artifact for 14 days.
 # Required checks for the main ruleset: "ci / lint-test", "assets", "secrets / gitleaks".
 name: ci
 
@@ -49,10 +50,13 @@ jobs:
       - name: Install the locked dependencies (no install scripts)
         run: npm ci --ignore-scripts
 
-      - name: Command palette unit tests
+      - name: Type check (TypeScript, command palette and gallery)
+        run: npm run typecheck
+
+      - name: Command palette unit tests (Vitest, jsdom, Testing Library)
         run: npm test
 
-      - name: Build stylesheets, command palette and gallery
+      - name: Build stylesheets, command palette (with its size and API check) and gallery
         run: npm run build
 
       - name: Contrast table is current and every pair passes
@@ -65,6 +69,17 @@ jobs:
           cd generator
           python3 -m lumen_panel build --keyhelp "$RUNNER_TEMP/keyhelp" --out "$RUNNER_TEMP/lumen"
           python3 -m lumen_panel verify "$RUNNER_TEMP/lumen" --keyhelp "$RUNNER_TEMP/keyhelp"
+          test -f "$RUNNER_TEMP/lumen/assets/lumen-island.js"
 
       - name: Built file sizes
-        run: ls -l dist/assets dist/assets/brand dist/gallery
+        run: |
+          ls -l dist/assets dist/assets/brand gallery/dist gallery/dist/assets
+          node scripts/check-island.mjs
+
+      - name: Keep the static gallery as a build artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gallery
+          path: gallery/dist
+          if-no-files-found: error
+          retention-days: 14
