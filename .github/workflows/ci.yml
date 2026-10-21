@@ -69,7 +69,8 @@ jobs:
           python3 tests/fakekeyhelp.py "$RUNNER_TEMP/keyhelp"
           cd generator
           for variant in lumen lumen-dark; do
-            python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp" --out "$RUNNER_TEMP/$variant"
+            python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp" \
+              --out "$RUNNER_TEMP/$variant"
             python3 -m lumen_panel verify "$RUNNER_TEMP/$variant" --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp"
             test -f "$RUNNER_TEMP/$variant/assets/lumen-island.js"
           done
