@@ -52,9 +52,11 @@ updates:
     open-pull-requests-limit: 5
     groups:
       react:
-        patterns: ["react", "react-dom", "@vitejs/plugin-react"]
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "@vitejs/plugin-react"]
       build-tools:
-        patterns: ["vite", "lightningcss"]
+        patterns: ["vite", "lightningcss", "typescript"]
+      test-tools:
+        patterns: ["vitest", "jsdom", "@testing-library/*"]
     ignore:
       # The gallery mirrors the panel's default theme, which is built on Bulma 0.9.4.
       - dependency-name: bulma

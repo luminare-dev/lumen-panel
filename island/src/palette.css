@@ -1,35 +1,138 @@
 /*
- * Command palette styles. They live in the island's shadow root and cannot affect the panel.
- * Colours come from the theme's --lm-* tokens, which inherit into the shadow root; the
- * fallbacks are the light-mode values for pages without the Lumen stylesheet.
+ * Command palette styles. They live in the island's shadow roots and cannot affect the panel.
+ *
+ * Colours come from the theme's --lm-* tokens, which inherit into the shadow roots, so the
+ * palette follows the panel's light or dark mode exactly. The fallbacks after each token are the
+ * same values (light in .lm, dark in .lm.is-dark; tests/test_island_css.py keeps them equal to
+ * src/styles/tokens.css) for a page where the Lumen stylesheet is missing.
  */
 
 :host {
   all: initial;
 }
 
+.lm {
+  --p-font: var(--lm-font, system-ui, sans-serif);
+  --p-mono: var(--lm-font-mono, ui-monospace, monospace);
+  --p-overlay: var(--lm-overlay, rgb(10 18 36 / 55%));
+  --p-surface: var(--lm-surface, #FFFFFF);
+  --p-surface-raised: var(--lm-surface-raised, #FFFFFF);
+  --p-surface-sunken: var(--lm-surface-sunken, #F3F6FB);
+  --p-surface-hover: var(--lm-surface-hover, #F2F4FB);
+  --p-border: var(--lm-border, #E3E8F1);
+  --p-border-control: var(--lm-border-control, #79859C);
+  --p-text: var(--lm-text, #0A1224);
+  --p-text-2: var(--lm-text-2, #39445C);
+  --p-text-muted: var(--lm-text-muted, #5E6B84);
+  --p-primary: var(--lm-primary, #1F47C4);
+  --p-primary-tint: var(--lm-primary-tint, #E9EDF9);
+  --p-on-primary-tint: var(--lm-on-primary-tint, #1F47C4);
+  --p-focus: var(--lm-focus, #1F47C4);
+  --p-shadow: var(--lm-shadow-2, 0 12px 32px rgb(10 18 36 / 12%));
+  --p-radius-s: var(--lm-radius-s, 6px);
+  --p-radius-m: var(--lm-radius-m, 10px);
+  --p-radius-xl: var(--lm-radius-xl, 14px);
+  --p-ring: var(--lm-ring, 2px);
+  --p-ease: var(--lm-ease, ease-out);
+
+  color: var(--p-text);
+  color-scheme: light;
+  font-family: var(--p-font);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.lm.is-dark {
+  --p-overlay: var(--lm-overlay, rgb(3 6 14 / 72%));
+  --p-surface: var(--lm-surface, #10182B);
+  --p-surface-raised: var(--lm-surface-raised, #131C2F);
+  --p-surface-sunken: var(--lm-surface-sunken, #0D1527);
+  --p-surface-hover: var(--lm-surface-hover, #102236);
+  --p-border: var(--lm-border, #303A4F);
+  --p-border-control: var(--lm-border-control, #5E6B84);
+  --p-text: var(--lm-text, #F3F6FB);
+  --p-text-2: var(--lm-text-2, #B7C1D3);
+  --p-text-muted: var(--lm-text-muted, #9CA7BB);
+  --p-primary: var(--lm-primary, #5BDFFF);
+  --p-primary-tint: var(--lm-primary-tint, #142B3E);
+  --p-on-primary-tint: var(--lm-on-primary-tint, #5BDFFF);
+  --p-focus: var(--lm-focus, #06F2C4);
+  --p-shadow: var(--lm-shadow-2, 0 16px 40px rgb(0 0 0 / 45%));
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:focus-visible {
+  outline: var(--p-ring) solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+/* Header button ------------------------------------------------------------------------- */
+
+.trigger {
+  align-items: center;
+  background: var(--p-surface);
+  border: 1px solid var(--p-border-control);
+  border-radius: var(--p-radius-m);
+  color: var(--p-text-2);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 14px;
+  gap: 8px;
+  min-height: 36px;
+  padding-block: 0;
+  padding-inline: 12px 8px;
+}
+
+.trigger:hover {
+  background: var(--p-surface-hover);
+  color: var(--p-text);
+}
+
+.trigger .icon {
+  color: currentcolor;
+  height: 18px;
+  width: 18px;
+}
+
+@media (width < 769px) {
+  .trigger {
+    justify-content: center;
+    min-width: 36px;
+    padding: 0;
+  }
+
+  .trigger-label,
+  .trigger kbd {
+    display: none;
+  }
+}
+
+/* Dialog -------------------------------------------------------------------------------- */
+
 .backdrop {
   align-items: flex-start;
-  background: var(--lm-overlay, rgb(10 18 36 / 55%));
-  box-sizing: border-box;
-  color: var(--lm-text, #0A1224);
+  background: var(--p-overlay);
   display: flex;
-  font-family: var(--lm-font, system-ui, sans-serif);
-  font-size: 15px;
   inset: 0;
   justify-content: center;
-  line-height: 1.45;
   padding: 12vh 16px 16px;
   position: fixed;
   z-index: 10050; /* above the panel's modals (10001) and tooltips (10000) */
 }
 
 .dialog {
-  background: var(--lm-surface-raised, #FFFFFF);
-  border: 1px solid var(--lm-border, #E3E8F1);
-  border-radius: var(--lm-radius-xl, 14px);
-  box-shadow: var(--lm-shadow-2, 0 12px 32px rgb(10 18 36 / 12%));
-  box-sizing: border-box;
+  background: var(--p-surface-raised);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-xl);
+  box-shadow: var(--p-shadow);
   display: flex;
   flex-direction: column;
   max-height: min(560px, 76vh);
@@ -39,18 +142,19 @@
 
 .search {
   align-items: center;
-  border-bottom: 1px solid var(--lm-border, #E3E8F1);
+  border-bottom: 1px solid var(--p-border);
   display: flex;
   gap: 12px;
-  padding: 12px 16px;
+  padding-block: 12px;
+  padding-inline: 16px 12px;
 }
 
 .search:focus-within {
-  box-shadow: inset 0 -2px 0 var(--lm-focus, #1F47C4);
+  box-shadow: inset 0 -2px 0 var(--p-focus);
 }
 
 .icon {
-  color: var(--lm-text-muted, #5E6B84);
+  color: var(--p-text-muted);
   flex: none;
   height: 20px;
   width: 20px;
@@ -59,7 +163,7 @@
 input {
   background: transparent;
   border: 0;
-  color: var(--lm-text, #0A1224);
+  color: var(--p-text);
   flex: 1;
   font: inherit;
   font-size: 16px;
@@ -69,8 +173,19 @@ input {
 }
 
 input::placeholder {
-  color: var(--lm-text-muted, #5E6B84);
+  color: var(--p-text-muted);
   opacity: 1;
+}
+
+.close {
+  background: none;
+  border: 0;
+  border-radius: var(--p-radius-s);
+  cursor: pointer;
+  flex: none;
+  min-height: 24px;
+  min-width: 24px;
+  padding: 4px;
 }
 
 .results {
@@ -83,8 +198,8 @@ input::placeholder {
 
 .option {
   align-items: center;
-  border-radius: var(--lm-radius-m, 10px);
-  color: var(--lm-text, #0A1224);
+  border-radius: var(--p-radius-m);
+  color: var(--p-text);
   cursor: pointer;
   display: flex;
   gap: 12px;
@@ -94,12 +209,12 @@ input::placeholder {
 }
 
 .option.is-active {
-  background: var(--lm-primary-tint, #E9EDF9);
-  color: var(--lm-on-primary-tint, #1F47C4);
+  background: var(--p-primary-tint);
+  color: var(--p-on-primary-tint);
 }
 
 .option.is-active::before {
-  background: var(--lm-primary, #1F47C4);
+  background: var(--p-primary);
   border-end-end-radius: 3px;
   border-start-end-radius: 3px;
   content: "";
@@ -127,7 +242,7 @@ mark {
 }
 
 .group {
-  color: var(--lm-text-muted, #5E6B84);
+  color: var(--p-text-muted);
   flex: none;
   font-size: 13px;
   margin-inline-start: auto;
@@ -139,7 +254,7 @@ mark {
 
 .badge {
   border: 1px solid currentcolor;
-  border-radius: var(--lm-radius-pill, 999px);
+  border-radius: 999px;
   flex: none;
   font-size: 12px;
   font-weight: 600;
@@ -147,15 +262,15 @@ mark {
 }
 
 .empty {
-  color: var(--lm-text-muted, #5E6B84);
+  color: var(--p-text-muted);
   margin: 0;
   padding: 24px 16px;
   text-align: center;
 }
 
 .hint {
-  border-top: 1px solid var(--lm-border, #E3E8F1);
-  color: var(--lm-text-muted, #5E6B84);
+  border-top: 1px solid var(--p-border);
+  color: var(--p-text-muted);
   display: flex;
   flex-wrap: wrap;
   font-size: 13px;
@@ -165,14 +280,15 @@ mark {
 }
 
 kbd {
-  background: var(--lm-surface-sunken, #F3F6FB);
-  border: 1px solid var(--lm-border-control, #79859C);
+  background: var(--p-surface-sunken);
+  border: 1px solid var(--p-border-control);
   border-bottom-width: 2px;
-  border-radius: var(--lm-radius-s, 6px);
-  color: var(--lm-text-2, #39445C);
-  font-family: var(--lm-font-mono, ui-monospace, monospace);
+  border-radius: var(--p-radius-s);
+  color: var(--p-text-2);
+  font-family: var(--p-mono);
   font-size: 12px;
   padding: 0 6px;
+  white-space: nowrap;
 }
 
 .visually-hidden {
@@ -185,9 +301,14 @@ kbd {
   white-space: nowrap;
 }
 
+/* Motion only for people who have not asked their system to reduce it. */
 @media (prefers-reduced-motion: no-preference) {
   .dialog {
-    animation: lumen-palette-in 140ms var(--lm-ease, ease-out);
+    animation: lumen-palette-in 140ms var(--p-ease);
+  }
+
+  .trigger {
+    transition: background-color 120ms var(--p-ease), color 120ms var(--p-ease);
   }
 }
 
@@ -201,5 +322,10 @@ kbd {
 @media (forced-colors: active) {
   .option.is-active {
     outline: 2px solid Highlight;
+  }
+
+  .trigger,
+  .dialog {
+    border-color: CanvasText;
   }
 }

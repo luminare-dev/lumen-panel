@@ -1,6 +1,7 @@
 // Build the command palette as one IIFE file: dist/assets/lumen-island.js.
-// React is bundled in (production build); the stylesheet is inlined as a string for the
-// shadow root. No code splitting, no dynamic imports, no network requests at run time.
+// React is bundled in (production build); the stylesheet is inlined as a string for the shadow
+// roots. No code splitting, no dynamic imports, no network requests at run time
+// (scripts/check-island.mjs checks the built file).
 import react from "@vitejs/plugin-react";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -19,9 +20,10 @@ export default defineConfig({
     emptyOutDir: false,
     copyPublicDir: false,
     sourcemap: false,
+    minify: true,
     target: ["chrome111", "edge111", "firefox121", "safari16.4"],
     lib: {
-      entry: "island/src/main.jsx",
+      entry: "island/src/main.ts",
       name: "LumenIsland",
       formats: ["iife"],
       fileName: () => "lumen-island.js",
