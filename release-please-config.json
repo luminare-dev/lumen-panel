@@ -23,6 +23,12 @@
     { "type": "ci", "section": "CI", "hidden": true },
     { "type": "chore", "section": "Maintenance", "hidden": true }
   ],
+  "extra-files": [
+    "generator/lumen_panel/__init__.py",
+    { "type": "json", "path": "package.json", "jsonpath": "$.version" },
+    { "type": "json", "path": "package-lock.json", "jsonpath": "$.version" },
+    { "type": "json", "path": "package-lock.json", "jsonpath": "$.packages[''].version" }
+  ],
   "packages": {
     ".": {}
   }

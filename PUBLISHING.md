@@ -30,7 +30,7 @@ Facts and links in this file were checked on 2026-10-06 (A7 and B17 on 2026-10-0
       `docs/brand` to `build_ignore` in `galaxy.yml`, so the brand files, which the licence does
       not cover, stay out of the collection artifact. Check the header on Galaxy after the
       first import.
-- [ ] **A4 Licence.** Follow [licenses/CHOOSING.md](licenses/CHOOSING.md): `LICENSE`, the README's
+- [ ] **A4 Licence.** Follow [licenses/CHOOSING.md](https://github.com/luminare-dev/oss-template/blob/main/licenses/CHOOSING.md) (in oss-template): `LICENSE`, the README's
       licence line, then remove the unused texts in `licenses/`. Always copy `LICENSE` fresh from
       `licenses/` with the year of first publication, even when MIT is kept: the template's own
       `LICENSE` carries the template's year.
