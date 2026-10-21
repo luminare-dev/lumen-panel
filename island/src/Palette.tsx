@@ -287,7 +287,9 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
               </button>
             </div>
             <ul id={ids.list} ref={listRef} className="results" role="listbox" aria-label={t.results}>
-              {results.map(({ entry, indices }, index) => (
+              {results.map(({ entry, indices }, index) => {
+                const groupLang = entry.group === t.account ? t.code : pageLang;
+                return (
                 <li
                   key={entry.id}
                   id={`${uid}-opt-${index}`}
@@ -317,16 +319,17 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
                   {entry.newTab && <span className="visually-hidden">{`, ${t.newTab}`}</span>}
                   {entry.group && (
                     <>
-                      <span className="group" aria-hidden="true">
+                      <span className="group" aria-hidden="true" lang={groupLang}>
                         {entry.group}
                       </span>
-                      <span className="visually-hidden" lang={entry.group === t.account ? t.code : pageLang}>
+                      <span className="visually-hidden" lang={groupLang}>
                         {`, ${entry.group}`}
                       </span>
                     </>
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
             {count === 0 && <p className="empty">{t.empty}</p>}
             <p id={ids.status} className="visually-hidden" role="status" aria-live="polite">
