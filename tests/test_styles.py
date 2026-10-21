@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -11,7 +12,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 STYLES = ROOT / "src" / "styles"
 CSS_FILES = sorted(STYLES.rglob("*.css")) + [ROOT / "island" / "src" / "palette.css"]
-KIT = Path("/root/important/brand")
+# The Luminare brand kit is not part of the repository; point LUMEN_BRAND_KIT at a local copy to
+# compare the brand colours with it.
+KIT = Path(os.environ.get("LUMEN_BRAND_KIT", "/nonexistent"))
 
 sys.path.insert(0, str(ROOT / "scripts"))
 import contrast  # noqa: E402

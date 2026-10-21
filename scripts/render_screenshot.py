@@ -2,9 +2,9 @@
 """Render the theme preview (assets/brand/theme-screenshot.png) with PyMuPDF.
 
 The generator copies this file as _screenshot.png when PyMuPDF is not available on the server.
-Run it with a Python that has PyMuPDF, for example the brand venv:
+Run it with a Python that has PyMuPDF (pip install pymupdf):
 
-    /root/projects/.venvs/brand/bin/python scripts/render_screenshot.py
+    python scripts/render_screenshot.py
 """
 
 from __future__ import annotations
