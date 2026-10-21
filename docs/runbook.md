@@ -2,35 +2,11 @@
 
 ## Daily rebuild after panel updates (optional timer)
 
-A systemd timer can keep the theme in step with the panel. Example units (adapt the paths;
-`/opt/lumen-panel` is the checkout with a built `dist/assets/`):
-
-```ini
-# /etc/systemd/system/lumen-panel-sync.service
-[Unit]
-Description=Rebuild the Lumen panel theme when the default theme changed
-
-[Service]
-Type=oneshot
-WorkingDirectory=/opt/lumen-panel/generator
-ExecStart=/usr/bin/python3 -m lumen_panel sync --keyhelp /home/keyhelp/www/keyhelp
-Nice=19
-MemoryMax=200M
-
-# /etc/systemd/system/lumen-panel-sync.timer
-[Unit]
-Description=Daily Lumen theme check
-
-[Timer]
-OnCalendar=*-*-* 05:30:00
-RandomizedDelaySec=15m
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-```
-
-The sync itself needs no Node.js: it reuses the built `dist/assets/`.
+The example units [`contrib/lumen-panel-sync.service`](../contrib/lumen-panel-sync.service) and
+[`contrib/lumen-panel-sync.timer`](../contrib/lumen-panel-sync.timer) run
+`python3 -m lumen_panel sync` once a day in a sandbox with a 200 MB memory limit. Installing,
+checking and removing them: [Keeping the theme current](update.md#daily-timer-optional). The sync
+needs no Node.js: it reuses the built `dist/assets/`.
 
 ## Failure: lumen-panel-sync.service failed
 
@@ -40,7 +16,7 @@ The sync itself needs no Node.js: it reuses the built `dist/assets/`.
 | **Impact** | None at first: the previous Lumen build stays active and nothing was changed. Its templates come from the older default theme, so new panel features may be missing on some pages until the patch set is updated. |
 | **Diagnosis** | `journalctl -u lumen-panel-sync.service -n 50` lists each failing patch; `python3 -m lumen_panel check-update --keyhelp ...` shows why a rebuild is due. |
 | **Mitigation** | If a page misbehaves, select the default theme under Configuration -> Theme. |
-| **Fix** | Update the anchors in `patches/*.json`, run the tests, install again (see [Upgrading](upgrade.md)). |
+| **Fix** | Update the anchors in `patches/*.json`, run the tests, install again (see [Keeping the theme current](update.md#when-the-patch-set-does-not-fit-the-new-templates)). |
 
 ## Failure: the panel shows errors after an install
 

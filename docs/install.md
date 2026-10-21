@@ -14,18 +14,26 @@ by the test suite on a fake panel tree. A first install on a live panel is still
 |---|---|---|
 | KeyHelp | 26.1.x | the default theme (`theme/bulma`) must be present and unmodified |
 | Python | 3.10 or later | standard library only; runs the generator |
-| Node.js and npm | Node.js 22.12 or later | only to build the assets (`dist/assets`); can run on another machine |
+| Node.js and npm | Node.js 22.22.2 or later (22.x), 24.15 or later, or 26 | only to build the assets (`dist/assets`); can run on another machine |
 | Shell access | root | the install writes `theme/lumen` and sets the owner `keyhelp:keyhelp` |
 
-Building the assets needs about 300 MB of free memory for a short time. On a small server with
-little free memory, build on another machine and copy `dist/assets/` to the server, or limit the
-build, for example `systemd-run --scope -p MemoryMax=450M npm run build`.
+On a small server, run the npm steps with a memory limit so they can never push other services
+out of memory, or build on another machine and copy `dist/assets/` to the server:
+
+```bash
+sudo systemd-run --scope --quiet --collect -p MemoryMax=450M -p MemorySwapMax=0 \
+  env NODE_OPTIONS=--max-old-space-size=320 nice -n 19 npm ci --ignore-scripts
+sudo systemd-run --scope --quiet --collect -p MemoryMax=450M -p MemorySwapMax=0 \
+  env NODE_OPTIONS=--max-old-space-size=320 nice -n 19 npm run build
+```
+
+The generator itself is Python with the standard library only and needs no limit.
 
 ## Install
 
 ```bash
 git clone https://github.com/luminare-dev/lumen-panel.git && cd lumen-panel
-npm ci && npm run build
+npm ci --ignore-scripts && npm run build
 cd generator && sudo python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp --dry-run
 sudo python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp
 ```
@@ -47,6 +55,9 @@ What `install` does, in this order:
 
 If a patch does not fit (after a KeyHelp update), the build stops before anything changes and
 lists every patch that failed; see [Troubleshooting](troubleshooting.md).
+
+After every KeyHelp update, rebuild with `sync`, by hand or from the optional daily timer in
+`contrib/`: [Keeping the theme current after a KeyHelp update](update.md).
 
 ## Verify the release download
 

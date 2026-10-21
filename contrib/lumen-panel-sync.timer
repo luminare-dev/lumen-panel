@@ -1,0 +1,15 @@
+# lumen-panel-sync.timer: run lumen-panel-sync.service once a day.
+#
+# An optional example unit; lumen-panel never installs it (docs/update.md). Persistent=true
+# catches up a run that was missed while the server was off.
+[Unit]
+Description=lumen-panel: daily check for panel updates that need a theme rebuild
+Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md
+
+[Timer]
+OnCalendar=*-*-* 05:30:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

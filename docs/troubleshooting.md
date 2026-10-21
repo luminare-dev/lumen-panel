@@ -17,8 +17,12 @@ also checks every anchor against the local install, and install again.
 **Fix:**
 
 ```bash
-npm ci && npm run build
+npm ci --ignore-scripts && npm run build
 ```
+
+On a server with little free memory, run the build with a limit, for example
+`systemd-run --scope -p MemoryMax=450M -p MemorySwapMax=0 npm run build`, or build on another
+machine and copy `dist/assets/` over.
 
 ## Lumen is not listed under Configuration -> Theme
 

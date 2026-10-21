@@ -150,7 +150,7 @@ def apply_patches(templates_dir: Path, patches: list[Patch], substitutions: dict
         if count != 1:
             where = "not found" if count == 0 else f"found {count} times"
             failures.append(f"{patch.source} [{patch.id}]: anchor {where} in {patch.file} (expected exactly once); "
-                            f"a KeyHelp update probably changed this template, see docs/upgrade.md")
+                            f"a KeyHelp update probably changed this template, see docs/update.md")
             continue
         try:
             contents[patch.file] = patched_content(content, patch, substitutions)

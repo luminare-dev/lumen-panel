@@ -1,0 +1,53 @@
+# lumen-panel-sync.service: rebuild the Lumen theme when the panel's default theme changed.
+#
+# An optional example unit; lumen-panel never installs it. Copy it and the .timer to
+# /etc/systemd/system/, adapt the two paths below, then enable the timer (docs/update.md).
+#
+#   /opt/lumen-panel             the lumen-panel checkout with a built dist/assets/
+#   /home/keyhelp/www/keyhelp    the panel installation
+#
+# "sync" exits 0 when the theme is current or Lumen is not installed, and 1 when a rebuild was
+# due and failed (the previous build stays active); the unit then shows as failed.
+[Unit]
+Description=lumen-panel: rebuild the Lumen theme after a panel update
+Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md
+ConditionPathExists=/opt/lumen-panel/dist/assets/lumen.css
+ConditionPathIsDirectory=/home/keyhelp/www/keyhelp/theme/bulma
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/lumen-panel/generator
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -m lumen_panel sync --keyhelp /home/keyhelp/www/keyhelp
+TimeoutStartSec=15min
+
+# Low priority and a hard memory limit: the sync copies about 200 small files.
+Nice=19
+IOSchedulingClass=idle
+MemoryMax=200M
+MemorySwapMax=0
+
+# Sandbox: everything is read-only except the theme folder, the Twig cache and the backups.
+# Create the backup folder once before the first run: install -d -m 700 /root/backups/lumen-panel
+ProtectSystem=strict
+ReadWritePaths=/home/keyhelp/www/keyhelp/theme /home/keyhelp/www/keyhelp/cache/twig /root/backups/lumen-panel
+PrivateTmp=true
+PrivateNetwork=true
+PrivateDevices=true
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE CAP_DAC_READ_SEARCH
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0022
