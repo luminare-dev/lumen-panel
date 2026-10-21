@@ -1,0 +1,80 @@
+# Screenshots of the design-system gallery for the README (docs/screenshots/).
+# Runs on pull requests that touch the styles or the gallery, and by hand. It builds the
+# stylesheets and the gallery, serves the gallery on 127.0.0.1 and captures each page with the
+# Google Chrome that the GitHub-hosted Ubuntu image ships (headless, no extra dependency).
+# The gallery reads its start state from the URL: ?mode=light|dark&dir=ltr|rtl#<page>.
+# The PNGs are uploaded as the artifact "screenshots"; a maintainer reviews them and commits
+# the ones the README uses.
+name: screenshots
+
+on:
+  pull_request:
+    paths:
+      - "src/styles/**"
+      - "gallery/**"
+      - "scripts/build-css.mjs"
+      - ".github/workflows/screenshots.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: screenshots-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shots:
+    name: screenshots
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Install the locked dependencies (no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Build the stylesheets and the gallery
+        run: npm run build:css && npm run build:gallery
+
+      - name: Capture the gallery pages
+        run: |
+          set -euo pipefail
+          google-chrome --version
+          python3 -m http.server 8080 --bind 127.0.0.1 --directory gallery/dist >/dev/null 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          for _ in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/ && break; sleep 1; done
+          mkdir -p screenshots
+          shot() { # name, query+hash, width, height
+            google-chrome --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+              --window-size="$3,$4" --virtual-time-budget=6000 \
+              --screenshot="screenshots/$1.png" "http://127.0.0.1:8080/$2" 2>/dev/null
+            test -s "screenshots/$1.png"
+          }
+          shot lumen-dashboard     "?mode=light#dashboard"   1440 900
+          shot lumen-login         "?mode=light#login"       1440 900
+          shot lumen-tables        "?mode=light#tables"      1440 900
+          shot lumen-forms         "?mode=light#forms"       1440 900
+          shot lumen-shell         "?mode=light#shell"       1440 900
+          shot lumen-tokens        "?mode=light#tokens"      1440 900
+          shot lumen-dashboard-rtl "?mode=light&dir=rtl#dashboard" 1440 900
+          shot lumen-dashboard-narrow "?mode=light#dashboard" 390 844
+          ls -l screenshots
+
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: screenshots
+          path: screenshots
+          if-no-files-found: error
+          retention-days: 14
