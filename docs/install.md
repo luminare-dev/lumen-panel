@@ -240,7 +240,7 @@ dry run: would build in /home/keyhelp/www/keyhelp/theme/.lumen-staging-<timestam
 dry run: would set owner keyhelp:keyhelp, folders 755, files 644; nothing was written
 ```
 
-and exits 0. For Lumen Dark the lines read `(Lumen Dark, default theme 26.1.1, 11 patches, ...)`
+and exits 0. For Lumen Dark the lines read `(Lumen Dark, default theme 26.1.1, 12 patches, ...)`
 and name `theme/.lumen-dark-staging-<timestamp>` and `theme/lumen-dark`. Stop on any other result:
 
 - `error: the patch set does not fit this KeyHelp version; nothing was installed`, followed by one

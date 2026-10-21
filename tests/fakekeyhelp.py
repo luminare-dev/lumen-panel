@@ -43,6 +43,7 @@ def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]]) -> di
             "<!DOCTYPE html>\n"
             f"{A.get('night-html-class', '<html>')}\n<head>\n"
             f"    {A.get('night-color-scheme', '')}\n"
+            f"    {A.get('night-theme-color', '')}\n"
             "    <title>{{ _app.page_title }}</title>\n"
             f"    {A.get('night-default-stylesheet', '<link rel=stylesheet href=/theme/bulma/assets/css/style.css>')}\n\n"
             f"    {A.get('base-stylesheet', '')}\n</head>\n"

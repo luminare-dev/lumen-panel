@@ -151,11 +151,12 @@ the server where the panel is installed; `--variant` picks which (`lumen` by def
 1. It reads `theme/bulma` of the local installation (never changing it) and copies its templates
    byte for byte into a staging folder; if a panel update changes them meanwhile, it stops.
 2. It applies the patch set: Lumen's seven patches in `patches/*.json`, or for Lumen Dark the same
-   set with the files of `patches/lumen-dark/` replacing or adding to them (eleven patches). Each
+   set with the files of `patches/lumen-dark/` replacing or adding to them (twelve patches). Each
    one inserts a few lines of our own markup next to an anchor that must occur exactly once (load
    the theme's stylesheet, load the palette script on internal pages, show the Luminare logo; for
    Lumen Dark also load the default theme's standard stylesheet whatever the dark-mode setting
-   says, declare the dark colour scheme and mark the page with `lumen-night`). If an anchor is
+   says, declare the dark colour scheme, colour the phone browser's address bar and mark the page
+   with `lumen-night`). If an anchor is
    missing or repeated, nothing is written and every failing patch is listed.
 3. It adds the theme's own files from `dist/assets/` (each theme only its own stylesheets),
    writes `_settings.json` and a build record (variant, default theme version, the hash of every
@@ -308,7 +309,7 @@ Fixes go into the latest minor release only. See the
 | Contrast, text pairs | 57 pairs (52 in every mode, 5 only in Lumen Dark: editor syntax, chart labels), lowest 4.55:1 (light), 4.51:1 (dark and Lumen Dark), minimum 4.5:1 | `python3 scripts/contrast.py`, WCAG 2.x formula, 2026-10-21; full table in [docs/contrast.md](docs/contrast.md) |
 | Contrast, UI parts | 17 pairs (control borders, focus rings, progress fills, close-button crosses, the editor cursor), lowest 3.17:1 (light) and 3.08:1 (dark and Lumen Dark), minimum 3:1 | same |
 | Generator and repository tests | 211 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
-| Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (11 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; not installed yet. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash) | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), KeyHelp 26.1.1, 2026-10-21 |
+| Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (12 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; not installed yet. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash) | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), KeyHelp 26.1.1, 2026-10-21 |
 | Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library) | `npm test` in CI (Node.js 22), 2026-10-21 |
 | Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
 | Stylesheet size | about 46 KB per file, minified (Lumen's four files); Lumen Dark's two files are not measured yet | `node scripts/build-css.mjs` in CI, 2026-10-21 |

@@ -93,7 +93,8 @@ class PatchSetTest(unittest.TestCase):
         self.assertEqual([Path(s).name for s in dark], sorted(Path(s).name for s in dark), "applied in name order")
         ids = [p.id for p in load_patches(fk.PATCHES, "lumen-dark")]
         self.assertEqual(len(ids), len(set(ids)))
-        for wanted in ("night-default-stylesheet", "night-color-scheme", "night-html-class", "night-body-class"):
+        for wanted in ("night-default-stylesheet", "night-color-scheme", "night-theme-color", "night-html-class",
+                       "night-body-class"):
             self.assertIn(wanted, ids)
 
     def test_lumen_patch_hash_ignores_the_overlay_folder(self):
@@ -200,6 +201,7 @@ class BuildTest(Env):
         self.assertIn('<html class="lumen-night" lang=', base)
         self.assertRegex(base, r"<body class=\"[^\"]*\{# lumen-panel:night-body-class #\} lumen-night\">")
         self.assertIn('<meta name="color-scheme" content="dark">', base)
+        self.assertIn('<meta name="theme-color" content="#0A1224">', base)
         self.assertEqual(asset_references(base, "lumen-dark"), ["assets/lumen-night-rtl.css", "assets/lumen-night.css"])
         self.assertEqual(asset_references(base, "lumen"), [])
         for rel in ("layout/intern.twig", "layout/extern.twig", "layout/popup.twig"):
@@ -423,7 +425,7 @@ class SeparationTest(Env):
     def test_dry_run_of_lumen_dark_writes_nothing(self):
         code, out = lines(inst.install, self.kh, dry_run=True, options=self.dark)
         self.assertEqual(code, 0, out)
-        self.assertIn("Lumen Dark, default theme 26.1.1, 11 patches", out)
+        self.assertIn("Lumen Dark, default theme 26.1.1, 12 patches", out)
         self.assertIn(f"swap it in at {self.dark_theme}", out)
         self.assertIn(str(self.backups / "lumen-dark"), out)
         self.assertEqual(self.theme_dirs(), ["bulma"])

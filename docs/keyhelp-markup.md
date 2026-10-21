@@ -19,8 +19,8 @@ describes the markup in our own words; it does not reproduce the templates.
 - Dark mode is a per-user toggle in the user menu (it reloads the page); a theme declares
   support with `has_dark_mode` in `_settings.json`. Keyweb lists dark mode among the features of
   KeyHelp Pro. Lumen declares it and follows the toggle; Lumen Dark declares no dark mode, pins the
-  standard stylesheet (`style.css` or `style-rtl.css`), sets the colour scheme to dark and adds a
-  `lumen-night` class to `<html>` and `<body>` next to the panel's own body class
+  standard stylesheet (`style.css` or `style-rtl.css`), sets the colour scheme to dark (and the
+  `theme-color` of the default favicon tags to the Night background) and adds a `lumen-night` class to `<html>` and `<body>` next to the panel's own body class
   ([ADR 0011](adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)).
 - All script and image paths in the templates point at `/theme/bulma/` (or `theme/bulma/`), so a
   copied template set keeps using the default theme's current assets.
