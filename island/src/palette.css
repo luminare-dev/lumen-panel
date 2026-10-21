@@ -1,0 +1,205 @@
+/*
+ * Command palette styles. They live in the island's shadow root and cannot affect the panel.
+ * Colours come from the theme's --lm-* tokens, which inherit into the shadow root; the
+ * fallbacks are the light-mode values for pages without the Lumen stylesheet.
+ */
+
+:host {
+  all: initial;
+}
+
+.backdrop {
+  align-items: flex-start;
+  background: var(--lm-overlay, rgb(10 18 36 / 55%));
+  box-sizing: border-box;
+  color: var(--lm-text, #0A1224);
+  display: flex;
+  font-family: var(--lm-font, system-ui, sans-serif);
+  font-size: 15px;
+  inset: 0;
+  justify-content: center;
+  line-height: 1.45;
+  padding: 12vh 16px 16px;
+  position: fixed;
+  z-index: 10050; /* above the panel's modals (10001) and tooltips (10000) */
+}
+
+.dialog {
+  background: var(--lm-surface-raised, #FFFFFF);
+  border: 1px solid var(--lm-border, #E3E8F1);
+  border-radius: var(--lm-radius-xl, 14px);
+  box-shadow: var(--lm-shadow-2, 0 12px 32px rgb(10 18 36 / 12%));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: min(560px, 76vh);
+  overflow: hidden;
+  width: min(640px, 100%);
+}
+
+.search {
+  align-items: center;
+  border-bottom: 1px solid var(--lm-border, #E3E8F1);
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.search:focus-within {
+  box-shadow: inset 0 -2px 0 var(--lm-focus, #1F47C4);
+}
+
+.icon {
+  color: var(--lm-text-muted, #5E6B84);
+  flex: none;
+  height: 20px;
+  width: 20px;
+}
+
+input {
+  background: transparent;
+  border: 0;
+  color: var(--lm-text, #0A1224);
+  flex: 1;
+  font: inherit;
+  font-size: 16px;
+  min-width: 0;
+  outline: none;
+  padding: 8px 0;
+}
+
+input::placeholder {
+  color: var(--lm-text-muted, #5E6B84);
+  opacity: 1;
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+}
+
+.option {
+  align-items: center;
+  border-radius: var(--lm-radius-m, 10px);
+  color: var(--lm-text, #0A1224);
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  min-height: 24px;
+  padding: 10px 12px;
+  position: relative;
+}
+
+.option.is-active {
+  background: var(--lm-primary-tint, #E9EDF9);
+  color: var(--lm-on-primary-tint, #1F47C4);
+}
+
+.option.is-active::before {
+  background: var(--lm-primary, #1F47C4);
+  border-end-end-radius: 3px;
+  border-start-end-radius: 3px;
+  content: "";
+  inset-block: 8px;
+  inset-inline-start: 0;
+  position: absolute;
+  width: 3px;
+}
+
+.label {
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+mark {
+  background: none;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.group {
+  color: var(--lm-text-muted, #5E6B84);
+  flex: none;
+  font-size: 13px;
+  margin-inline-start: auto;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  border: 1px solid currentcolor;
+  border-radius: var(--lm-radius-pill, 999px);
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 8px;
+}
+
+.empty {
+  color: var(--lm-text-muted, #5E6B84);
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.hint {
+  border-top: 1px solid var(--lm-border, #E3E8F1);
+  color: var(--lm-text-muted, #5E6B84);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 16px;
+  margin: 0;
+  padding: 8px 16px;
+}
+
+kbd {
+  background: var(--lm-surface-sunken, #F3F6FB);
+  border: 1px solid var(--lm-border-control, #79859C);
+  border-bottom-width: 2px;
+  border-radius: var(--lm-radius-s, 6px);
+  color: var(--lm-text-2, #39445C);
+  font-family: var(--lm-font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  padding: 0 6px;
+}
+
+.visually-hidden {
+  block-size: 1px;
+  clip-path: inset(50%);
+  inline-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog {
+    animation: lumen-palette-in 140ms var(--lm-ease, ease-out);
+  }
+}
+
+@keyframes lumen-palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+}
+
+@media (forced-colors: active) {
+  .option.is-active {
+    outline: 2px solid Highlight;
+  }
+}

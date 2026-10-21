@@ -1,0 +1,37 @@
+// Build the command palette as one IIFE file: dist/assets/lumen-island.js.
+// React is bundled in (production build); the stylesheet is inlined as a string for the
+// shadow root. No code splitting, no dynamic imports, no network requests at run time.
+import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vite";
+
+const root = fileURLToPath(new URL("..", import.meta.url));
+const pkg = await import("../package.json", { with: { type: "json" } });
+
+export default defineConfig({
+  root,
+  publicDir: false,
+  plugins: [react()],
+  define: { "process.env.NODE_ENV": JSON.stringify("production") },
+  build: {
+    outDir: "dist/assets",
+    emptyOutDir: false,
+    copyPublicDir: false,
+    sourcemap: false,
+    target: ["chrome111", "edge111", "firefox121", "safari16.4"],
+    lib: {
+      entry: "island/src/main.jsx",
+      name: "LumenIsland",
+      formats: ["iife"],
+      fileName: () => "lumen-island.js",
+    },
+    rolldownOptions: {
+      output: {
+        banner:
+          `/*! lumen-panel ${pkg.default.version} command palette | MIT | ` +
+          "https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
+          "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */",
+      },
+    },
+  },
+});
