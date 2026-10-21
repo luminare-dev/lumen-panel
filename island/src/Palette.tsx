@@ -10,16 +10,27 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { highlight, search } from "./fuzzy";
-import { strings } from "./i18n";
+import { bcp47, strings } from "./i18n";
 import { deepActiveElement, isApplePlatform, usePageState, type NavigatorLike } from "./page";
 import type { Entry } from "./types";
 
 // Keyboard shortcuts inside these elements belong to the editor (CodeMirror, Trumbowyg).
 const EDITOR_SELECTOR = ".CodeMirror, .cm-editor, .trumbowyg-box, [contenteditable=''], [contenteditable='true']";
 const PAGE_STEP = 8;
+const MAX_RESULTS = 50;
 
-export function isToggleKey(event: KeyboardEvent): boolean {
-  return (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && String(event.key || "").toLowerCase() === "k";
+type ShortcutEvent = Pick<KeyboardEvent, "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "key" | "code">;
+
+/**
+ * Cmd+K on Apple platforms, Ctrl+K elsewhere. On a Mac, Ctrl+K stays with text fields (delete to
+ * the end of the line). The physical K key also counts when the layout types a non-Latin letter
+ * there (Russian, Arabic), but not on Latin layouts that put another letter on it (Dvorak).
+ */
+export function isToggleKey(event: ShortcutEvent, apple: boolean): boolean {
+  const mod = apple ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+  if (!mod || event.altKey || event.shiftKey) return false;
+  const key = String(event.key || "").toLowerCase();
+  return key === "k" || (event.code === "KeyK" && !/^[a-z]$/u.test(key));
 }
 
 function inEditor(event: Event): boolean {
@@ -49,6 +60,7 @@ export interface PaletteProps {
 export function Palette({ getEntries, navigate, triggerContainer = null, doc = document }: PaletteProps) {
   const page = usePageState(doc);
   const t = strings(page.lang);
+  const pageLang = bcp47(page.lang);
   const apple = useMemo(() => isApplePlatform(globalThis.navigator as NavigatorLike | undefined), []);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -63,7 +75,8 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
   const uid = `lmp${useId().replace(/[^A-Za-z0-9_-]/gu, "")}`;
   const ids = { title: `${uid}-title`, list: `${uid}-list`, status: `${uid}-status` };
 
-  const results = useMemo(() => search(entries, query), [entries, query]);
+  // Without a query every entry is listed (a long admin sidebar must not be cut off).
+  const results = useMemo(() => search(entries, query, query.trim() ? MAX_RESULTS : Infinity), [entries, query]);
   const count = results.length;
   const current = Math.min(active, Math.max(count - 1, 0));
 
@@ -71,7 +84,13 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
     (from?: Element | null) => {
       returnFocus.current = from ?? deepActiveElement(doc);
       openRef.current = true;
-      setEntries(getEntries({ account: t.account }));
+      let list: Entry[] = [];
+      try {
+        list = getEntries({ account: t.account });
+      } catch (error) {
+        console.warn("lumen-panel: could not read the panel's navigation", error);
+      }
+      setEntries(list);
       setQuery("");
       setActive(0);
       setOpen(true);
@@ -99,14 +118,27 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
   // Ctrl+K / Cmd+K anywhere on the page, except inside a code or text editor.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (!isToggleKey(event) || inEditor(event)) return;
+      if (event.isComposing || !isToggleKey(event, apple) || inEditor(event)) return;
       event.preventDefault();
       if (openRef.current) hide();
       else show();
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [show, hide]);
+  }, [show, hide, apple]);
+
+  // The page behind the dialog does not scroll while it is open (restored on close and unmount).
+  useEffect(() => {
+    if (!open) return undefined;
+    const style = doc.documentElement.style;
+    const before = [style.getPropertyValue("overflow"), style.getPropertyValue("scrollbar-gutter")] as const;
+    style.setProperty("overflow", "hidden");
+    style.setProperty("scrollbar-gutter", "stable");
+    return () => {
+      style.setProperty("overflow", before[0]);
+      style.setProperty("scrollbar-gutter", before[1]);
+    };
+  }, [open, doc]);
 
   // Focus moves into the dialog on open, and back into it if anything moves it out.
   useEffect(() => {
@@ -129,6 +161,8 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     // Keys typed here belong to the palette, not to the panel's own keyboard handlers.
     event.stopPropagation();
+    // While an input method composes (pinyin, kana), Enter and Escape belong to it.
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
     const move = (to: number) => {
       event.preventDefault();
       if (count) setActive(to);
@@ -179,14 +213,14 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
   const trigger =
     triggerContainer &&
     createPortal(
-      <div className={rootClass} dir={page.dir}>
+      <div className={rootClass} dir={page.dir} lang={t.code}>
         <button
           ref={triggerRef}
           type="button"
           className="trigger"
           aria-haspopup="dialog"
           aria-expanded={open}
-          aria-keyshortcuts="Control+K Meta+K"
+          aria-keyshortcuts={apple ? "Meta+K" : "Control+K"}
           onClick={() => (openRef.current ? hide() : show(triggerRef.current))}
         >
           <SearchIcon />
@@ -219,7 +253,7 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
             aria-modal="true"
             aria-labelledby={ids.title}
             dir={page.dir}
-            lang={page.lang}
+            lang={t.code}
             onKeyDown={onKeyDown}
             onMouseDown={keepFocus}
           >
@@ -263,7 +297,7 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
                   onMouseMove={() => index !== current && setActive(index)}
                   onClick={() => go(entry)}
                 >
-                  <span className="label">
+                  <span className="label" lang={pageLang}>
                     {highlight(entry.label, indices).map((part, i) =>
                       part.hit ? <mark key={i}>{part.text}</mark> : <span key={i}>{part.text}</span>,
                     )}
@@ -276,7 +310,7 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
                   )}
                   {entry.newTab && <span className="visually-hidden">, {t.newTab}</span>}
                   {entry.group && (
-                    <span className="group">
+                    <span className="group" lang={entry.group === t.account ? t.code : pageLang}>
                       <span className="visually-hidden">, </span>
                       {entry.group}
                     </span>

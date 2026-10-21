@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Palette } from "../src/Palette";
+import { Palette, isToggleKey } from "../src/Palette";
 import { isApplePlatform } from "../src/page";
 import type { Entry } from "../src/types";
 
@@ -56,12 +56,27 @@ describe("opening and closing", () => {
     expect(screen.getAllByRole("option")).toHaveLength(ENTRIES.length);
   });
 
-  it("opens with Cmd+K too and toggles closed with the same shortcut", async () => {
+  it("toggles closed with the same shortcut; Meta+K does nothing outside Apple platforms", async () => {
     const { user } = setup();
     await user.keyboard("{Meta>}k{/Meta}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await user.keyboard("{Control>}k{/Control}");
     expect(screen.getByRole("dialog")).toBeTruthy();
     await user.keyboard("{Control>}k{/Control}");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("uses Cmd+K on Apple platforms and leaves Ctrl+K to text fields there", () => {
+    const base = { ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, key: "k", code: "KeyK" };
+    expect(isToggleKey({ ...base, metaKey: true }, true)).toBe(true);
+    expect(isToggleKey({ ...base, ctrlKey: true }, true)).toBe(false);
+    expect(isToggleKey({ ...base, ctrlKey: true }, false)).toBe(true);
+    expect(isToggleKey({ ...base, metaKey: true }, false)).toBe(false);
+    expect(isToggleKey({ ...base, ctrlKey: true, metaKey: true }, false)).toBe(false);
+    // the physical K key on a Russian layout types "л"
+    expect(isToggleKey({ ...base, ctrlKey: true, key: "л" }, false)).toBe(true);
+    // Dvorak puts "t" on the physical K key: Ctrl+T is not the palette
+    expect(isToggleKey({ ...base, ctrlKey: true, key: "t" }, false)).toBe(false);
   });
 
   it("ignores Ctrl+Shift+K and Ctrl+K inside a code editor", async () => {
@@ -197,7 +212,7 @@ describe("header button", () => {
     const button = screen.getByRole("button", { name: /^Search pages/u });
     expect(button.getAttribute("aria-haspopup")).toBe("dialog");
     expect(button.getAttribute("aria-expanded")).toBe("false");
-    expect(button.getAttribute("aria-keyshortcuts")).toBe("Control+K Meta+K");
+    expect(button.getAttribute("aria-keyshortcuts")).toBe("Control+K");
     await user.click(button);
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(button.getAttribute("aria-expanded")).toBe("true");
@@ -215,6 +230,7 @@ describe("page state", () => {
     const { user } = setup();
     const dialog = await openWithShortcut(user);
     expect(screen.getByRole("dialog", { name: "Zu einer Seite wechseln" })).toBe(dialog);
+    expect(dialog.getAttribute("lang")).toBe("de");
     expect(dialog.getAttribute("dir")).toBe("rtl");
     expect(dialog.closest(".lm")?.classList.contains("is-dark")).toBe(true);
     act(() => {
@@ -223,11 +239,57 @@ describe("page state", () => {
     await waitFor(() => expect(screen.getByRole("dialog").closest(".lm")?.classList.contains("is-dark")).toBe(false));
   });
 
+  it("marks its own English text as English in a panel language it has no strings for", async () => {
+    document.documentElement.setAttribute("lang", "zh_CN");
+    const { user } = setup();
+    const dialog = await openWithShortcut(user);
+    expect(screen.getByRole("dialog", { name: "Go to a page" })).toBe(dialog);
+    expect(dialog.getAttribute("lang")).toBe("en");
+    // labels and groups come from the panel, so they keep the panel language (as BCP 47)
+    expect(dialog.querySelector(".label")?.getAttribute("lang")).toBe("zh-CN");
+    expect(dialog.querySelector(".group")?.getAttribute("lang")).toBe("zh-CN");
+  });
+
   it("shows the Command key on Apple platforms only", () => {
     expect(isApplePlatform({ platform: "MacIntel", userAgent: "" })).toBe(true);
     expect(isApplePlatform({ userAgentData: { platform: "macOS" } })).toBe(true);
     expect(isApplePlatform({ platform: "Linux x86_64", userAgent: "Mozilla/5.0 (X11; Linux x86_64)" })).toBe(false);
     expect(isApplePlatform(null)).toBe(false);
+  });
+});
+
+describe("robustness", () => {
+  it("leaves Enter and Escape to an input method while it composes", async () => {
+    const { user, navigate } = setup();
+    const dialog = await openWithShortcut(user);
+    fireEvent.keyDown(input(), { key: "Enter", isComposing: true });
+    fireEvent.keyDown(input(), { key: "Escape", keyCode: 229 });
+    expect(navigate).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBe(dialog);
+    fireEvent.keyDown(input(), { key: "Enter" });
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens with an empty list when the navigation cannot be read", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { user } = setup({ getEntries: () => { throw new Error("markup changed"); } });
+    await openWithShortcut(user);
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+    expect(warn).toHaveBeenCalled();
+  });
+
+  it("lists every entry without a query and locks the page scroll while open", async () => {
+    const many: Entry[] = Array.from({ length: 70 }, (_, i) => ({
+      id: `m${i}`, label: `Page ${i}`, group: "Group", href: `https://panel.example.org/?p=${i}`, newTab: false, current: false,
+    }));
+    const { user } = setup({ getEntries: () => many });
+    document.documentElement.style.setProperty("overflow", "auto");
+    await openWithShortcut(user);
+    expect(screen.getAllByRole("option")).toHaveLength(70);
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("hidden");
+    await user.keyboard("{Escape}");
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("auto");
+    document.documentElement.style.removeProperty("overflow");
   });
 });
 

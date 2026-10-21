@@ -1,6 +1,8 @@
 // Check the built command palette (dist/assets/lumen-island.js) before it goes into a theme:
 //
-//   * one classic script (IIFE): no import/export statements, no dynamic import();
+//   * one classic script (IIFE): no import/export statements, no dynamic import(), and no global
+//     variable (vite's lib mode needs a name for IIFE builds; the entry exports nothing, so the
+//     bundle must not start with "var <name> =");
 //   * no network or storage APIs in the bundle, React included (fetch, XMLHttpRequest,
 //     WebSocket, EventSource, sendBeacon, localStorage, sessionStorage, indexedDB, cookies);
 //   * size: at most 70 KB after gzip (the number is printed).
@@ -41,6 +43,7 @@ try {
 
 const problems = FORBIDDEN.filter(([, re]) => re.test(code)).map(([name]) => `contains ${name}`);
 if (!code.startsWith("/*! lumen-panel ")) problems.push("the licence banner is missing");
+if (/^\/\*![^*]*\*\/\s*(?:var|let|const)\s+[\w$]+\s*=/u.test(code)) problems.push("declares a global variable");
 
 const raw = Buffer.byteLength(code);
 const gzip = gzipSync(code, { level: 9 }).length;

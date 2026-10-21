@@ -58,7 +58,12 @@ export function mount(doc: Document = document, go: (entry: Entry) => void = nav
   doc.body.appendChild(host);
   const container = shadowContainer(doc, host);
   const trigger = mountTrigger(doc);
-  const root = createRoot(container);
+  // Errors after mounting (rendering, effects) must not reach the panel as uncaught errors.
+  const root = createRoot(container, {
+    onUncaughtError: (error) => console.warn("lumen-panel: command palette stopped", error),
+    onCaughtError: () => {},
+    onRecoverableError: () => {},
+  });
   root.render(
     <Palette
       doc={doc}
