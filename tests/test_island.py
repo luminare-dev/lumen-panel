@@ -98,6 +98,24 @@ class NpmManifestTest(unittest.TestCase):
         self.assertIn('new URL("./dist", import.meta.url)', gallery)
 
 
+class GalleryVariantTest(unittest.TestCase):
+    """The gallery shows Lumen Dark the way the panel does: its own stylesheet on the light base and
+    the lumen-night hook class on <html> and <body>, without the panel's dark-mode class."""
+
+    def test_gallery_switches_to_lumen_dark(self):
+        app = (ROOT / "gallery" / "src" / "App.tsx").read_text(encoding="utf-8")
+        self.assertIn('initial("mode", ["light", "dark", "night"] as const, "light")', app)
+        self.assertIn('`./lumen-night${rtl ? "-rtl" : ""}.css`', app)
+        self.assertIn('document.documentElement.classList.toggle("lumen-night", night);', app)
+        self.assertIn('night ? "default-mode lumen-night"', app, "Lumen Dark never sets body.dark-mode")
+        self.assertIn("aria-pressed={night}", app)
+
+    def test_token_page_reads_the_pairs_of_the_shown_mode(self):
+        page = (ROOT / "gallery" / "src" / "pages" / "Foundations.tsx").read_text(encoding="utf-8")
+        self.assertIn("!p.modes || p.modes.includes(mode)", page)
+        self.assertIn("isLiteral(name) ? toRgb(name) : readToken(name)", page)
+
+
 class ContribUnitsTest(unittest.TestCase):
     def unit(self, name: str) -> configparser.ConfigParser:
         cfg = configparser.ConfigParser(strict=False, interpolation=None, delimiters=("=",))
