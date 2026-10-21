@@ -59,7 +59,7 @@ updates:
       build-tools:
         patterns: ["vite", "lightningcss", "typescript"]
       test-tools:
-        patterns: ["vitest", "jsdom", "@testing-library/*"]
+        patterns: ["vitest", "fast-check", "jsdom", "@testing-library/*"]
     ignore:
       # The gallery mirrors the panel's default theme, which is built on Bulma 0.9.4.
       - dependency-name: bulma
