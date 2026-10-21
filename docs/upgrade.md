@@ -9,14 +9,22 @@ A KeyHelp update is a different case: it needs a rebuild of the theme, not a new
 
 ## Steps
 
-1. Read the changelog entries between your version and the new one.
-2. Fetch the new release (or `git pull`), then rebuild the assets, on another machine or with
-   the memory-limited commands in [Installation](install.md#install); afterwards
-   `chown -R root:root /opt/lumen-panel && chmod -R go-w /opt/lumen-panel` again.
-3. Run `install --dry-run`, then `install` (see [Installation](install.md)). The previous build
-   is kept in the backups.
-4. Run the check from [Installation](install.md#check-that-it-works) again.
+The exact commands are in [Installation, Update lumen-panel](install.md#update-lumen-panel).
 
-If the optional units are installed, the daily timer picks up the new generator version, the new
-assets and a changed patch set by itself: each counts as "rebuild needed" (not while a hold is
-set). Step 3 is still the safer way, because a dry run shows problems before anything changes.
+1. Read the changelog entries between your version and the new one.
+2. With the optional units installed, run `python3 -m lumen_panel hold`, so they do not rebuild
+   while the code and the assets do not match yet.
+3. Fetch the new release: `git fetch --tags` and `git checkout --quiet vX.Y.Z` (or unpack the new
+   release archive after `sha256sum -c SHA256SUMS`).
+4. Replace `dist/assets/` with the assets of the new tag: the CI artifact `theme-assets` of that
+   commit with its digest checked, or a build on another machine
+   ([Get the built assets](install.md#get-the-built-assets)); afterwards
+   `chown -R root:root /opt/lumen-panel && chmod -R go-w /opt/lumen-panel` again.
+5. Run `install --dry-run`, then `install` (see [Installation](install.md#install)). The previous
+   build is kept in the backups, and `install` ends the hold from step 2.
+6. Run the check from [Installation](install.md#check-that-it-works) again.
+
+If the optional units are installed and no hold is set, the daily timer picks up the new
+generator version, the new assets and a changed patch set by itself: each counts as "rebuild
+needed". Steps 2 and 5 are still the safer way, because a dry run shows problems before anything
+changes.

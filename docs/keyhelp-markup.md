@@ -72,7 +72,7 @@ read, changed or copied.
 
 - A theme is a folder below `theme/` with `_settings.json` (`name`, `description`, `author`,
   `version`, `website`, `path_to_templates`, `has_dark_mode`), `_screenshot.png` (500x250 in the
-  default theme) and the templates. The admin selects it under Configuration -> Theme.
+  default theme) and the templates. The admin selects it under Configuration → Appearance → Theme.
 - Custom theme folders survive panel updates, but their copied templates do not change with the
   default theme. That is why the generator records the default theme's version and a hash of
   its templates, and `check-update` compares them.

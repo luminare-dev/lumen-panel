@@ -7,6 +7,16 @@ KeyHelp has to be downloaded, because the new default theme is already on the se
 
 For new versions of lumen-panel itself, see [Upgrading lumen-panel](upgrade.md).
 
+## Before a KeyHelp update: read the changelog
+
+Read the official [KeyHelp changelog](https://changelog.keyhelp.de/) for every version between
+yours and the new one before you update. Entries about the template system or engine, themes,
+layouts or White Label can mean that a patch anchor no longer fits. KeyHelp carries theme folders
+of their own over to a new version ("Custom themes are now transferred to the new KeyHelp version
+during panel update process", KeyHelp 19.2), so `theme/lumen` stays; only its copied templates
+need the rebuild below. The step-by-step order (read, update, dry run, `sync`, check) is in
+[Installation, After a KeyHelp update](install.md#after-a-keyhelp-update).
+
 ## Check and rebuild by hand
 
 ```bash
@@ -103,8 +113,8 @@ If `sync` stops with "the patch set does not fit this KeyHelp version", nothing 
 panel keeps running on the previous Lumen build, whose templates come from the older default
 theme, together with the new panel code and the updated `/theme/bulma/` stylesheets and scripts.
 That can break pages until the patch set is fixed, so check the panel after every update that
-`sync` could not follow, and if a page misbehaves, select the default theme under
-**Configuration -> Theme**. Then either update lumen-panel (a release for the new KeyHelp version
-may already exist) or adjust the anchors in `patches/*.json` to the new templates (each anchor
+`sync` could not follow, and if a page misbehaves, select **Default Theme** under
+**Configuration** → **Appearance** → **Theme**. Then either update lumen-panel (a release for the
+new KeyHelp version may already exist) or adjust the anchors in `patches/*.json` to the new templates (each anchor
 must occur exactly once, and every `_app.*` or `_globals.*` name a patch uses must still occur in
 its template), run the tests and install again; see [Troubleshooting](troubleshooting.md).

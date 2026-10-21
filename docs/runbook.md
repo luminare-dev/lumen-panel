@@ -17,7 +17,7 @@ Node.js: it reuses the built `dist/assets/`.
 | **Meaning** | `sync` found a rebuild was needed and the rebuild failed, almost always because a patch no longer fits a changed template (exit code 1). An assertion failure means `dist/assets/lumen.css` is missing. |
 | **Impact** | The previous Lumen build stays active, and it keeps running until the patch set is fixed: its templates come from the older default theme, while the panel's code and `/theme/bulma/` assets are already the new ones. Pages that rely on a changed or new template can show errors or miss features, for every user of the theme (admins and client accounts). |
 | **Diagnosis** | `journalctl -u lumen-panel-sync.service -n 50` lists each failing patch; `python3 -m lumen_panel check-update --keyhelp ...` shows why a rebuild is due. |
-| **Mitigation** | Check the panel's main pages. If one misbehaves, select the default theme under Configuration -> Theme until the fix is installed. |
+| **Mitigation** | Check the panel's main pages. If one misbehaves, select **Default Theme** under Configuration → Appearance → Theme until the fix is installed. |
 | **Fix** | Update the anchors in `patches/*.json`, run the tests, install again (see [Keeping the theme current](update.md#when-the-patch-set-does-not-fit-the-new-templates)). |
 
 ## Failure: the panel shows errors after an install
@@ -44,6 +44,6 @@ Node.js: it reuses the built `dist/assets/`.
 | | |
 |---|---|
 | **Meaning** | A run was stopped (power loss, `kill -9`, out of memory) while it worked in `theme/`: `.lumen-staging-<timestamp>` is a build that was not installed, or, if the stop came right after the swap, the previous theme; `.lumen-previous-<timestamp>` is the previous theme on its way to the backups (its `_settings.json` is renamed to `_settings.json.parked`, so the panel does not list it). |
-| **Impact** | Usually none. A folder that still has a `_settings.json` may be listed as a second "Lumen" under Configuration -> Theme; do not select it, because no sync updates it. The panel's web root is public, so these folders can also be downloaded until they are moved. |
+| **Impact** | Usually none. A folder that still has a `_settings.json` may be listed as a second "Lumen" under Configuration → Appearance → Theme; do not select it, because no sync updates it. The panel's web root is public, so these folders can also be downloaded until they are moved. |
 | **Diagnosis** | `ls -la /home/keyhelp/www/keyhelp/theme/`; the run's `ROLLBACK.txt` in the newest backup folder names the folder it left. |
 | **Fix** | Run any lumen-panel command that changes something (`install`, `sync`, `rollback`, `uninstall`): it moves every left-over folder to `/root/backups/lumen-panel/<timestamp>/stale/` and prints each one. To restore a previous theme from there: `python3 -m lumen_panel rollback --keyhelp ... --from /root/backups/lumen-panel/<timestamp>/stale/.lumen-previous-<timestamp>`. |

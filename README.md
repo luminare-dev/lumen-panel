@@ -44,36 +44,32 @@ one-command rollback.
 
 ## Quickstart
 
-On the panel server, as root:
+Install on the panel server, as root, with a main administrator account for the panel. The full
+guide, with the requirements, the checksum step and what changes on disk, is
+[docs/install.md](docs/install.md).
 
 ```bash
-git clone https://github.com/luminare-dev/lumen-panel.git /opt/lumen-panel
-# put a built dist/assets/ into /opt/lumen-panel/: build it on another machine and copy it, or
-# build here with the memory-limited commands in docs/install.md (never npm without a limit
-# on a small server)
+git clone https://github.com/luminare-dev/lumen-panel.git /opt/lumen-panel   # then check out the newest release tag
+# put the CI artifact "theme-assets" (digest checked) into /opt/lumen-panel/dist/assets/
 cd /opt/lumen-panel/generator
 python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp --dry-run
 python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp
 ```
 
-Then select **Lumen** under Configuration -> Theme ([docs/install.md](docs/install.md#install)).
+Then, in the panel, select **Lumen** under **Configuration** → **Appearance** → **Theme** and
+save. To switch back at once, select **Default Theme** there. Every install saves its undo command
+as `ROLLBACK.txt` in its backup folder ([rollback and uninstall](docs/install.md#switch-back-roll-back-or-uninstall)).
 
-After a KeyHelp update, rebuild when needed (or let the optional units in `contrib/` do it, on
-every panel update and once a day, [docs/update.md](docs/update.md)):
+After a KeyHelp update, read the [KeyHelp changelog](https://changelog.keyhelp.de/) first, then
+rebuild when needed, by hand or with the optional units in `contrib/`
+([after a KeyHelp update](docs/install.md#after-a-keyhelp-update)):
 
 ```bash
 python3 -m lumen_panel sync --keyhelp /home/keyhelp/www/keyhelp
 ```
 
-Undo the last install, or remove the theme (select the default theme in the panel first):
-
-```bash
-python3 -m lumen_panel rollback --keyhelp /home/keyhelp/www/keyhelp --from /root/backups/lumen-panel/<timestamp>
-python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --panel-url https://<your panel>/
-```
-
-Every install prints its rollback command and saves it as `ROLLBACK.txt` in the backup folder. A
-rollback holds the theme: `sync` does not rebuild until the next `install` (or `release`).
+Without a shell, the stylesheet alone also works through the panel's own White Label settings,
+without the command palette ([route B](docs/install.md#route-b-white-label-only)).
 
 ## How it works
 
@@ -90,13 +86,21 @@ flowchart LR
     ci["CI: tests, types, contrast, wording, secret scan"] -.->|"checks every change"| gen
 ```
 
-### The generator, and why KeyHelp's files are not in this repository
+### Why no KeyHelp files are in this repository
 
 A KeyHelp theme is a folder with a complete set of Twig templates. The default theme's templates,
 stylesheets, scripts and images are Keyweb AG's proprietary files, licensed with each panel; they
 may not be published, and a published copy would also be out of date after the next panel
-update. So this repository contains none of them. The generator (`python3 -m lumen_panel`,
-Python standard library only) assembles the theme on the server where the panel is installed:
+update. So this repository contains none of them, and neither does a release archive or the
+`theme-assets` artifact of CI: they hold only lumen-panel's own files. Where a KeyHelp install is
+present, a test fails if any file in the repository is a copy of a default theme file. The theme is assembled on the server, from that
+panel's own default theme, as a folder of its own below `theme/`, which is how Keyweb describes
+own themes ([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10363)).
+
+### The generator
+
+The generator (`python3 -m lumen_panel`, Python standard library only) assembles the theme on
+the server where the panel is installed:
 
 1. It reads `theme/bulma` of the local installation (never changing it) and copies its templates
    byte for byte into a staging folder; if a panel update changes them meanwhile, it stops.
@@ -169,19 +173,37 @@ The decisions behind this project are recorded as short ADRs in [docs/adr/](docs
 - [ADR 0009: Atomic swap, backups instead of deletes, narrow cache purge](docs/adr/0009-atomic-swap-backups-and-narrow-cache-purge.md)
 - [ADR 0010: The command palette stores nothing, not even a "recent" list](docs/adr/0010-the-command-palette-stores-nothing.md)
 
-**Alternatives.** The panel's white-label settings change the logo, the favicon and add custom
-CSS; that is the right tool for a logo and a few colours, and Lumen keeps it working on top. A
-hand-maintained copy of the default theme gives full control over the markup, but it cannot be
-shared and drifts with every panel update.
+**Alternatives.** The panel's White Label settings (Configuration → Appearance → White Label)
+take logos, a favicon, additional CSS and JavaScript; that is the right tool for a logo and a few
+colours, the lighter [route B](docs/install.md#route-b-white-label-only) uses it for Lumen's
+stylesheet alone, and the theme keeps White Label CSS and logos working on top. A hand-maintained
+copy of the default theme gives full control over the markup, but it cannot be shared and drifts
+with every panel update.
 
 ## Supported versions
 
 | Component | Tested with | Supported |
 |---|---|---|
-| KeyHelp (default theme `bulma`) | 26.1.1 (generator build and verify on the live install, read-only) | 26.1.x; other versions when every patch anchor still fits (the build checks) |
+| KeyHelp (default theme `bulma`) | 26.1.1 on Ubuntu 24.04 (generator build, verify and dry run on the live install, read-only) | 26.1.x; other versions when every patch anchor still fits (the dry run and every build check it) |
+| Operating system | Ubuntu 24.04 | the systems KeyHelp runs on (Keyweb lists Ubuntu LTS and Debian) |
 | Python (generator) | 3.12 | 3.10 or later |
-| Node.js (asset build, tests) | not run yet | 22.22.2 or later (22.x), 24.15 or later, 26 |
+| Node.js (only to build the assets) | 22.x in CI (GitHub's ubuntu-24.04 runner) | 22.22.2 or later (22.x), 24.15 or later, 26 |
 | Browsers | not yet tested in a browser | written for Chrome/Edge 111+, Firefox 121+, Safari 16.4+ |
+
+How compatibility is checked:
+
+- **Every build**, the dry run included, needs each patch anchor exactly once in the installed
+  default templates; otherwise nothing is written and every failing patch is listed.
+- **Every build is verified** byte for byte against the installed default theme (each template is
+  equal, or equal with the patches applied), and the patched templates pass a Twig syntax check.
+- **`check-update`** compares the default theme's version and a hash over all its templates with
+  the build record, so a KeyHelp update, or a KeyHelp patch that only changes templates, is
+  noticed (exit 10).
+- **The tests** check every anchor against the local KeyHelp install when one is present; CI builds
+  and verifies a theme on every commit against a fake panel tree of our own.
+- **Before a KeyHelp update**, read the [KeyHelp changelog](https://changelog.keyhelp.de/) for
+  changes to the template system, themes or White Label
+  ([after a KeyHelp update](docs/install.md#after-a-keyhelp-update)).
 
 Fixes go into the latest minor release only. See the
 [security policy](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) for reporting.
@@ -195,8 +217,10 @@ Fixes go into the latest minor release only. See the
   that previous build keeps running against the new panel until the patch set is fixed
   ([runbook](docs/runbook.md#failure-lumen-panel-syncservice-failed)).
 - The Luminare logo replaces the KeyHelp logo on every panel page, also for client accounts.
-- No release ships prebuilt assets yet: the server, or another machine, needs Node.js once per
-  release to run `npm run build`.
+- Releases carry the source archive only. The built assets come from the CI artifact
+  `theme-assets`, which GitHub keeps for 30 days, or from a build with Node.js on another machine.
+- With the White Label route alone there is no command palette, no Sora font and only part of the
+  login page design ([route B](docs/install.md#route-b-white-label-only)).
 - The command palette knows only the links of the sidebar and the user menu, not the actions
   inside pages, and it has no "recent pages" list.
 - Sora covers Latin only: in the Russian, Arabic and Chinese panels the whole page uses the
@@ -212,29 +236,60 @@ Fixes go into the latest minor release only. See the
 | Contrast, UI parts | 16 pairs (control borders, focus rings, progress fills, close-button crosses), lowest 3.17:1 (light) and 3.08:1 (dark), minimum 3:1 | same |
 | Generator and repository tests | 172 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
 | Generator against the live panel | build and verify pass: 215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly; dry run passes | `python3 -m lumen_panel build` and `verify --keyhelp` into a scratch folder with placeholder assets, KeyHelp 26.1.1, read-only, 2026-10-21 |
-| Command palette tests | not run yet (Vitest suite of 41 tests in `island/test/`) | `npm test` |
-| Command palette size | 71.7 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
+| Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library) | `npm test` in CI (Node.js 22), 2026-10-21 |
+| Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
+| Stylesheet size | about 46 KB per variant, minified (four variants) | `node scripts/build-css.mjs` in CI, 2026-10-21 |
 
 ## Documentation and links
 
-- [Installation](docs/install.md) · [Keeping it current after KeyHelp updates](docs/update.md) ·
+- [Installation](docs/install.md) (the theme, or the White Label route) ·
+  [Keeping it current after KeyHelp updates](docs/update.md) ·
   [Configuration](docs/configuration.md) · [Upgrading lumen-panel](docs/upgrade.md) ·
   [Troubleshooting](docs/troubleshooting.md) · [Runbook](docs/runbook.md) · [ADRs](docs/adr/) ·
-  [Panel markup inventory](docs/keyhelp-markup.md) · [Contrast table](docs/contrast.md)
+  [Panel markup inventory](docs/keyhelp-markup.md) · [Contrast table](docs/contrast.md) ·
+  [Official KeyHelp resources](docs/keyhelp-resources.md)
 - [Changelog](CHANGELOG.md) (written by release-please) and
   [releases](https://github.com/luminare-dev/lumen-panel/releases) (each release has
-  `SHA256SUMS` and a build provenance attestation)
+  `SHA256SUMS`, and a build provenance attestation while the repository is public)
 - [Contributing](https://github.com/luminare-dev/.github/blob/main/CONTRIBUTING.md) ·
   [Code of conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md) ·
   [Security](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) ·
   [Support](https://github.com/luminare-dev/.github/blob/main/SUPPORT.md)
 - Project page: <https://luminare.tech/open-source/lumen-panel/>
 
+## Official KeyHelp resources
+
+KeyHelp is developed by Keyweb AG; for the panel itself, these official pages are the reference
+(each checked on 2026-10-21; what each one says is recorded in
+[docs/keyhelp-resources.md](docs/keyhelp-resources.md)):
+
+- [KeyHelp product page](https://www.keyweb.de/en/keyhelp/keyhelp/) (`www.keyhelp.de` redirects
+  there)
+- [Overview of all functions](https://www.keyweb.de/en/keyhelp/keyhelp/overview-of-all-functions):
+  "With the white-label function, you can tailor the server hosting tool to your design ideas:
+  Use your own logo and adapt styles and functions to your own wishes and needs. In addition, you
+  can also develop your own themes."
+- [Install KeyHelp](https://www.keyweb.de/en/keyhelp/keyhelp/#install): requirements and the
+  installer of the panel itself
+- [Knowledge base](https://kb.keyhelp.de/) with the user and administrator manual
+  ([English](https://kb.keyhelp.de/index.php?ln=en))
+- [Tutorials](https://www.keyweb.de/en/support/learn-more/tutorials#keyhelp), among them
+  "Install KeyHelp" and "Customize with white label"
+- [Changelog](https://changelog.keyhelp.de/): read it before every KeyHelp update
+- [Community forum](https://community.keyhelp.de/), "The official KeyHelp forum of Keyweb AG",
+  for example Keyweb's notes on [own themes and the KeyHelp logo](https://community.keyhelp.de/viewtopic.php?t=10363)
+- [REST API documentation](https://api.keyhelp.de) (opens on SwaggerHub; lumen-panel does not use
+  the API)
+
 ## Not affiliated
 
-Not affiliated with or endorsed by Keyweb AG. KeyHelp is a registered trademark of Keyweb AG and
-is named only to describe what this project works with. This repository contains no KeyHelp file;
-the theme is built from the KeyHelp installation on the server where it runs.
+KeyHelp is a registered trademark of Keyweb AG. lumen-panel is not affiliated with or endorsed by
+Keyweb AG. "KeyHelp" is named only to describe what this project works with. This repository
+contains no KeyHelp file. lumen-panel never uses or changes the KeyHelp logo files, and its
+documentation does not link them: the theme shows its own logo in their place, or your White
+Label logo. The theme is built from the
+KeyHelp installation on the server where it runs
+([why](#why-no-keyhelp-files-are-in-this-repository)).
 
 ## Licence
 

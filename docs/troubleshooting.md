@@ -14,9 +14,11 @@ also checks every anchor against the local install, and install again.
 
 **Cause:** `dist/assets/` does not exist or is from an older build.
 
-**Fix:** build the assets on another machine and copy `dist/assets/` to the server, or build
-them on the server with the memory-limited commands in [Installation](install.md#install). Do not
-run `npm` there without a limit: on a small server it can push other services out of memory.
+**Fix:** put the CI artifact `theme-assets` of the commit you checked out into `dist/assets/`
+(digest checked), or build the assets on another machine and copy them; building on the server
+only with the memory-limited commands ([Get the built assets](install.md#get-the-built-assets)).
+Do not run `npm` there without a limit: on a small server it can push other programs out of
+memory.
 
 ## "files the theme does not use: ..."
 
@@ -33,7 +35,7 @@ takes `lumen*.css`, `lumen-island.js`, `fonts/*`, `brand/*.svg` and the files th
 **Fix:** nothing was installed; run the command again a few minutes later. See the
 [runbook](runbook.md#exit-code-75-busy-or-the-default-theme-changed-during-the-build).
 
-## Lumen is not listed under Configuration -> Theme
+## Lumen is not listed under Configuration → Appearance → Theme
 
 **Cause:** `theme/lumen/_settings.json` is missing or not readable by the panel user.
 
@@ -46,12 +48,13 @@ cd generator && sudo python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/the
 
 ## The theme is selected but pages still look like the default theme
 
-**Cause:** the browser still has the old stylesheet, or a white-label CSS overrides the colours
+**Cause:** the browser still has the old stylesheet, or White Label CSS overrides the colours
 (it loads after Lumen on purpose).
 
 **Fix:** reload without the cache (Ctrl+Shift+R). Every build changes the `?v=` value of the Lumen
-files, so a normal reload is enough after the next build. Review the white-label CSS in the panel
-settings.
+files, so a normal reload is enough after the next build. Review **Additional CSS** under
+**Configuration** → **Appearance** → **White Label** (the **All languages** entry and every
+language entry).
 
 ## Ctrl+K does not open the command palette
 
@@ -65,8 +68,25 @@ editors (file manager, template editors). Some browser extensions take Ctrl+K fi
 
 **Cause:** too little free memory for the build on a small server.
 
-**Fix:** build on another machine and copy `dist/assets/` to the server, or run the build with a
-memory limit when enough memory is free (see [Installation](install.md)).
+**Fix:** use the CI artifact `theme-assets`, or build on another machine and copy `dist/assets/`
+to the server, or run the build with a memory limit when enough memory is free
+([Get the built assets](install.md#get-the-built-assets)).
+
+## The panel shows errors after selecting Lumen, and the Theme page does not load
+
+**Cause:** a template of the build fails with this panel version.
+
+**Fix:** move the theme folder out of the panel (the command does not ask the panel first):
+
+```bash
+cd /opt/lumen-panel/generator
+sudo python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes
+```
+
+Then follow [If the panel cannot show the Theme page](install.md#if-the-panel-cannot-show-the-theme-page),
+and open an issue with the KeyHelp version and the template the error names. When the Theme page
+still loads, a [rollback](runbook.md#failure-the-panel-shows-errors-after-an-install) to the
+previous build is the gentler fix.
 
 ## Still stuck?
 
