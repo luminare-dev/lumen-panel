@@ -23,7 +23,10 @@ Keyweb AG.
 | Changelog | <https://changelog.keyhelp.de/> | 200 (the menu link <https://www.keyweb.de/en/keyhelp/development/changelog> redirects here, 301) | Newest version on the check date: 26.1.1 of 19 August 2026. The entries used in these docs are listed [below](#changelog-entries-used). |
 | Community forum | <https://community.keyhelp.de/> | 200 | Calls itself "The official KeyHelp forum of Keyweb AG". The threads used are listed [below](#forum-threads-on-themes). |
 | REST API documentation | <https://api.keyhelp.de> | 301 to SwaggerHub, <https://app.swaggerhub.com/apis-docs/keyhelp/api/>, which needs a browser with JavaScript (a plain request gets 404 there) | The registry entry <https://api.swaggerhub.com/apis/keyhelp/api> answers 200 and names "KeyHelp RESTful API", default version 2.15, the same version as the specification the panel ships in `api/openapi.json`, which links api.keyhelp.de itself. lumen-panel does not use the API. |
-| Logos and graphics | <https://www.keyweb.de/en/support/downloads> | 200 (the older <https://www.keyweb.de/en/keyhelp/development/logos-and-graphic> redirects to the German page, 301) | The section "KeyHelp – Logos & Graphics" with the KeyHelp logo and signet files. The page states no terms of use. lumen-panel neither uses nor links these files and treats the KeyHelp logos as registered trademarks of Keyweb AG (see the forum post below). |
+
+Keyweb publishes the KeyHelp logo files on its own downloads page. lumen-panel neither uses nor
+links them, and treats the KeyHelp logos as registered trademarks of Keyweb AG
+([forum, 2021](https://community.keyhelp.de/viewtopic.php?t=10363)).
 
 ## Changelog entries used
 
@@ -74,7 +77,6 @@ The first list of sources (collected on 2026-10-21) had these links; use the new
 |---|---|---|
 | <https://www.keyweb.de/en/keyhelp/install> | 301 | <https://www.keyweb.de/en/keyhelp/keyhelp/#install> |
 | <https://www.keyweb.de/en/keyhelp/support/tutorials> | 301 | <https://www.keyweb.de/en/support/learn-more/tutorials#keyhelp> |
-| <https://www.keyweb.de/en/keyhelp/development/logos-and-graphic> | 301 to the German downloads page | <https://www.keyweb.de/en/support/downloads> |
 | <https://app.swaggerhub.com/apis-docs/keyhelp/api/> | 404 to a plain request, a browser page with JavaScript | <https://api.keyhelp.de>, the link KeyHelp's own API specification gives |
 
 ## Checking the links again

@@ -1,5 +1,9 @@
 # Runbook
 
+Run every `python3 -m lumen_panel` command below as root from the generator folder
+(`cd /opt/lumen-panel/generator`); from any other folder it fails with "No module named
+lumen_panel". The commands in a `ROLLBACK.txt` change to that folder themselves.
+
 ## Automatic rebuild after panel updates (optional units)
 
 The example units [`contrib/lumen-panel-sync.service`](../contrib/lumen-panel-sync.service),

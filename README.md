@@ -6,7 +6,7 @@
 </picture>
 
 <!-- byline:studio -->
-*a [Luminare Development](https://luminare.tech/open-source/lumen-panel/) open-source project*
+*a [Luminare Development](https://luminare.tech/open-source/) open-source project*
 <!-- /byline:studio -->
 <!-- byline:personal
 *by Paul Pasaurek · [project page](https://luminare.tech/open-source/lumen-panel/)*
@@ -54,11 +54,13 @@ git clone https://github.com/luminare-dev/lumen-panel.git /opt/lumen-panel   # t
 cd /opt/lumen-panel/generator
 python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp --dry-run
 python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp
+python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen --keyhelp /home/keyhelp/www/keyhelp
 ```
 
-Then, in the panel, select **Lumen** under **Configuration** → **Appearance** → **Theme** and
-save. To switch back at once, select **Default Theme** there. Every install saves its undo command
-as `ROLLBACK.txt` in its backup folder ([rollback and uninstall](docs/install.md#switch-back-roll-back-or-uninstall)).
+When verify prints only `ok:` lines, select **Lumen** in the panel under **Configuration** →
+**Appearance** → **Theme** and save. To switch back at once, select **Default Theme** there.
+Every install saves its undo command as `ROLLBACK.txt` in its backup folder
+([rollback and uninstall](docs/install.md#switch-back-roll-back-or-uninstall)).
 
 After a KeyHelp update, read the [KeyHelp changelog](https://changelog.keyhelp.de/) first, then
 rebuild when needed, by hand or with the optional units in `contrib/`
@@ -69,7 +71,8 @@ python3 -m lumen_panel sync --keyhelp /home/keyhelp/www/keyhelp
 ```
 
 Without a shell, the stylesheet alone also works through the panel's own White Label settings,
-without the command palette ([route B](docs/install.md#route-b-white-label-only)).
+without the command palette ([route B](docs/install.md#route-b-white-label-only), not yet tried on
+a live panel).
 
 ## How it works
 
@@ -184,7 +187,7 @@ with every panel update.
 
 | Component | Tested with | Supported |
 |---|---|---|
-| KeyHelp (default theme `bulma`) | 26.1.1 on Ubuntu 24.04 (generator build, verify and dry run on the live install, read-only) | 26.1.x; other versions when every patch anchor still fits (the dry run and every build check it) |
+| KeyHelp (default theme `bulma`) | 26.1.1 on Ubuntu 24.04 (generator build, verify, dry run and install on the live panel; not yet selected) | 26.1.x; other versions when every patch anchor still fits (the dry run and every build check it) |
 | Operating system | Ubuntu 24.04 | the systems KeyHelp runs on (Keyweb lists Ubuntu LTS and Debian) |
 | Python (generator) | 3.12 | 3.10 or later |
 | Node.js (only to build the assets) | 22.x in CI (GitHub's ubuntu-24.04 runner) | 22.22.2 or later (22.x), 24.15 or later, 26 |
@@ -234,8 +237,8 @@ Fixes go into the latest minor release only. See the
 |---|---|---|
 | Contrast, text pairs | 51 pairs, lowest 4.55:1 (light) and 4.51:1 (dark), minimum 4.5:1 | `python3 scripts/contrast.py`, WCAG 2.x formula, 2026-10-21; full table in [docs/contrast.md](docs/contrast.md) |
 | Contrast, UI parts | 16 pairs (control borders, focus rings, progress fills, close-button crosses), lowest 3.17:1 (light) and 3.08:1 (dark), minimum 3:1 | same |
-| Generator and repository tests | 172 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
-| Generator against the live panel | build and verify pass: 215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly; dry run passes | `python3 -m lumen_panel build` and `verify --keyhelp` into a scratch folder with placeholder assets, KeyHelp 26.1.1, read-only, 2026-10-21 |
+| Generator and repository tests | 173 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
+| Generator against the live panel | build and verify pass: 215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly; dry run passes; `install` ran, the theme is not selected yet | `python3 -m lumen_panel build` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), then `install` on the panel, KeyHelp 26.1.1, 2026-10-21 |
 | Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library) | `npm test` in CI (Node.js 22), 2026-10-21 |
 | Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
 | Stylesheet size | about 46 KB per variant, minified (four variants) | `node scripts/build-css.mjs` in CI, 2026-10-21 |
@@ -255,7 +258,8 @@ Fixes go into the latest minor release only. See the
   [Code of conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md) ·
   [Security](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) ·
   [Support](https://github.com/luminare-dev/.github/blob/main/SUPPORT.md)
-- Project page: <https://luminare.tech/open-source/lumen-panel/>
+- Project page: not published yet; the Luminare open-source overview is
+  <https://luminare.tech/open-source/>
 
 ## Official KeyHelp resources
 
@@ -298,7 +302,7 @@ KeyHelp installation on the server where it runs
 own licence ([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
 
 <!-- byline:studio -->
-*a [Luminare Development](https://luminare.tech/open-source/lumen-panel/) open-source project*
+*a [Luminare Development](https://luminare.tech/open-source/) open-source project*
 <!-- /byline:studio -->
 <!-- byline:personal
 *by Paul Pasaurek · [project page](https://luminare.tech/open-source/lumen-panel/)*

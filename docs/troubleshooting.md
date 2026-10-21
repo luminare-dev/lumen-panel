@@ -83,13 +83,20 @@ cd /opt/lumen-panel/generator
 sudo python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes
 ```
 
-Then follow [If the panel cannot show the Theme page](install.md#if-the-panel-cannot-show-the-theme-page),
-and open an issue with the KeyHelp version and the template the error names. When the Theme page
-still loads, a [rollback](runbook.md#failure-the-panel-shows-errors-after-an-install) to the
-previous build is the gentler fix.
+Keyweb's fix for a theme that breaks the panel has two steps: remove the theme's folder, and
+set `default_theme` (table `settings`, category `general`) back to `bulma` in KeyHelp's database
+([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)). The
+command above does the first step without deleting anything. Whether the panel falls back to the
+default theme without the second step has not been tested; if pages still fail, do the second
+step as Keyweb describes
+([If the panel cannot show the Theme page](install.md#if-the-panel-cannot-show-the-theme-page)).
+Then open an issue with the KeyHelp version and the template the error names.
+
+When the Theme page still loads, select **Default Theme** there first (nothing on disk changes),
+then [roll back](install.md#roll-back-to-the-previous-build) to the previous build if there is
+one.
 
 ## Still stuck?
 
-Search the issues, then ask in the organization's
-[Discussions](https://github.com/orgs/luminare-dev/discussions). Never post secrets, keys, IP
-addresses, hostnames or customer data; redact logs before you paste them.
+Search the [issues](https://github.com/luminare-dev/lumen-panel/issues), then open one. Never post
+secrets, keys, IP addresses, hostnames or customer data; redact logs before you paste them.

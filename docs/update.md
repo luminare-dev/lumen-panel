@@ -5,6 +5,9 @@ templates are a patched copy of the default templates from the day of the last b
 update they can be older than the panel. The generator notices this and rebuilds; nothing of
 KeyHelp has to be downloaded, because the new default theme is already on the server.
 
+KeyHelp is a registered trademark of Keyweb AG. lumen-panel is not affiliated with or endorsed by
+Keyweb AG.
+
 For new versions of lumen-panel itself, see [Upgrading lumen-panel](upgrade.md).
 
 ## Before a KeyHelp update: read the changelog
@@ -60,7 +63,7 @@ sudo install -d -m 700 /root/backups/lumen-panel
 cd /opt/lumen-panel
 sudo install -m 644 contrib/lumen-panel-sync.service contrib/lumen-panel-sync.path \
   contrib/lumen-panel-sync.timer /etc/systemd/system/
-sudo systemctl edit --full lumen-panel-sync.service   # only if your paths differ (and the .path unit)
+# sudo systemctl edit --full lumen-panel-sync.service   # only if your paths differ (and the .path unit)
 sudo systemctl daemon-reload
 sudo systemctl enable --now lumen-panel-sync.path
 sudo systemctl enable --now lumen-panel-sync.timer

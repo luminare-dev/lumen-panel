@@ -10,11 +10,11 @@ also develop your own themes." There are two routes:
 | | Route A: the Lumen theme | Route B: White Label only |
 |---|---|---|
 | What you get | the stylesheet (light and dark, left to right and right to left), the command palette (Ctrl+K), the Luminare logo in the panel, the login page design | the stylesheet (light and dark, both text directions) and your own logos |
-| What you do not get | (all of the above is included) | the command palette, the login page design, the Sora font |
+| What you do not get | (all of the above is included) | the command palette, the Sora font, the template patches (Luminare logo, the full login page design) |
 | What it needs | a main administrator account, a root shell on the panel server, Python 3.10 or later, git, the built assets | a main administrator account, a browser and one built file |
-| What it changes | `theme/lumen`, the compiled Lumen templates in the Twig cache, backups in `/root/backups/lumen-panel` | one setting on the panel's White Label page |
+| What it changes | `theme/lumen`, the compiled Lumen templates in the Twig cache, backups in `/root/backups/lumen-panel` | the Additional CSS setting on the White Label page (and the logo fields, if you upload logos) |
 | After a KeyHelp update | `sync` rebuilds the copied templates, by hand or with the optional units | nothing to rebuild |
-| Undo | select the default theme (one click) | empty the field and save |
+| Undo | select the default theme (one click) | empty the field (and remove the logos) and save |
 
 Most of this guide is route A. [Route B](#route-b-white-label-only) comes at the end, together with
 a [list of the panel labels](#panel-labels-in-english-and-german) in English and German.
@@ -28,16 +28,18 @@ KeyHelp 26.1.1 (default theme 26.1.1) on Ubuntu 24.04 with Python 3.12, read-onl
 placeholder assets; `install`, `rollback`, `sync`, `uninstall`, `hold` and `release`, including
 interrupted and parallel runs, are covered by the test suite on a fake panel tree. CI builds the
 assets, runs the 41 command palette tests and builds and verifies a theme from those assets on
-every commit. A first install on a live panel is still to come. Route B has not been tried on a
-live panel yet.
+every commit. `install` ran on the live KeyHelp 26.1.1 panel on 2026-10-21; the theme has not been
+selected yet, so activation, rollback and uninstall on a live panel are still to come. Route B has
+not been tried on a live panel yet.
 
 ## Contents
 
 - Route A: [Requirements](#requirements) · [Get the code](#get-the-code) ·
   [Get the built assets](#get-the-built-assets) · [Dry run](#dry-run) · [Install](#install) ·
   [What the install changes](#what-the-install-changes) ·
+  [Check the installed theme](#check-the-installed-theme) ·
   [Activate Lumen in the panel](#activate-lumen-in-the-panel) ·
-  [Check that it works](#check-that-it-works) ·
+  [Check it in the browser](#check-it-in-the-browser) ·
   [Switch back, roll back or uninstall](#switch-back-roll-back-or-uninstall) ·
   [Rebuild automatically (optional)](#rebuild-automatically-optional) ·
   [Update lumen-panel](#update-lumen-panel) · [After a KeyHelp update](#after-a-keyhelp-update)
@@ -114,16 +116,18 @@ CI builds every commit and keeps the built `dist/assets/` as the artifact `theme
 days. Use the artifact of exactly the commit you checked out, and check its SHA-256 digest: GitHub
 records the digest of every artifact's zip file when it is uploaded and shows it next to the
 artifact on the run page and as `digest` in its REST API
-([GitHub changelog, 2025-03-18](https://github.blog/changelog/2025-03-18-github-actions-now-supports-a-digest-for-validating-your-artifacts-at-runtime/)).
+([GitHub changelog, 2025-03-18](https://github.blog/changelog/2025-03-18-github-actions-now-supports-a-digest-for-validating-your-artifacts-at-runtime/), [REST API reference](https://docs.github.com/en/rest/actions/artifacts)).
 
 In the browser (signed in to GitHub): **Actions** → **ci** → the run of your commit
-(`git -C /opt/lumen-panel rev-parse HEAD` prints it) → **Artifacts** → `theme-assets`. Note the
-digest shown there, download the zip, and compare it with `sha256sum theme-assets.zip`.
+(`git -C /opt/lumen-panel rev-parse HEAD` prints it, or the commit of the release tag on GitHub) →
+**Artifacts** → `theme-assets`. Note the digest shown there, download the zip, and compare it
+with `sha256sum theme-assets.zip`.
 
 With the GitHub CLI, on any machine where you ran `gh auth login`:
 
 ```bash
 COMMIT=<the output of: git -C /opt/lumen-panel rev-parse HEAD>
+# with the release archive instead of git: COMMIT=$(gh api repos/luminare-dev/lumen-panel/commits/vX.Y.Z --jq .sha)
 gh run list --repo luminare-dev/lumen-panel --workflow ci.yml --commit "$COMMIT" --status success \
   --json databaseId --jq '.[0].databaseId'
 RUN=<the run id it printed>
@@ -163,7 +167,7 @@ git checkout --quiet vX.Y.Z
 npm ci --ignore-scripts
 npm run build:css && npm run build:island          # writes dist/assets/ (the gallery is not needed)
 tar -C dist -cf - assets | ssh root@<panel host> \
-  'rm -rf /opt/lumen-panel/dist/assets && mkdir -p /opt/lumen-panel/dist && tar -C /opt/lumen-panel/dist -xf - && chown -R root:root /opt/lumen-panel/dist'
+  'rm -rf /opt/lumen-panel/dist/assets && mkdir -p /opt/lumen-panel/dist && tar -C /opt/lumen-panel/dist -xf - && chown -R root:root /opt/lumen-panel/dist && chmod -R go-w /opt/lumen-panel/dist'
 ```
 
 Building on the panel server itself is possible, but on a small server that also runs mail and
@@ -254,6 +258,21 @@ before, and Lumen is only listed on the Theme page.
 | `/root/backups/lumen-panel/` | created with mode 700. Holds the run lock `.lock`, the hold file `HOLD` (after a `rollback` or `hold`) and one folder per run, named by its UTC time (for example `20261021T041348050556Z`), with `ROLLBACK.txt` and, as the run needs them, `lumen/` (the previous build), `twig-cache/`, `twig-cache-late/`, `stale/` and `failed-staging/`. Nothing in it is ever deleted; remove old folders yourself. |
 | not changed | the default theme `theme/bulma` (only read), KeyHelp's database and settings (the selected theme, the White Label settings), every other file of the panel, the system (no packages; units only if you install them). |
 
+## Check the installed theme
+
+Before you select the theme for all accounts, check the installed folder:
+
+```bash
+cd /opt/lumen-panel/generator
+python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen --keyhelp /home/keyhelp/www/keyhelp
+python3 -m lumen_panel check-update --keyhelp /home/keyhelp/www/keyhelp
+ls -ld /home/keyhelp/www/keyhelp/theme/lumen          # owner keyhelp keyhelp
+```
+
+`verify` prints one `ok:` line per check (settings, templates, contents, patches, twig syntax,
+assets, screenshot) and exits 0; `check-update` prints `up to date (default theme 26.1.1,
+lumen-panel X.Y.Z)` and exits 0. Go on only when both commands exit 0.
+
 ## Activate Lumen in the panel
 
 1. Log in to the panel as a main administrator.
@@ -274,20 +293,9 @@ theme. White Label CSS loads after Lumen's stylesheet and wins, so review **Conf
 **Appearance** → **White Label** → **Additional CSS** if colours look wrong. A White Label logo for
 the internal or external area also wins over the Luminare logo.
 
-## Check that it works
+## Check it in the browser
 
-```bash
-cd /opt/lumen-panel/generator
-python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen --keyhelp /home/keyhelp/www/keyhelp
-python3 -m lumen_panel check-update --keyhelp /home/keyhelp/www/keyhelp
-ls -ld /home/keyhelp/www/keyhelp/theme/lumen          # owner keyhelp keyhelp
-```
-
-`verify` prints one `ok:` line per check (settings, templates, contents, patches, twig syntax,
-assets, screenshot) and exits 0; `check-update` prints `up to date (default theme 26.1.1,
-lumen-panel X.Y.Z)` and exits 0.
-
-In the browser (reload once without the cache, Ctrl+Shift+R):
+Reload once without the cache (Ctrl+Shift+R):
 
 - the login page shows the Luminare logo (or your White Label logo for the external area);
 - every page after login loads `/theme/lumen/assets/lumen.css?v=<hash>`, or its `-dark` or `-rtl`
@@ -311,19 +319,22 @@ cd /opt/lumen-panel/generator
 python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes
 ```
 
-Keyweb's advice for a theme that breaks the panel is to remove the theme's folder and to set the
-default theme `bulma` again in KeyHelp's database, table `settings`, category `general`, name
-`default_theme` ([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)).
-The command above is the first step, without deleting anything; take the second only if the panel
-still does not load.
+Keyweb's fix for a theme that breaks the panel has two steps: remove the theme's folder, and set
+`default_theme` (table `settings`, category `general`) back to `bulma` in KeyHelp's database
+([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)). The
+command above does the first step without deleting anything. Whether the panel falls back to the
+default theme without the second step has not been tested; if pages still fail, do the second
+step as Keyweb describes.
 
 ### Roll back to the previous build
 
-Every install writes its undo command to `ROLLBACK.txt` in its backup folder. After a first
-install there is no previous build, and the undo is the [uninstall](#uninstall) below; after every
-later install it is a rollback:
+Every install writes its undo command to `ROLLBACK.txt` in its backup folder; each
+`python3 -m lumen_panel` command in it starts with `cd` into the generator folder, so it works
+from any folder. After a first install there is no previous build, and the undo is the
+[uninstall](#uninstall) below; after every later install it is a rollback:
 
 ```bash
+cd /opt/lumen-panel/generator
 cat /root/backups/lumen-panel/<timestamp>/ROLLBACK.txt
 python3 -m lumen_panel rollback --keyhelp /home/keyhelp/www/keyhelp --from /root/backups/lumen-panel/<timestamp>
 ```
@@ -343,9 +354,10 @@ the version you just left; the next `install` (or `release`) ends the hold.
    ```
 
 With `--panel-url`, the command loads the login page once and refuses (exit 4) while it still
-loads the Lumen stylesheet; add `--insecure` for a self-signed panel certificate. Without it, run
-the command with `--yes` after step 1 (it exits 5 otherwise). The removed folder and its compiled
-templates stay in `/root/backups/lumen-panel/<timestamp>/`.
+loads the Lumen stylesheet, and exits 5 when the page cannot be reached or shows neither
+stylesheet (then re-run with `--yes` after step 1); add `--insecure` for a self-signed panel
+certificate. Without it, run the command with `--yes` after step 1 (it exits 5 otherwise). The
+removed folder and its compiled templates stay in `/root/backups/lumen-panel/<timestamp>/`.
 
 To remove everything afterwards: the optional units, if installed
 ([Rebuild automatically](#rebuild-automatically-optional)), then `/opt/lumen-panel` and, once you
@@ -377,7 +389,7 @@ install -d -m 700 /root/backups/lumen-panel
 cd /opt/lumen-panel
 install -m 644 contrib/lumen-panel-sync.service contrib/lumen-panel-sync.path \
   contrib/lumen-panel-sync.timer /etc/systemd/system/
-systemctl edit --full lumen-panel-sync.service      # only if your paths differ (and the .path unit)
+# systemctl edit --full lumen-panel-sync.service   # only if your paths differ (and the .path unit)
 systemctl daemon-reload
 systemctl enable --now lumen-panel-sync.path
 systemctl enable --now lumen-panel-sync.timer
@@ -427,9 +439,15 @@ python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp --dry-run
 python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp     # also ends the hold
 ```
 
-Then [check that it works](#check-that-it-works). With the release archive instead of git, unpack
-the new archive next to the old folder, put the new tag's assets into its `dist/assets/`, swap the
-two folders and run the same commands. See also [Upgrading lumen-panel](upgrade.md).
+If the dry run fails, nothing changed and the hold is still set. Either fix the cause and run
+`install`, or go back to the previous tag (`git checkout --quiet vOLD` and that tag's assets) and
+run `python3 -m lumen_panel release`. Do not leave the hold set: while it is, `sync` does not
+follow KeyHelp updates.
+
+Then [check the installed theme](#check-the-installed-theme) and
+[check it in the browser](#check-it-in-the-browser). With the release archive instead of git,
+unpack the new archive next to the old folder, put the new tag's assets into its `dist/assets/`,
+swap the two folders and run the same commands. See also [Upgrading lumen-panel](upgrade.md).
 
 ## After a KeyHelp update
 
@@ -511,8 +529,8 @@ CSS, so White Label CSS still overrides it.
 | Command palette | not available | the theme loads it as one cached, deferred file on pages after login only; White Label JavaScript is printed inline into every page, login and popups included, and lumen-panel does not build or test the palette for that |
 | Template patches | not available | White Label settings cannot change templates: no stylesheet chosen per user mode and text direction, no hook classes, no logo replacement by the theme |
 
-The trade-offs: route B is the lighter path and uses one panel setting only (no files on the
-server, no rebuild after KeyHelp updates, no root shell). Route A gives the whole design, the
+The trade-offs: route B is the lighter path and uses the White Label settings only (no files on
+the server, no rebuild after KeyHelp updates, no root shell). Route A gives the whole design, the
 command palette and per-variant stylesheets the browser caches, and in return needs a theme
 folder that `sync` keeps in step with KeyHelp, and a root shell to set it up.
 
@@ -528,14 +546,17 @@ folder that `sync` keeps in step with KeyHelp, and a root shell to set it up.
 4. Paste the whole content of `lumen-rtl.css` into **Additional CSS** (the field's help: "You can
    define your own CSS styles and override the current design."). Leave **Additional
    JavaScript** as it is.
-5. Optional: upload your own logos under **Logo for internal area** (header after login and in
+5. Click **Preview on this page** below **Additional CSS** to see the result before you save.
+6. Optional: upload your own logos under **Logo for internal area** (header after login and in
    popups) and **Logo for external area** (login and password pages), each with a file for the
    default mode and one for dark mode where the form has both; the page advises SVG. Never
    upload a changed KeyHelp logo: the page itself notes that KeyHelp is a registered trademark of
    Keyweb AG that may not be presented as your own, and Keyweb asks not to change the KeyHelp logo
    ([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10363)). The
    Luminare logo files in `dist/assets/brand/` are not licensed for reuse ([NOTICE](../NOTICE)).
-6. **Save**, then reload a panel page without the cache (Ctrl+Shift+R).
+7. **Save**, then reload a panel page without the cache (Ctrl+Shift+R). After saving, open
+   **All languages** again and check that **Additional CSS** still ends with the last rule of
+   `lumen-rtl.css` (a field of this size has not been tried yet).
 
 Use one route at a time: with route B, keep **Default Theme** selected under
 **Configuration** → **Appearance** → **Theme**. With the Lumen theme selected, a pasted copy of
@@ -560,6 +581,7 @@ The labels as KeyHelp 26.1.1 shows them (from its message catalogues):
 | Configuration → Appearance → White Label | Konfiguration → Erscheinungsbild → White-Label |
 | All languages | Alle Sprachen |
 | Additional CSS, Additional JavaScript | Zusätzliches CSS, Zusätzliches JavaScript |
+| Preview on this page (the button below Additional CSS) | Vorschau auf dieser Seite |
 | Logo for internal area, Logo for external area | Logo für den internen Bereich, Logo für den externen Bereich |
 | Remove image, Reset all settings | Bild entfernen, Alle Einstellungen zurücksetzen |
 | Maintenance Intervals → Update control panel | Wartungsintervalle → Control Panel aktualisieren |

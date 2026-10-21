@@ -21,8 +21,11 @@ The exact commands are in [Installation, Update lumen-panel](install.md#update-l
    ([Get the built assets](install.md#get-the-built-assets)); afterwards
    `chown -R root:root /opt/lumen-panel && chmod -R go-w /opt/lumen-panel` again.
 5. Run `install --dry-run`, then `install` (see [Installation](install.md#install)). The previous
-   build is kept in the backups, and `install` ends the hold from step 2.
-6. Run the check from [Installation](install.md#check-that-it-works) again.
+   build is kept in the backups, and `install` ends the hold from step 2. If the dry run fails,
+   nothing changed and the hold is still set: fix the cause and run `install`, or go back to the
+   previous tag and its assets and run `python3 -m lumen_panel release`. Do not leave the hold
+   set, because `sync` does not follow KeyHelp updates while it is.
+6. Run the check from [Installation](install.md#check-the-installed-theme) again.
 
 If the optional units are installed and no hold is set, the daily timer picks up the new
 generator version, the new assets and a changed patch set by itself: each counts as "rebuild

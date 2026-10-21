@@ -17,10 +17,12 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import set_byline as sb  # noqa: E402
 
 # Patterns rather than literal text, so the tests keep passing once a repository created from the
-# template has filled its placeholders or switched to the personal byline.
-STUDIO_RE = re.compile(r"^\*a \[Luminare Development\]\(https://luminare\.tech/open-source/[^)]+/\) open-source project\*$",
-                       re.MULTILINE)
-PERSONAL_RE = re.compile(r"^\*by [^*\n]+ · \[project page\]\(https://luminare\.tech/open-source/[^)]+/\)\*$", re.MULTILINE)
+# template has filled its placeholders or switched to the personal byline. Until its project page
+# exists, a repository links the open-source overview (https://luminare.tech/open-source/).
+STUDIO_RE = re.compile(r"^\*a \[Luminare Development\]\(https://luminare\.tech/open-source/(?:[^)/]+/)?\) "
+                       r"open-source project\*$", re.MULTILINE)
+PERSONAL_RE = re.compile(r"^\*by [^*\n]+ · \[project page\]\(https://luminare\.tech/open-source/(?:[^)/]+/)?\)\*$",
+                         re.MULTILINE)
 IS_TEMPLATE = "template-only:begin" in (ROOT / "README.md").read_text(encoding="utf-8")
 
 

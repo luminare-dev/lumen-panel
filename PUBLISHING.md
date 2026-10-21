@@ -152,6 +152,13 @@ Facts and links in this file were checked on 2026-10-06 (A7 and B17 on 2026-10-0
       (byline, README links and the website field from B9) answers with HTTP 200, and the
       organization's `luminare-dev/.github` repository is public, so the README's contributing,
       conduct, security and support links work. Until both hold, publication waits.
+  - lumen-panel: `https://luminare.tech/open-source/lumen-panel/` answered 404 on 2026-10-21, so
+    the README's studio byline (under the header and in the licence section) and the "Project
+    page" line under "Documentation and links" link the overview
+    `https://luminare.tech/open-source/` instead. Once the project page answers 200, switch all
+    three back to `https://luminare.tech/open-source/lumen-panel/` (the inactive personal byline
+    and `homepage` in `package.json` already use it), then run
+    `python3 scripts/set_byline.py verify --expect studio`.
 
 ## C. Every release
 
