@@ -90,7 +90,7 @@ class ReleaseRun:
         gh.chmod(0o755)
         self.env = {"PATH": f"{bin_dir}{os.pathsep}/usr/bin{os.pathsep}/bin", "HOME": str(self.dir), "LC_ALL": "C",
                     "GH_LOG": str(self.log), "GH_FAIL": fail, "GH_TOKEN": "unused", "GITHUB_REPOSITORY": REPO,
-                    "BUNDLE": str(self.bundle), "TAG": "v0.1.0"}
+                    "BUNDLE": str(self.bundle), "DEFAULT_BRANCH": "main", "TAG": "v0.1.0"}
 
     def run(self, name: str) -> subprocess.CompletedProcess[str]:
         script = self.dir / "step.sh"
@@ -117,6 +117,7 @@ class StepOrderTest(unittest.TestCase):
         self.assertEqual(step(ATTEST).get("id"), "attest")
         self.assertEqual(step(PROVENANCE).get("if"), "${{ steps.attest.outcome == 'success' }}")
         self.assertEqual(step(PROVENANCE).get("env.BUNDLE"), "${{ steps.attest.outputs.bundle-path }}")
+        self.assertEqual(step(PROVENANCE).get("env.DEFAULT_BRANCH"), "${{ github.event.repository.default_branch }}")
 
 
 class PublishJobTest(unittest.TestCase):
@@ -126,7 +127,10 @@ class PublishJobTest(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
         provenance = rel.dir / "dist" / f"{ARCHIVE}.intoto.jsonl"
         self.assertEqual(provenance.read_bytes(), rel.bundle.read_bytes())
+        # The signer is this workflow file (a reusable workflow signs with its own path), run from main.
         self.assertEqual(rel.gh_calls(), [["attestation", "verify", f"dist/{ARCHIVE}", "--repo", REPO,
+                                           "--signer-workflow", f"{REPO}/.github/workflows/{WORKFLOW.name}",
+                                           "--source-ref", "refs/heads/main",
                                            "--bundle", f"dist/{ARCHIVE}.intoto.jsonl"]])
 
         out = rel.run(PUBLISH)

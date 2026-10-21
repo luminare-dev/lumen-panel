@@ -115,10 +115,13 @@ jobs:
       # certificate, transparency-log entry, DSSE envelope with the SLSA v1 provenance statement),
       # the format and name slsa-github-generator v2.1+ uses. Checked here with the command from
       # docs/install.md while the release is still a draft. Skipped with the attest step.
+      # The certificate of a reusable workflow names that workflow (job_workflow_ref), so
+      # --signer-workflow is this file; --source-ref requires a run started from the default branch.
       - name: Add the provenance file and verify it
         if: ${{ steps.attest.outcome == 'success' }}
         env:
           BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -130,7 +133,8 @@ jobs:
           fi
           cp "$BUNDLE" "${archives[0]}.intoto.jsonl"
           gh attestation verify "${archives[0]}" --repo "$GITHUB_REPOSITORY" \
-            --bundle "${archives[0]}.intoto.jsonl"
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/reusable-release.yml" \
+            --source-ref "refs/heads/$DEFAULT_BRANCH" --bundle "${archives[0]}.intoto.jsonl"
 
       - name: Attach the files and publish the release
         env:

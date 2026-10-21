@@ -181,8 +181,11 @@ Facts and links in this file were checked on 2026-10-06 (A7 and B17 on 2026-10-0
 ```bash
 gh release download vX.Y.Z -R luminare-dev/<slug>
 sha256sum -c SHA256SUMS
-gh attestation verify <slug>-X.Y.Z.tar.gz -R luminare-dev/<slug>
-gh attestation verify <slug>-X.Y.Z.tar.gz -R luminare-dev/<slug> --bundle <slug>-X.Y.Z.tar.gz.intoto.jsonl
+gh attestation verify <slug>-X.Y.Z.tar.gz -R luminare-dev/<slug> \
+  --signer-workflow luminare-dev/<slug>/.github/workflows/reusable-release.yml --source-ref refs/heads/main
+gh attestation verify <slug>-X.Y.Z.tar.gz -R luminare-dev/<slug> \
+  --signer-workflow luminare-dev/<slug>/.github/workflows/reusable-release.yml --source-ref refs/heads/main \
+  --bundle <slug>-X.Y.Z.tar.gz.intoto.jsonl
 ```
 
 ## D. Upkeep
