@@ -14,15 +14,24 @@ also checks every anchor against the local install, and install again.
 
 **Cause:** `dist/assets/` does not exist or is from an older build.
 
-**Fix:**
+**Fix:** build the assets on another machine and copy `dist/assets/` to the server, or build
+them on the server with the memory-limited commands in [Installation](install.md#install). Do not
+run `npm` there without a limit: on a small server it can push other services out of memory.
 
-```bash
-npm ci --ignore-scripts && npm run build
-```
+## "files the theme does not use: ..."
 
-On a server with little free memory, run the build with a limit, for example
-`systemd-run --scope -p MemoryMax=450M -p MemorySwapMax=0 npm run build`, or build on another
-machine and copy `dist/assets/` over.
+**Cause:** `dist/assets/` holds a file the theme does not load (an old bundle, a source map).
+Everything below `theme/lumen/assets/` would be downloadable from the panel, so the build only
+takes `lumen*.css`, `lumen-island.js`, `fonts/*`, `brand/*.svg` and the files the patches list.
+
+**Fix:** delete the named files, or rebuild: `npm run build:css` empties `dist/assets/` first.
+
+## "another lumen-panel run is active" or "the default theme changed during the build" (exit 75)
+
+**Cause:** a second run, or a KeyHelp update that was still writing the default theme.
+
+**Fix:** nothing was installed; run the command again a few minutes later. See the
+[runbook](runbook.md#exit-code-75-busy-or-the-default-theme-changed-during-the-build).
 
 ## Lumen is not listed under Configuration -> Theme
 

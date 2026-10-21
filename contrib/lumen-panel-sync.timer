@@ -1,4 +1,4 @@
-# lumen-panel-sync.timer: run lumen-panel-sync.service once a day.
+# lumen-panel-sync.timer: run lumen-panel-sync.service once a day (a fallback for the .path unit).
 #
 # An optional example unit; lumen-panel never installs it (docs/update.md). Persistent=true
 # catches up a run that was missed while the server was off.

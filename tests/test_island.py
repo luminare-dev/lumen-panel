@@ -63,6 +63,15 @@ class PaletteStylesheetTest(unittest.TestCase):
         self.assertLessEqual(dark, light)
 
 
+    def test_the_header_button_keeps_its_name_on_phones(self):
+        """display: none on the label would leave an icon-only button without a name (WCAG 4.1.2)."""
+        css = re.sub(r"/\*.*?\*/", "", PALETTE_CSS.read_text(encoding="utf-8"), flags=re.DOTALL)
+        for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+            if ".trigger-label" in selectors:
+                self.assertNotRegex(body, r"display\s*:\s*none", selectors.strip())
+                self.assertNotRegex(body, r"visibility\s*:\s*hidden", selectors.strip())
+
+
 class NpmManifestTest(unittest.TestCase):
     def setUp(self):
         self.pkg = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
@@ -107,6 +116,23 @@ class ContribUnitsTest(unittest.TestCase):
         self.assertEqual(set(writable), {f"{keyhelp}/theme", f"{keyhelp}/cache/twig", "/root/backups/lumen-panel"})
         self.assertEqual(svc["PrivateNetwork"], "true")
         self.assertIn("MemoryMax", svc)
+        self.assertEqual(svc["ReadOnlyPaths"], f"-{keyhelp}/theme/bulma", "the default theme stays read-only")
+        self.assertEqual(svc["CapabilityBoundingSet"].split(), ["CAP_CHOWN", "CAP_DAC_OVERRIDE"])
+        for key in ("ProtectProc", "ProcSubset", "PrivateIPC", "RemoveIPC"):
+            self.assertIn(key, svc)
+        self.assertIn("PYTHONUNBUFFERED=1", (ROOT / "contrib" / "lumen-panel-sync.service").read_text(encoding="utf-8"))
+        self.assertEqual(svc["ExecStartPre"], "/bin/sleep 120")
+        self.assertEqual(svc["Restart"], "on-failure")
+        self.assertNotIn("75", svc["RestartPreventExitStatus"].split(), "exit 75 (try again later) is retried")
+        unit = self.unit("lumen-panel-sync.service")["Unit"]
+        self.assertIn("AssertPathExists", unit, "a missing build must fail the unit, not skip it")
+        self.assertFalse(any(k.startswith("ConditionPathExists") for k in unit))
+
+    def test_path_unit_watches_the_default_theme(self):
+        path = self.unit("lumen-panel-sync.path")
+        self.assertTrue(path["Path"]["PathChanged"].endswith("/theme/bulma/_settings.json"))
+        self.assertEqual(path["Path"]["Unit"], "lumen-panel-sync.service")
+        self.assertEqual(path["Install"]["WantedBy"], "paths.target")
 
     def test_sync_takes_the_options_the_unit_passes(self):
         p = parser()
@@ -123,7 +149,9 @@ class ContribUnitsTest(unittest.TestCase):
     def test_update_doc_explains_the_units(self):
         doc = (ROOT / "docs" / "update.md").read_text(encoding="utf-8")
         for needle in ("contrib/lumen-panel-sync.service", "contrib/lumen-panel-sync.timer",
-                       "systemctl enable --now lumen-panel-sync.timer", "python3 -m lumen_panel sync"):
+                       "contrib/lumen-panel-sync.path", "systemctl enable --now lumen-panel-sync.path",
+                       "systemctl enable --now lumen-panel-sync.timer", "python3 -m lumen_panel sync",
+                       "chown -R root:root /opt/lumen-panel"):
             self.assertIn(needle, doc)
 
 

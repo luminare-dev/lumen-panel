@@ -1,25 +1,40 @@
 # lumen-panel-sync.service: rebuild the Lumen theme when the panel's default theme changed.
 #
-# An optional example unit; lumen-panel never installs it. Copy it and the .timer to
-# /etc/systemd/system/, adapt the two paths below, then enable the timer (docs/update.md).
+# An optional example unit; lumen-panel never installs it. Copy it, the .path and the .timer to
+# /etc/systemd/system/, adapt the paths below, then enable the .path and the .timer (docs/update.md).
 #
-#   /opt/lumen-panel             the lumen-panel checkout with a built dist/assets/
+#   /opt/lumen-panel             the lumen-panel checkout with a built dist/assets/ (owned by root,
+#                                not writable by group or others: the generator runs as root)
 #   /home/keyhelp/www/keyhelp    the panel installation
 #
-# "sync" exits 0 when the theme is current or Lumen is not installed, and 1 when a rebuild was
-# due and failed (the previous build stays active); the unit then shows as failed.
+# "sync" exits 0 when the theme is current, Lumen is not installed or a hold is set; 1 when a
+# rebuild was due and failed (the previous build stays active), and the unit then shows as failed;
+# 75 when another run holds the lock or the default theme changed during the copy (a panel update
+# was still running): the unit starts again 10 minutes later.
 [Unit]
 Description=lumen-panel: rebuild the Lumen theme after a panel update
 Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md
-ConditionPathExists=/opt/lumen-panel/dist/assets/lumen.css
+# An Assert, not a Condition: a missing build marks the unit as failed (systemctl --failed)
+# instead of skipping it silently.
+AssertPathExists=/opt/lumen-panel/dist/assets/lumen.css
 ConditionPathIsDirectory=/home/keyhelp/www/keyhelp/theme/bulma
+StartLimitIntervalSec=3h
+StartLimitBurst=6
 
 [Service]
 Type=oneshot
 WorkingDirectory=/opt/lumen-panel/generator
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+# Started by the .path unit while a panel update may still be writing: give it time to finish.
+ExecStartPre=/bin/sleep 120
 ExecStart=/usr/bin/python3 -m lumen_panel sync --keyhelp /home/keyhelp/www/keyhelp
 TimeoutStartSec=15min
+# Only exit code 75 is retried (Type=oneshot does not allow RestartForceExitStatus=); a failed
+# patch (1) or an input error (2) waits for a person.
+Restart=on-failure
+RestartPreventExitStatus=1 2 3 4 5 10
+RestartSec=10min
 
 # Low priority and a hard memory limit: the sync copies about 200 small files.
 Nice=19
@@ -27,15 +42,23 @@ IOSchedulingClass=idle
 MemoryMax=200M
 MemorySwapMax=0
 
-# Sandbox: everything is read-only except the theme folder, the Twig cache and the backups.
+# Sandbox: everything is read-only except the theme folder, the Twig cache and the backups; the
+# default theme stays read-only inside the theme folder. Each writable path is its own bind mount,
+# so moving a folder from theme/ to the backups is a copy plus delete here, and the copies are
+# owned by root (the backup root is root-only).
 # Create the backup folder once before the first run: install -d -m 700 /root/backups/lumen-panel
 ProtectSystem=strict
 ReadWritePaths=/home/keyhelp/www/keyhelp/theme /home/keyhelp/www/keyhelp/cache/twig /root/backups/lumen-panel
+ReadOnlyPaths=-/home/keyhelp/www/keyhelp/theme/bulma
 PrivateTmp=true
 PrivateNetwork=true
 PrivateDevices=true
+PrivateIPC=true
+RemoveIPC=true
+ProtectProc=invisible
+ProcSubset=pid
 NoNewPrivileges=true
-CapabilityBoundingSet=CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE CAP_DAC_READ_SEARCH
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectKernelLogs=true

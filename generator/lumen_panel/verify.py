@@ -4,6 +4,10 @@ Checks:
   1. _settings.json and _lumen_build.json exist and say what a Lumen build says;
   2. every default-theme template has a counterpart (against the live default theme when
      --keyhelp is given, otherwise against the build record), and there are no stale extras;
+  2b. every template has the right content, byte for byte: with --keyhelp, an unpatched template
+     equals the live default theme's file and a patched one equals the live file with the recorded
+     patches applied again; without it, every file matches the sha256 in the build record. A
+     truncated or half-copied template fails here;
   3. every patch of the build record is present exactly once (its marker comment);
   4. the patched templates pass the Twig sanity check (delimiters and block tags balanced);
   5. every theme/lumen/... file a template refers to exists below the theme folder;
@@ -12,6 +16,7 @@ Checks:
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -19,7 +24,7 @@ from pathlib import Path
 from . import THEME_DISPLAY_NAME
 from .build import MANIFEST_NAME
 from .keyhelp import KeyHelpError, KeyHelpTree, list_files
-from .patches import marker
+from .patches import PatchError, marker, patch_contents, patch_from_record, read_text_exact
 from .twig import asset_references, check as twig_check
 
 
@@ -46,6 +51,55 @@ def _load_json(path: Path, report: VerifyReport) -> dict | None:
         report.errors.append(f"{path.name}: not a JSON object")
         return None
     return data
+
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _check_contents(templates_dir: Path, files: list[str], manifest: dict, live: Path | None,
+                    report: VerifyReport) -> None:
+    before = len(report.errors)
+    if live is None:
+        recorded = manifest.get("template_sha256")
+        if not isinstance(recorded, dict):
+            report.errors.append("_lumen_build.json: no template_sha256 (built by an older lumen-panel); rebuild")
+            return
+        for rel in files:
+            if recorded.get(rel) != _sha(templates_dir / rel):
+                report.errors.append(f"templates/{rel}: content differs from the build record (truncated or "
+                                     "changed?); rebuild")
+        if len(report.errors) == before:
+            report.passed.append(f"contents ({len(files)} files match the build record byte for byte)")
+        return
+    try:
+        patches = [patch_from_record(item) for item in manifest.get("patches", [])]
+    except PatchError as exc:
+        report.errors.extend(exc.failures)
+        return
+    substitutions = manifest.get("substitutions")
+    if not isinstance(substitutions, dict):
+        report.errors.append("_lumen_build.json: no substitutions (built by an older lumen-panel); rebuild")
+        return
+    patched = {p.file for p in patches}
+    for rel in files:
+        if rel not in patched and _sha(templates_dir / rel) != _sha(live / rel):
+            report.errors.append(f"templates/{rel}: content differs from the default theme (truncated, or the "
+                                 "default theme changed since the build); rebuild")
+    originals = {rel: read_text_exact(live / rel) if (live / rel).is_file() else None for rel in sorted(patched)}
+    try:
+        want = patch_contents(originals, patches, {str(k): str(v) for k, v in substitutions.items()})
+    except PatchError as exc:
+        report.errors.extend(f"live default theme: {f}" for f in exc.failures)
+        return
+    for rel, content in sorted(want.items()):
+        path = templates_dir / rel
+        if not path.is_file() or path.read_bytes() != content.encode("utf-8"):
+            report.errors.append(f"templates/{rel}: is not the live default theme's file with the recorded patches "
+                                 "applied; rebuild")
+    if len(report.errors) == before:
+        report.passed.append(f"contents ({len(files) - len(want)} files equal the default theme, {len(want)} patched "
+                             "files reproduce exactly)")
 
 
 def verify(theme_dir: Path, keyhelp_root: Path | None = None) -> VerifyReport:
@@ -88,6 +142,10 @@ def verify(theme_dir: Path, keyhelp_root: Path | None = None) -> VerifyReport:
         report.errors.append(f"templates/{rel}: not in {against} (stale after a KeyHelp update?); rebuild")
     if expected and not missing and not extra:
         report.passed.append(f"templates ({len(expected)} files match {against})")
+
+    # 2b. contents
+    live = KeyHelpTree(keyhelp_root).base_templates if keyhelp_root is not None else None
+    _check_contents(templates_dir, sorted(have & expected), manifest, live, report)
 
     # 3. patches present exactly once
     patch_ok = True

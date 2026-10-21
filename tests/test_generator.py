@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -24,7 +25,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 import fakekeyhelp as fk  # noqa: E402
 from lumen_panel import __version__, cli  # noqa: E402
 from lumen_panel import install as inst  # noqa: E402
-from lumen_panel.build import BuildError, build  # noqa: E402
+from lumen_panel.build import BuildError, SourceChangedError, build  # noqa: E402
 from lumen_panel.keyhelp import KeyHelpError, tree_sha256  # noqa: E402
 from lumen_panel.patches import Patch, PatchError, apply_patches, load_patches, marker  # noqa: E402
 from lumen_panel.twigcache import find_theme_entries  # noqa: E402
@@ -49,6 +50,9 @@ class Env(unittest.TestCase):
         self.shot.write_bytes(fk.tiny_png())
         self.options = inst.Options(assets_dir=self.assets, screenshot_fallback=self.shot,
                                     backup_root=self.tmp / "backups", owner="")
+        late = mock.patch.object(inst, "LATE_CACHE_PASS_SECONDS", 0)
+        late.start()
+        self.addCleanup(late.stop)
         self.lumen = self.kh / "theme" / "lumen"
         self.bulma = self.kh / "theme" / "bulma"
         self.cache = self.kh / "cache" / "twig"
@@ -282,25 +286,25 @@ class InstallTest(Env):
 
 class UpdateTest(Env):
     def test_check_update_and_sync(self):
-        self.assertEqual(lines(inst.check_update, self.kh)[0], inst.EXIT_NOT_INSTALLED)
+        self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], inst.EXIT_NOT_INSTALLED)
         code, out = lines(inst.sync, self.kh, options=self.options)
         self.assertEqual(code, 0)
         self.assertIn("nothing to do", out)
         self.assertFalse(self.lumen.exists())
         self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
-        self.assertEqual(lines(inst.check_update, self.kh)[0], 0)
+        self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], 0)
         fk.set_version(self.kh, "26.3.0")
-        code, out = lines(inst.check_update, self.kh)
+        code, out = lines(inst.check_update, self.kh, options=self.options)
         self.assertEqual(code, inst.EXIT_REBUILD_NEEDED)
         self.assertIn("26.3.0", out)
         later = inst.timestamp()[:-1] + "6Z"
         with mock.patch.object(inst, "timestamp", return_value=later):
             self.assertEqual(lines(inst.sync, self.kh, options=self.options)[0], 0)
-        self.assertEqual(lines(inst.check_update, self.kh)[0], 0)
+        self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], 0)
         # a template change without a version change is noticed too
         tpl = self.bulma / "templates" / "views" / "extern" / "login.twig"
         tpl.write_text(tpl.read_text(encoding="utf-8") + "\n", encoding="utf-8")
-        code, out = lines(inst.check_update, self.kh)
+        code, out = lines(inst.check_update, self.kh, options=self.options)
         self.assertEqual(code, inst.EXIT_REBUILD_NEEDED)
         self.assertIn("templates changed", out)
 
@@ -342,10 +346,281 @@ class UninstallTest(Env):
         page = b'<link rel="stylesheet" href="/theme/lumen/assets/lumen.css?v=1">'
         with mock.patch("urllib.request.urlopen", return_value=Resp(page)):
             self.assertIs(inst.detect_active("https://panel.example.org/"), True)
-        with mock.patch("urllib.request.urlopen", return_value=Resp(b"<html></html>")):
+        bulma_only = b'<link rel="stylesheet" href="/theme/bulma/assets/css/style.css?1">'
+        with mock.patch("urllib.request.urlopen", return_value=Resp(bulma_only)):
             self.assertIs(inst.detect_active("https://panel.example.org/"), False)
+        # a maintenance or error page shows neither stylesheet: unknown, so uninstall asks for --yes
+        with mock.patch("urllib.request.urlopen", return_value=Resp(b"<html>Maintenance</html>")):
+            self.assertIsNone(inst.detect_active("https://panel.example.org/"))
         with mock.patch("urllib.request.urlopen", side_effect=OSError("down")):
             self.assertIsNone(inst.detect_active("https://panel.example.org/"))
+
+
+class SafetyTest(Env):
+    """Interrupted runs, parallel runs, half-copied templates and holds (findings F1, F2, F4, F7, F9)."""
+
+    def theme_dirs(self) -> list[str]:
+        return sorted(p.name for p in (self.kh / "theme").iterdir())
+
+    def test_a_second_run_is_refused_while_one_holds_the_lock(self):
+        with inst.run_lock(self.options):
+            with self.assertRaises(inst.BusyError):
+                inst.install(self.kh, options=self.options, out=lambda _l: None)
+            err = io.StringIO()
+            with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                code = cli.main(["sync", "--keyhelp", str(self.kh), "--assets", str(self.assets), "--screenshot",
+                                 str(self.shot), "--backup-root", str(self.tmp / "backups"), "--owner", ""])
+            self.assertEqual(code, inst.EXIT_TEMPFAIL)
+            self.assertIn("another lumen-panel run is active", err.getvalue())
+        self.assertEqual(self.theme_dirs(), ["bulma"])
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+
+    def test_any_exception_during_the_build_moves_staging_out(self):
+        for exc in (RuntimeError("boom"), KeyboardInterrupt(), SystemExit(143)):
+            with self.subTest(exc=type(exc).__name__):
+                with mock.patch.object(inst, "build", side_effect=self._half_build(exc)):
+                    with self.assertRaises(type(exc)):
+                        inst.install(self.kh, options=self.options, out=lambda _l: None)
+                self.assertEqual(self.theme_dirs(), ["bulma"], "no staging folder stays in theme/")
+        self.assertEqual(len(list((self.tmp / "backups").glob("*/failed-staging"))), 3)
+
+    def _half_build(self, exc: BaseException):
+        def half_build(root, out_dir, **_kw):
+            out_dir.mkdir(parents=True)
+            (out_dir / "_settings.json").write_text("{}", encoding="utf-8")
+            raise exc
+        return half_build
+
+    def test_a_failure_during_verify_moves_staging_out(self):
+        with mock.patch.object(inst, "verify", side_effect=RuntimeError("verify crashed")):
+            with self.assertRaises(RuntimeError):
+                inst.install(self.kh, options=self.options, out=lambda _l: None)
+        self.assertEqual(self.theme_dirs(), ["bulma"])
+        self.assertEqual(len(list((self.tmp / "backups").glob("*/failed-staging/_settings.json"))), 1)
+
+    def test_leftovers_are_moved_to_the_backups_by_the_next_run(self):
+        for name in (".lumen-staging-20261021T030000000000Z", ".lumen-previous-20261021T030000000000Z"):
+            (self.kh / "theme" / name).mkdir()
+            (self.kh / "theme" / name / "_settings.json").write_text("{}", encoding="utf-8")
+        code, out = lines(inst.install, self.kh, options=self.options)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.theme_dirs(), ["bulma", "lumen"])
+        self.assertIn("left by an interrupted run", out)
+        self.assertEqual(len(list((self.tmp / "backups").glob("*/stale/.lumen-*/_settings.json"))), 2)
+
+    def test_interrupted_right_after_the_swap(self):
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        old_built = json.loads((self.lumen / "_lumen_build.json").read_text())["built_at"]
+        real_move = inst._move
+
+        def stop_at_parking(src, dest):
+            if Path(src).name.startswith(inst.PARKING_PREFIX):
+                raise KeyboardInterrupt
+            return real_move(src, dest)
+
+        fk.set_version(self.kh, "26.2.0")
+        with mock.patch.object(inst, "_move", side_effect=stop_at_parking):
+            with self.assertRaises(KeyboardInterrupt):
+                inst.install(self.kh, options=self.options, out=lambda _l: None)
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.2.0")
+        parked = [p for p in (self.kh / "theme").iterdir() if p.name.startswith(inst.PARKING_PREFIX)]
+        self.assertEqual(len(parked), 1)
+        self.assertFalse((parked[0] / "_settings.json").exists(), "the parked tree is no longer listed as a theme")
+        self.assertTrue((parked[0] / "_settings.json.parked").is_file())
+        rollback_txt = list((self.tmp / "backups").glob("*/ROLLBACK.txt"))
+        self.assertTrue(any(parked[0].name in p.read_text() for p in rollback_txt), "ROLLBACK.txt names the parking path")
+        # the next run moves it away; a rollback from there works
+        code, out = lines(inst.install, self.kh, options=self.options)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.theme_dirs(), ["bulma", "lumen"])
+        stale = next((self.tmp / "backups").glob(f"*/stale/{parked[0].name}"))
+        fk.set_version(self.kh, "26.1.1")
+        code, out = lines(inst.rollback, self.kh, stale, options=self.options)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(json.loads((self.lumen / "_lumen_build.json").read_text())["built_at"], old_built)
+
+    def test_interrupted_between_exchange_and_parking(self):
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        real_rename = os.rename
+
+        def stop_after_exchange(src, dest):
+            if Path(dest).name.startswith(inst.PARKING_PREFIX):
+                raise SystemExit(143)
+            return real_rename(src, dest)
+
+        fk.set_version(self.kh, "26.2.0")
+        with mock.patch.object(inst.os, "rename", side_effect=stop_after_exchange):
+            with self.assertRaises(SystemExit):
+                inst.install(self.kh, options=self.options, out=lambda _l: None)
+        staged = [p for p in (self.kh / "theme").iterdir() if p.name.startswith(inst.STAGING_PREFIX)]
+        if not staged:
+            self.skipTest("renameat2 RENAME_EXCHANGE not available here (fallback path)")
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.2.0")
+        self.assertFalse((staged[0] / "_settings.json").exists())
+        self.assertTrue(any(staged[0].name in p.read_text() for p in (self.tmp / "backups").glob("*/ROLLBACK.txt")))
+        self.assertEqual(list((self.tmp / "backups").glob("*/failed-staging")), [],
+                         "the previous theme is not mistaken for a failed build")
+
+    def test_a_failure_after_the_swap_is_exit_1_and_says_the_theme_is_installed(self):
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        self.assertEqual(lines(inst.hold, self.options)[0], 0)
+        fk.set_version(self.kh, "26.2.0")
+        err = io.StringIO()
+        with mock.patch.object(inst, "move_cache_entries", side_effect=OSError("cache vanished")), \
+                redirect_stdout(io.StringIO()), redirect_stderr(err):
+            code = cli.main(["install", "--keyhelp", str(self.kh), "--assets", str(self.assets), "--screenshot",
+                             str(self.shot), "--backup-root", str(self.tmp / "backups"), "--owner", ""])
+        self.assertEqual(code, 1)
+        self.assertIn("the new theme is installed", err.getvalue())
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.2.0")
+        self.assertTrue(list((self.tmp / "backups").glob("*/lumen/_settings.json")), "the old theme still reached the backups")
+        self.assertTrue(list((self.tmp / "backups").glob("*/ROLLBACK.txt")))
+        self.assertFalse((self.tmp / "backups" / "HOLD").exists(), "the swap succeeded, so the hold is released")
+
+    def test_cache_entries_that_vanish_are_skipped(self):
+        entry = fk.compiled_entry(self.cache, "ab" + "1" * 30, f"{self.lumen.resolve()}/templates/x.twig")
+        with mock.patch.object(inst, "find_theme_entries", return_value=[entry, self.cache / "ab" / "gone.php"]):
+            moved = inst.move_cache_entries(inst.KeyHelpTree(self.kh), self.tmp / "dest")
+        self.assertEqual(len(moved), 1)
+
+    def test_timestamps_have_microseconds(self):
+        self.assertRegex(inst.timestamp(), r"^\d{8}T\d{12}Z$")
+
+
+class ContentTest(Env):
+    def test_a_truncated_template_fails_verify(self):
+        out = self.build_to(self.tmp / "out").out_dir
+        self.assertTrue(verify(out, self.kh).ok)
+        login = out / "templates" / "views" / "extern" / "login.twig"
+        login.write_bytes(b"")
+        for report in (verify(out, self.kh), verify(out)):
+            self.assertFalse(report.ok)
+            self.assertIn("views/extern/login.twig: content differs", "\n".join(report.errors))
+
+    def test_a_patched_template_must_reproduce_exactly(self):
+        out = self.build_to(self.tmp / "out").out_dir
+        base = out / "templates" / "layout" / "base.twig"
+        base.write_bytes(base.read_bytes().replace(b"<title>", b"<title>x"))
+        errors = "\n".join(verify(out, self.kh).errors)
+        self.assertIn("layout/base.twig: is not the live default theme's file with the recorded patches", errors)
+
+    def test_a_change_of_the_default_theme_during_the_build_stops_it(self):
+        real = inst.build.__globals__["_copy_exact"]
+
+        def copy_then_update(src, dest, files):
+            hashes = real(src, dest, files)
+            tpl = self.bulma / "templates" / "views" / "extern" / "login.twig"
+            tpl.write_text(tpl.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+            return hashes
+
+        with mock.patch.dict(inst.build.__globals__, {"_copy_exact": copy_then_update}):
+            with self.assertRaises(SourceChangedError):
+                inst.install(self.kh, options=self.options, out=lambda _l: None)
+        self.assertEqual(self.theme_dirs(), ["bulma"])
+
+    def theme_dirs(self) -> list[str]:
+        return sorted(p.name for p in (self.kh / "theme").iterdir())
+
+    def test_path_order_with_dashes_is_not_taken_for_a_change(self):
+        """list_files sorts Path objects ("a/x" before "a-b/x"), not strings; the copy check must agree."""
+        for rel in ("views/a-b/x.twig", "views/a/x.twig", "views/a.b/y.twig"):
+            path = self.bulma / "templates" / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("{# fixture #}\n", encoding="utf-8")
+        out = self.build_to(self.tmp / "out").out_dir
+        self.assertTrue(verify(out, self.kh).ok)
+
+    def test_a_renamed_variable_stops_the_patch(self):
+        base = self.bulma / "templates" / "layout" / "base.twig"
+        base.write_text(base.read_text(encoding="utf-8").replace("_app.text_direction", "_app.direction"), encoding="utf-8")
+        with self.assertRaises(PatchError) as ctx:
+            self.build_to(self.tmp / "out")
+        self.assertIn("_app.text_direction no longer used in layout/base.twig", "\n".join(ctx.exception.failures))
+
+    def test_line_endings_are_kept(self):
+        base = self.bulma / "templates" / "layout" / "base.twig"
+        base.write_bytes(base.read_bytes().replace(b"\n", b"\r\n"))
+        out = self.build_to(self.tmp / "out").out_dir
+        self.assertNotIn(b"\r\r", (out / "templates" / "layout" / "base.twig").read_bytes())
+        self.assertEqual((out / "templates" / "layout" / "base.twig").read_bytes().count(b"\r\n"),
+                         base.read_bytes().count(b"\r\n"), "every CRLF of the source is kept")
+        self.assertTrue(verify(out, self.kh).ok)
+
+    def test_stray_asset_files_stop_the_build(self):
+        (self.assets / "lumen-island.js.map").write_text("{}", encoding="utf-8")
+        with self.assertRaises(BuildError) as ctx:
+            self.build_to(self.tmp / "out")
+        self.assertIn("lumen-island.js.map", str(ctx.exception))
+
+
+class HoldTest(Env):
+    def test_rollback_holds_and_install_releases(self):
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        first = sorted((self.tmp / "backups").glob("*/ROLLBACK.txt"))[0].parent
+        fk.set_version(self.kh, "26.1.3")
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        second = sorted(p.parent for p in (self.tmp / "backups").glob("*/lumen"))[-1]
+        self.assertNotEqual(first, second)
+        fk.set_version(self.kh, "26.1.4")
+        code, out = lines(inst.rollback, self.kh, second, options=self.options)
+        self.assertEqual(code, 0, out)
+        hold = json.loads((self.tmp / "backups" / "HOLD").read_text())
+        self.assertEqual(hold["by"], "rollback")
+        self.assertEqual(hold["from"], str(second))
+        code, out = lines(inst.check_update, self.kh, options=self.options)
+        self.assertEqual(code, inst.EXIT_REBUILD_NEEDED)
+        self.assertIn("after a rollback", out)
+        code, out = lines(inst.sync, self.kh, options=self.options)
+        self.assertEqual(code, 0)
+        self.assertIn("run install to resume", out)
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.1.1",
+                         "sync keeps the rolled-back build")
+        code, out = lines(inst.install, self.kh, options=self.options)
+        self.assertEqual(code, 0, out)
+        self.assertFalse((self.tmp / "backups" / "HOLD").exists())
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.1.4")
+
+    def test_hold_and_release_commands(self):
+        root = str(self.tmp / "backups")
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(cli.main(["hold", "--backup-root", root]), 0)
+            self.assertTrue((self.tmp / "backups" / "HOLD").is_file())
+            self.assertEqual(cli.main(["release", "--backup-root", root]), 0)
+            self.assertFalse((self.tmp / "backups" / "HOLD").exists())
+            self.assertEqual(cli.main(["release", "--backup-root", root]), 0)
+
+    def test_check_update_sees_new_assets_and_patches(self):
+        self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
+        self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], 0)
+        css = self.assets / "lumen.css"
+        css.write_text(css.read_text(encoding="utf-8") + "a{}\n", encoding="utf-8")
+        code, out = lines(inst.check_update, self.kh, options=self.options)
+        self.assertEqual(code, inst.EXIT_REBUILD_NEEDED)
+        self.assertIn("built assets changed", out)
+        self.assertEqual(lines(inst.sync, self.kh, options=self.options)[0], 0)
+        self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], 0)
+        patches = self.tmp / "patches"
+        shutil.copytree(fk.PATCHES, patches)
+        first = sorted(patches.glob("*.json"))[0]
+        first.write_text(first.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        code, out = lines(inst.check_update, self.kh, options=inst.Options(
+            patches_dir=patches, assets_dir=self.assets, backup_root=self.tmp / "backups"))
+        self.assertEqual(code, inst.EXIT_REBUILD_NEEDED)
+        self.assertIn("patch set", out)
+
+
+class DryRunTest(Env):
+    def test_dry_run_checks_owner_and_folders(self):
+        code, out = lines(inst.install, self.kh, dry_run=True, options=self.options)
+        self.assertEqual(code, 0, out)
+        self.assertIn("is writable", out)
+        self.assertIn("can be created", out)
+        bad = inst.Options(assets_dir=self.assets, screenshot_fallback=self.shot,
+                           backup_root=self.tmp / "backups", owner="no-such-user-lumen:no-such-group")
+        code, out = lines(inst.install, self.kh, dry_run=True, options=bad)
+        self.assertEqual(code, inst.EXIT_FAILED)
+        self.assertIn("unknown user or group", out)
+        self.assertFalse((self.tmp / "backups").exists(), "a dry run writes nothing")
 
 
 class CacheTest(Env):

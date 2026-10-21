@@ -1,0 +1,17 @@
+# lumen-panel-sync.path: start lumen-panel-sync.service when the panel's default theme changes.
+#
+# An optional example unit; lumen-panel never installs it (docs/update.md). Every panel update
+# rewrites the default theme's _settings.json (its version), so watching that one file starts a
+# rebuild minutes after an update instead of up to a day later. The service waits 120 seconds
+# first, and a build that sees the default theme change while copying it stops and is retried.
+# Keep the .timer enabled as well: it catches anything this unit misses.
+[Unit]
+Description=lumen-panel: rebuild when the default theme changes
+Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md
+
+[Path]
+PathChanged=/home/keyhelp/www/keyhelp/theme/bulma/_settings.json
+Unit=lumen-panel-sync.service
+
+[Install]
+WantedBy=paths.target

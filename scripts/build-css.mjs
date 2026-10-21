@@ -11,7 +11,7 @@
 // two can never drift apart. Run: node scripts/build-css.mjs
 
 import { bundle, transform } from "lightningcss";
-import { cpSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -61,6 +61,9 @@ const variants = {
   "lumen-dark-rtl.css": base + dark + rtl,
 };
 
+// Start from an empty folder: every file in dist/assets ends up below the panel's public web root,
+// so nothing old (a previous bundle, a source map) may stay behind. build:island runs after this.
+rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 for (const [name, css] of Object.entries(variants)) {
   const code = banner + minified(name, css) + "\n";

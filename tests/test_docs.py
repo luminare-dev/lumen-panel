@@ -35,7 +35,7 @@ class ConfigurationDocTest(unittest.TestCase):
 
         doc = (ROOT / "docs" / "configuration.md").read_text(encoding="utf-8")
         for code in (inst.EXIT_OK, inst.EXIT_FAILED, inst.EXIT_USAGE, inst.EXIT_NOT_INSTALLED, inst.EXIT_ACTIVE,
-                     inst.EXIT_UNCONFIRMED, inst.EXIT_REBUILD_NEEDED):
+                     inst.EXIT_UNCONFIRMED, inst.EXIT_REBUILD_NEEDED, inst.EXIT_TEMPFAIL):
             self.assertRegex(doc, re.compile(rf"^\| {code} \|", re.MULTILINE), f"exit code {code} is not documented")
 
 

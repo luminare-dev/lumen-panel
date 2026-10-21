@@ -22,6 +22,14 @@ folder and the compiled Lumen templates go to `/root/backups/lumen-panel/<timest
 is deleted. A compiled template is attributed to Lumen only when the source path it records lies
 below `theme/lumen/templates/`. Each run writes `ROLLBACK.txt`.
 
+Amended 2026-10-21 after a production-safety review: runs take an exclusive lock on the backup
+root; the backup folder is created before anything is written; folders an interrupted run left in
+`theme/` are moved to the backups by the next run; any exception or `SIGTERM` before the swap
+moves the staging folder out; right after the swap the replaced tree's `_settings.json` is
+renamed (so the panel never lists it), the compiled Lumen templates are moved, `ROLLBACK.txt` is
+written, and only then is the old tree moved to the backups, with a second cache pass two seconds
+later. A rollback sets a hold that stops `sync` until the next `install`.
+
 ## Consequences
 
 - Good: the panel sees either the old or the new theme; every step can be undone.

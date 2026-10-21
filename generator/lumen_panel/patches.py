@@ -20,6 +20,7 @@ prove that each patch is present exactly once.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from dataclasses import dataclass, field
@@ -29,6 +30,8 @@ MODES = ("insert_before", "insert_after", "replace")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,62}$")
 TOKEN_RE = re.compile(r"@@([A-Z][A-Z0-9_]*)@@")
 REQUIRED_KEYS = ("id", "file", "mode", "anchor", "text", "description")
+# Template variables a patch text may rely on; each must still occur in the file it patches.
+VAR_RE = re.compile(r"(?<![\w.])_(?:app|globals)(?:\.[A-Za-z_][A-Za-z0-9_]*)+")
 
 
 class PatchError(Exception):
@@ -131,17 +134,30 @@ def patched_content(content: str, patch: Patch, substitutions: dict[str, str]) -
     return content.replace(patch.anchor, text, 1)
 
 
-def apply_patches(templates_dir: Path, patches: list[Patch], substitutions: dict[str, str]) -> list[Patch]:
-    """Apply every patch in order, in memory first; write only if all of them succeed."""
+def variables_used(text: str) -> list[str]:
+    """The ``_app.*`` and ``_globals.*`` names a patch text uses (sorted, without duplicates)."""
+    return sorted(set(VAR_RE.findall(text)))
+
+
+def patch_contents(originals: dict[str, str | None], patches: list[Patch],
+                   substitutions: dict[str, str]) -> dict[str, str]:
+    """Apply every patch in order, in memory. ``originals`` maps each patched file to its text
+    (None: the file does not exist). Returns the patched texts or raises PatchError listing every
+    patch that does not fit. Nothing is read or written here.
+
+    Besides the anchor, every ``_app.*`` / ``_globals.*`` name a patch text uses must still occur
+    in the original file: the panel renders with strict variables, so a variable a KeyHelp update
+    renamed would turn into an error on every page instead of a failed build.
+    """
     contents: dict[str, str] = {}
     failures: list[str] = []
     for patch in patches:
-        path = templates_dir / patch.file
         if patch.file not in contents:
-            if not path.is_file():
+            original = originals.get(patch.file)
+            if original is None:
                 failures.append(f"{patch.source} [{patch.id}]: {patch.file} does not exist in the default theme")
                 continue
-            contents[patch.file] = path.read_text(encoding="utf-8")
+            contents[patch.file] = original
         content = contents[patch.file]
         if patch.marker in content:
             failures.append(f"{patch.source} [{patch.id}]: {patch.file} already carries this patch")
@@ -152,15 +168,60 @@ def apply_patches(templates_dir: Path, patches: list[Patch], substitutions: dict
             failures.append(f"{patch.source} [{patch.id}]: anchor {where} in {patch.file} (expected exactly once); "
                             f"a KeyHelp update probably changed this template, see docs/update.md")
             continue
+        gone = [name for name in variables_used(patch.text) if name not in (originals.get(patch.file) or "")]
+        if gone:
+            failures.append(f"{patch.source} [{patch.id}]: {', '.join(gone)} no longer used in {patch.file}; "
+                            "a KeyHelp update may have renamed it, see docs/update.md")
+            continue
         try:
             contents[patch.file] = patched_content(content, patch, substitutions)
         except PatchError as exc:
             failures.extend(exc.failures)
     if failures:
         raise PatchError(failures)
+    return contents
+
+
+def read_text_exact(path: Path) -> str:
+    """UTF-8 text with the line endings kept as they are (read_text would turn CRLF into LF)."""
+    return path.read_bytes().decode("utf-8")
+
+
+def apply_patches(templates_dir: Path, patches: list[Patch], substitutions: dict[str, str]) -> list[Patch]:
+    """Apply every patch in order, in memory first; write only if all of them succeed."""
+    originals: dict[str, str | None] = {}
+    for rel in patched_files(patches):
+        path = templates_dir / rel
+        originals[rel] = read_text_exact(path) if path.is_file() else None
+    contents = patch_contents(originals, patches, substitutions)
     for rel, content in contents.items():
-        (templates_dir / rel).write_text(content, encoding="utf-8")
+        (templates_dir / rel).write_bytes(content.encode("utf-8"))
     return patches
+
+
+def patch_set_sha256(directory: Path) -> str:
+    """One sha256 over the names and bytes of every patches/*.json file (sorted)."""
+    digest = hashlib.sha256()
+    for path in sorted(directory.glob("*.json")):
+        digest.update(path.name.encode("utf-8") + b"\0" + hashlib.sha256(path.read_bytes()).digest())
+    return digest.hexdigest()
+
+
+def patch_record(patch: Patch) -> dict:
+    """Everything verify needs to apply ``patch`` again (stored in the build record)."""
+    return {"id": patch.id, "file": patch.file, "source": patch.source, "mode": patch.mode,
+            "anchor": patch.anchor, "text": patch.text, "description": patch.description,
+            "assets": list(patch.assets)}
+
+
+def patch_from_record(item: dict) -> Patch:
+    if not isinstance(item, dict):
+        raise PatchError(["build record: every patch must be a JSON object"])
+    missing = [k for k in (*REQUIRED_KEYS, "source") if not isinstance(item.get(k), str)]
+    if missing or item.get("mode") not in MODES:
+        raise PatchError([f"build record: patch {item.get('id')!r} lacks {', '.join(missing) or 'a valid mode'}"])
+    return Patch(id=item["id"], file=item["file"], mode=item["mode"], anchor=item["anchor"], text=item["text"],
+                 description=item["description"], source=item["source"], assets=tuple(item.get("assets", [])))
 
 
 def patched_files(patches: list[Patch]) -> list[str]:

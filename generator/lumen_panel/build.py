@@ -4,10 +4,12 @@ Output layout (``<out>/``):
 
     _settings.json       what KeyHelp lists under Configuration -> Theme
     _screenshot.png      the preview image shown there
-    _lumen_build.json    build record: base version and hash, patches, assets (read by verify/check-update)
+    _lumen_build.json    build record: base version and hashes, every template's sha256, the patches,
+                         the asset and patch-set hashes (read by verify and check-update)
     LUMEN-README.txt     where the files come from and how to rebuild
     templates/           copy of theme/bulma/templates with the patch set applied
-    assets/              lumen*.css, lumen-island.js, fonts/, brand/ (from dist/assets)
+    assets/              lumen*.css, lumen-island.js, fonts/, brand/*.svg (from dist/assets; any
+                         other file there stops the build, because the panel's web root is public)
 
 KeyHelp's own CSS, JavaScript and images are not copied: the templates keep loading them from
 /theme/bulma/, which KeyHelp updates in place.
@@ -24,7 +26,7 @@ from pathlib import Path
 
 from . import THEME_DISPLAY_NAME, __version__
 from .keyhelp import KeyHelpError, KeyHelpTree, list_files, tree_sha256
-from .patches import Patch, apply_patches, load_patches, patched_files
+from .patches import Patch, apply_patches, load_patches, patch_record, patch_set_sha256, patched_files
 from .screenshot import write_screenshot
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -50,6 +52,10 @@ class BuildError(Exception):
     pass
 
 
+class SourceChangedError(BuildError):
+    """The default theme changed while it was being copied (a KeyHelp update is running)."""
+
+
 @dataclass(frozen=True)
 class BuildResult:
     out_dir: Path
@@ -69,6 +75,26 @@ def asset_files(assets_dir: Path) -> list[str]:
 
 def required_assets(patches: list[Patch]) -> list[str]:
     return sorted(set(REQUIRED_ASSETS) | {a for p in patches for a in p.assets})
+
+
+def allowed_asset(rel: str, required: set[str]) -> bool:
+    """Only files the theme uses go below theme/lumen/assets (the panel's web root is public)."""
+    if rel in required:
+        return True
+    folder, _, name = rel.partition("/")
+    if "/" in name or not name:
+        return False
+    return (folder == "brand" and name.endswith(".svg")) or folder == "fonts"
+
+
+def unexpected_assets(assets_dir: Path, patches: list[Patch]) -> list[str]:
+    required = set(required_assets(patches))
+    return [rel for rel in asset_files(assets_dir) if not allowed_asset(rel, required)]
+
+
+def asset_hash(assets_dir: Path) -> str:
+    """The 12-character hash of the built assets used for cache busting (?v=) and update checks."""
+    return _hash_files(assets_dir, asset_files(assets_dir))[:12]
 
 
 def check_assets(assets_dir: Path, patches: list[Patch]) -> list[str]:
@@ -114,6 +140,30 @@ def _copy_tree(src: Path, dest: Path, files: list[str]) -> None:
         shutil.copyfile(src / rel, target)
 
 
+def _copy_exact(src: Path, dest: Path, files: list[str]) -> dict[str, str]:
+    """Read each file once and write exactly those bytes; returns {rel: sha256 of the bytes}.
+
+    New files, so the copies get fresh modification times (see _copy_tree)."""
+    hashes: dict[str, str] = {}
+    for rel in files:
+        data = (src / rel).read_bytes()
+        target = dest / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        hashes[rel] = hashlib.sha256(data).hexdigest()
+    return hashes
+
+
+def _combined(files: list[str], hashes: dict[str, str]) -> str:
+    """The same value tree_sha256 gives for a folder whose files have these hashes. ``files`` must
+    be in list_files order (sorted Path objects, which differs from sorting the strings)."""
+    digest = hashlib.sha256()
+    for rel in files:
+        digest.update(rel.encode("utf-8") + b"\0")
+        digest.update(bytes.fromhex(hashes[rel]))
+    return digest.hexdigest()
+
+
 def _hash_files(folder: Path, files: list[str]) -> str:
     digest = hashlib.sha256()
     for rel in files:
@@ -136,16 +186,29 @@ def build(keyhelp_root: Path, out_dir: Path, *, patches_dir: Path = DEFAULT_PATC
     problems = check_assets(assets_dir, patches)
     if problems:
         raise BuildError("assets incomplete:\n  " + "\n  ".join(problems))
+    stray = unexpected_assets(assets_dir, patches)
+    if stray:
+        raise BuildError(f"{assets_dir}: files the theme does not use: {', '.join(stray)}; remove them or "
+                         "rebuild the assets with 'npm run build' (the panel's web root is public)")
 
     base_version = tree.base_version()
     template_files = tree.base_template_files()
     base_sha = tree_sha256(tree.base_templates)
     assets = asset_files(assets_dir)
-    asset_hash = _hash_files(assets_dir, assets)[:12]
+    asset_hash_value = _hash_files(assets_dir, assets)[:12]
+    substitutions = {"LUMEN_VERSION": __version__, "LUMEN_ASSET_HASH": asset_hash_value}
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    _copy_tree(tree.base_templates, out_dir / "templates", template_files)
-    apply_patches(out_dir / "templates", patches, {"LUMEN_VERSION": __version__, "LUMEN_ASSET_HASH": asset_hash})
+    copied = _copy_exact(tree.base_templates, out_dir / "templates", template_files)
+    # A KeyHelp update can rewrite theme/bulma while it is copied: the copy must be one consistent
+    # state of the default theme, the same before, during and after copying.
+    if _combined(template_files, copied) != base_sha or tree_sha256(tree.base_templates) != base_sha:
+        raise SourceChangedError("the default theme changed during the build (a KeyHelp update is probably "
+                                 "running); nothing was installed, retry later")
+    apply_patches(out_dir / "templates", patches, substitutions)
+    template_sha = dict(copied)
+    for rel in patched_files(patches):
+        template_sha[rel] = hashlib.sha256((out_dir / "templates" / rel).read_bytes()).hexdigest()
     _copy_tree(assets_dir, out_dir / "assets", assets)
     shot = write_screenshot(out_dir / "_screenshot.png", lockup_svg=assets_dir / SCREENSHOT_LOCKUP,
                             fallback=screenshot_fallback)
@@ -159,10 +222,13 @@ def build(keyhelp_root: Path, out_dir: Path, *, patches_dir: Path = DEFAULT_PATC
         "base_version": base_version,
         "base_templates_sha256": base_sha,
         "templates": template_files,
+        "template_sha256": template_sha,
         "patched_files": patched_files(patches),
-        "patches": [{"id": p.id, "file": p.file, "source": p.source} for p in patches],
+        "patches": [patch_record(p) for p in patches],
+        "patches_sha256": patch_set_sha256(patches_dir),
+        "substitutions": substitutions,
         "assets": assets,
-        "asset_hash": asset_hash,
+        "asset_hash": asset_hash_value,
     }
     (out_dir / MANIFEST_NAME).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     (out_dir / README_NAME).write_text(_readme(__version__, base_version), encoding="utf-8")
@@ -170,4 +236,4 @@ def build(keyhelp_root: Path, out_dir: Path, *, patches_dir: Path = DEFAULT_PATC
     (out_dir / "_settings.json").write_text(json.dumps(settings_document(base_version), indent=4) + "\n",
                                             encoding="utf-8")
     return BuildResult(out_dir=out_dir, base_version=base_version, base_sha256=base_sha,
-                       asset_hash=asset_hash, patches=tuple(patches), screenshot=shot)
+                       asset_hash=asset_hash_value, patches=tuple(patches), screenshot=shot)
