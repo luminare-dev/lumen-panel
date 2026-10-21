@@ -31,7 +31,7 @@ Rendered from the [gallery](#gallery) with example data only (headless Chrome in
 
 | Dashboard | Login page |
 |---|---|
-| ![Dashboard in the Lumen theme: sidebar, server information, utilisation bars and the domain table](docs/screenshots/lumen-dashboard.png) | ![Login page in the Lumen theme with the Luminare Development lockup](docs/screenshots/lumen-login.png) |
+| ![Dashboard in the Lumen theme: sidebar, server information, utilisation bars and the domain table](docs/screenshots/lumen-dashboard.png) | ![Login page in the Lumen theme with the studio logo](docs/screenshots/lumen-login.png) |
 
 | Forms | Tables |
 |---|---|
