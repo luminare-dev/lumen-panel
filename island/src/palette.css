@@ -49,7 +49,7 @@
   --p-surface-sunken: var(--lm-surface-sunken, #0D1527);
   --p-surface-hover: var(--lm-surface-hover, #102236);
   --p-border: var(--lm-border, #303A4F);
-  --p-border-control: var(--lm-border-control, #5E6B84);
+  --p-border-control: var(--lm-border-control, #67748C);
   --p-text: var(--lm-text, #F3F6FB);
   --p-text-2: var(--lm-text-2, #B7C1D3);
   --p-text-muted: var(--lm-text-muted, #9CA7BB);
@@ -102,6 +102,10 @@
   width: 18px;
 }
 
+/*
+ * On phones the button shows only its icon. The label stays in the accessibility tree (visually
+ * hidden, never display: none), so the button keeps its name; tests/test_island.py checks this.
+ */
 @media (width < 769px) {
   .trigger {
     justify-content: center;
@@ -109,9 +113,18 @@
     padding: 0;
   }
 
-  .trigger-label,
   .trigger kbd {
     display: none;
+  }
+
+  .trigger-label {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
   }
 }
 

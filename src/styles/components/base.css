@@ -76,8 +76,9 @@ code {
   color: var(--lm-text);
 }
 
+/* The default theme forces pre backgrounds to transparent (!important); the border frames it. */
 pre {
-  background-color: var(--lm-surface-sunken);
+  background-color: transparent;
   border: 1px solid var(--lm-border);
   border-radius: var(--lm-radius-m);
   color: var(--lm-text);
@@ -93,7 +94,11 @@ a:focus-visible,
 button:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
-  border-radius: var(--lm-radius-s);
   outline: var(--lm-ring) solid var(--lm-focus);
   outline-offset: var(--lm-ring-offset);
+}
+
+/* Inline text links get soft corners; buttons and page links keep their own radius. */
+:where(a:not([class])):focus-visible {
+  border-radius: var(--lm-radius-s);
 }

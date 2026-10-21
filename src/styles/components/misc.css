@@ -55,11 +55,11 @@
 }
 
 .cpu-load[data-load-level="low"] .cpu-load-percent {
-  color: var(--lm-success);
+  color: var(--lm-success-text);
 }
 
 .cpu-load[data-load-level="medium"] .cpu-load-percent {
-  color: var(--lm-warning);
+  color: var(--lm-warning-text);
 }
 
 .cpu-load[data-load-level="high"] .cpu-load-percent {
@@ -159,12 +159,13 @@ a.has-text-primary:focus {
   color: var(--lm-info) !important;
 }
 
+/* Status text sits on striped, hovered and selected rows too: the -text tokens keep 4.5:1 there. */
 .has-text-success {
-  color: var(--lm-success) !important;
+  color: var(--lm-success-text) !important;
 }
 
 .has-text-warning {
-  color: var(--lm-warning) !important;
+  color: var(--lm-warning-text) !important;
 }
 
 .has-text-danger {
@@ -175,6 +176,24 @@ a.has-text-primary:focus {
 .has-background-white-ter,
 .has-background-white-bis {
   background-color: var(--lm-surface-sunken) !important;
+}
+
+/* Footnote and required markers (the default theme's pink is 3.6:1 on white). */
+sup {
+  color: var(--lm-danger-text);
+}
+
+/*
+ * Close buttons outside messages (modal headers, tags): the white cross needs 3:1 against its
+ * disc. slate-700 for hover and focus in both modes, because text-2 is light in dark mode.
+ */
+.delete {
+  background-color: var(--lm-border-control);
+}
+
+.delete:hover,
+.delete:focus-visible {
+  background-color: var(--lm-slate-700);
 }
 
 ul.horizontal-separated-list li + li::before {

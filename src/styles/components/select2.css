@@ -87,3 +87,37 @@
 .select2-container--default .select2-results__group {
   color: var(--lm-text-muted);
 }
+
+/*
+ * The default theme sets several Select2 colours with !important (the selected option is a solid
+ * blue, the results and search area keep neutral panels and separators in dark mode, the shown
+ * value has a fixed grey). These rules replace them; the dropdown sits inside
+ * span.select2-container--default, so the selectors match.
+ */
+.select2-container--default .select2-results__options,
+.select2-container--default .select2-search--dropdown {
+  background-color: var(--lm-surface-raised);
+}
+
+.select2-container--default .select2-search--dropdown {
+  border-bottom-color: var(--lm-border);
+}
+
+.select2-container--default .select2-results__option:not(:last-child) {
+  border-bottom-color: var(--lm-border);
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+  background-color: var(--lm-surface-sunken) !important;
+  color: var(--lm-text);
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable,
+.select2-container--default .select2-results__option--highlighted[aria-selected="true"] {
+  background-color: var(--lm-primary-tint) !important;
+  color: var(--lm-on-primary-tint);
+}
+
+.select2-container--default .select2-selection__rendered {
+  color: var(--lm-text) !important;
+}

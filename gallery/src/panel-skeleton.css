@@ -368,3 +368,57 @@ fieldset.field {
   min-inline-size: 0;
   padding: 0;
 }
+
+/*
+ * Checkboxes and radios: the panel draws them itself (no native control, a square or round box
+ * with a pseudo-element for the tick or dot), so the gallery does the same in neutral colours.
+ * Lumen's rules then colour them exactly as in the panel.
+ */
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  background-color: #fff;
+  block-size: 18px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  inline-size: 18px;
+  margin: 0;
+  margin-inline-end: 0.3rem;
+  vertical-align: middle;
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+}
+
+input[type="checkbox"]::before {
+  block-size: 100%;
+  content: "";
+  display: block;
+  inline-size: 100%;
+}
+
+input[type="radio"]::before {
+  block-size: 6px;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  inline-size: 6px;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: #555;
+}
+
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before {
+  background-color: #fff;
+}
+
+/* The panel's pre blocks have no background of their own. */
+pre {
+  background-color: transparent;
+}

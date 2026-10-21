@@ -44,7 +44,7 @@
 
 .notification .delete:hover,
 .message .delete:hover {
-  background-color: var(--lm-text-2);
+  background-color: var(--lm-slate-700);
 }
 
 .notification.is-link,

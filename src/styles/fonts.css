@@ -9,3 +9,17 @@
   font-style: normal;
   font-display: swap;
 }
+
+/*
+ * Sora covers Latin only. For Russian, Arabic and Chinese the whole page uses the system font, so
+ * Latin words and digits do not switch fonts mid-line, and the browser may synthesise bold for
+ * fallback fonts without a bold face. [lang^=] because the panel writes values like "zh_CN",
+ * which :lang() would not match.
+ */
+:root:is([lang^="ru"], [lang^="ar"], [lang^="zh"]) {
+  --lm-font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+}
+
+:root:is([lang^="ru"], [lang^="ar"], [lang^="zh"]) body {
+  font-synthesis-weight: auto;
+}

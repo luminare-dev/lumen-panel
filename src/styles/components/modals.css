@@ -30,6 +30,11 @@
   gap: var(--lm-space-2);
 }
 
+/* The gap spaces the buttons; Bulma's extra margin would double it. */
+.modal-card-foot .button:not(:last-child) {
+  margin-inline-end: 0;
+}
+
 .modal-card-title {
   color: var(--lm-text-strong);
   font-size: 1.125rem;

@@ -84,3 +84,15 @@ read, changed or copied.
 example `.../theme/bulma/templates/layout/base.twig`. Templates of another theme folder have
 other paths and therefore other cache files. The generator uses only that recorded path to find
 the compiled Lumen templates (see `generator/lumen_panel/twigcache.py`).
+
+## What CSS cannot restyle
+
+- **Charts.** The dashboards draw with Chart.js on `<canvas>`; the colours (blue, green, red
+  series, dark segment borders) are set in the panel's JavaScript, so a stylesheet cannot change
+  them. They keep the default theme's colours on Lumen's surfaces.
+- **Editors.** CodeMirror (file manager, template editors) uses its own theme, and Trumbowyg
+  (rich text) its own neutral greys; both stay as the default theme sets them, also in dark mode.
+- **Rules with `!important`.** Where the default theme marks a colour `!important` (Select2's
+  selected option and shown value, `pre` backgrounds), Lumen either overrides it with
+  `!important` of its own (Select2, see `select2.css`) or works with it (`pre` stays transparent
+  and gets a border).

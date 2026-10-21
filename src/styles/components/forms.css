@@ -105,9 +105,78 @@ fieldset[disabled] .select select {
   color: var(--lm-text-strong);
 }
 
+/*
+ * Checkboxes and radios. The default theme draws its own controls (appearance: none, Bulma blue,
+ * a light grey border), so accent-color would do nothing. These rules use the same selectors and
+ * win by coming later. The tick is our own drawing, coloured with the on-primary token through a
+ * mask: white on royal in light mode (7.6:1), night on lumen in dark mode (11.9:1).
+ */
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: var(--lm-primary);
+  background-color: var(--lm-surface);
+  border-color: var(--lm-border-control);
+}
+
+input[type="checkbox"]:hover,
+input[type="checkbox"].is-hovered,
+input[type="radio"]:hover,
+input[type="radio"].is-hovered {
+  border-color: var(--lm-text-2);
+}
+
+input[type="checkbox"]:focus,
+input[type="checkbox"].is-focused,
+input[type="checkbox"]:active,
+input[type="checkbox"].is-active,
+input[type="radio"]:focus,
+input[type="radio"].is-focused,
+input[type="radio"]:active,
+input[type="radio"].is-active {
+  border-color: var(--lm-focus);
+  box-shadow: none;
+}
+
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: var(--lm-ring) solid var(--lm-focus);
+  outline-offset: var(--lm-ring-offset);
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: var(--lm-primary);
+  border-color: var(--lm-primary);
+}
+
+input[type="checkbox"]:checked::before {
+  background-color: var(--lm-on-primary);
+  background-image: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+}
+
+input[type="radio"]:checked::before {
+  background-color: var(--lm-on-primary);
+}
+
+/* Disabled: a sunken box; a checked one keeps a visible muted tick or dot (5:1 or more). */
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border);
+}
+
+input[type="checkbox"]:disabled:checked::before,
+input[type="radio"]:disabled:checked::before {
+  background-color: var(--lm-text-muted);
+}
+
+@media (forced-colors: active) {
+  input[type="checkbox"]:checked::before,
+  input[type="radio"]:checked::before {
+    background-color: CanvasText;
+    forced-color-adjust: none;
+  }
 }
 
 .file-cta,
@@ -136,6 +205,12 @@ input[type="radio"] {
   background-color: var(--lm-primary-hover);
   border-color: transparent;
   color: var(--lm-on-primary);
+}
+
+/* The real file input is invisible (opacity 0), so its focus ring is drawn on the visible button. */
+.file-label:has(.file-input:focus-visible) .file-cta {
+  outline: var(--lm-ring) solid var(--lm-focus);
+  outline-offset: var(--lm-ring-offset);
 }
 
 .file-label:hover .file-cta {

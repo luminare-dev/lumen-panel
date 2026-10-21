@@ -107,7 +107,7 @@ body.dark-mode {
   --lm-surface-sunken: #0D1527; /* mix(night 94%, slate-700) */
   --lm-surface-hover: #102236; /* mix(lumen 8%, night) */
   --lm-border: #303A4F; /* mix(slate-500 45%, night) */
-  --lm-border-control: var(--lm-slate-500);
+  --lm-border-control: #67748C; /* mix(slate-500 90%, slate-300) */
   --lm-text: var(--lm-mist);
   --lm-text-strong: var(--lm-white);
   --lm-text-2: var(--lm-slate-300);

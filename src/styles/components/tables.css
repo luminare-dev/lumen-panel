@@ -53,3 +53,8 @@
   scrollbar-color: var(--lm-border-control) transparent;
   scrollbar-width: thin;
 }
+
+/* Sort arrows of sortable columns (Bulma blue in the default theme). */
+table thead th[data-is-sortable]::after {
+  color: var(--lm-primary);
+}

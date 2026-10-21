@@ -66,6 +66,14 @@
   scrollbar-width: thin;
 }
 
+/* The sidebar scrolls with PerfectScrollbar (native scrollbar hidden): colour its thumb. */
+#sidebar .ps__thumb-y,
+#sidebar .ps__rail-y:hover > .ps__thumb-y,
+#sidebar .ps__rail-y:focus > .ps__thumb-y,
+#sidebar .ps__rail-y.ps--clicking .ps__thumb-y {
+  background-color: var(--lm-border-control);
+}
+
 @media screen and (max-width: 1023px) {
   #sidebar {
     border-top: 1px solid var(--lm-border);

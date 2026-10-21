@@ -10,7 +10,6 @@
 
 .card-header {
   background-color: transparent;
-  border-bottom: 1px solid var(--lm-border);
   border-start-end-radius: var(--lm-radius-l);
   border-start-start-radius: var(--lm-radius-l);
   box-shadow: none;
@@ -47,6 +46,11 @@
 
 .card-content {
   padding: var(--lm-space-5);
+}
+
+/* One divider between header and content (the default theme draws it here); a folded card has none. */
+.card-content:not(:first-child) {
+  border-top: 1px solid var(--lm-border);
 }
 
 .card-footer {

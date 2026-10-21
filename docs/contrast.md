@@ -21,12 +21,12 @@ formula and are rounded down to two decimals.
 | `--lm-text-muted` | `--lm-bg` | grey helper text on the page | 4.5 | 4.95 pass (`#5E6B84` on `#F3F6FB`) | 7.69 pass (`#9CA7BB` on `#0A1224`) |
 | `--lm-text-muted` | `--lm-surface` | grey helper text, help lines, placeholders | 4.5 | 5.36 pass (`#5E6B84` on `#FFFFFF`) | 7.29 pass (`#9CA7BB` on `#10182B`) |
 | `--lm-text-muted` | `--lm-surface-raised` | hints in modals and the command palette | 4.5 | 5.36 pass (`#5E6B84` on `#FFFFFF`) | 7.01 pass (`#9CA7BB` on `#131C2F`) |
-| `--lm-text-muted` | `--lm-surface-sunken` | grey text on striped rows | 4.5 | 4.95 pass (`#5E6B84` on `#F3F6FB`) | 7.50 pass (`#9CA7BB` on `#0D1527`) |
+| `--lm-text-muted` | `--lm-surface-sunken` | grey text on striped rows, tick of a disabled checked checkbox | 4.5 | 4.95 pass (`#5E6B84` on `#F3F6FB`) | 7.50 pass (`#9CA7BB` on `#0D1527`) |
 | `--lm-link` | `--lm-bg` | links on the page | 4.5 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 11.95 pass (`#5BDFFF` on `#0A1224`) |
 | `--lm-link` | `--lm-surface` | links in cards and tables | 4.5 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
 | `--lm-link` | `--lm-surface-sunken` | links on striped rows | 4.5 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 11.65 pass (`#5BDFFF` on `#0D1527`) |
 | `--lm-link-hover` | `--lm-surface` | hovered links | 4.5 | 11.52 pass (`#15308A` on `#FFFFFF`) | 12.21 pass (`#7CE5FF` on `#10182B`) |
-| `--lm-on-primary` | `--lm-primary` | primary button, current page | 4.5 | 7.61 pass (`#FFFFFF` on `#1F47C4`) | 11.95 pass (`#0A1224` on `#5BDFFF`) |
+| `--lm-on-primary` | `--lm-primary` | primary button, current page, checkbox tick and radio dot | 4.5 | 7.61 pass (`#FFFFFF` on `#1F47C4`) | 11.95 pass (`#0A1224` on `#5BDFFF`) |
 | `--lm-on-primary` | `--lm-primary-hover` | hovered primary button | 4.5 | 5.31 pass (`#FFFFFF` on `#2D63DE`) | 12.89 pass (`#0A1224` on `#7CE5FF`) |
 | `--lm-on-primary` | `--lm-primary-active` | pressed primary button, selected option | 4.5 | 11.52 pass (`#FFFFFF` on `#15308A`) | 5.59 pass (`#0A1224` on `#2B8FF0`) |
 | `--lm-on-primary-tint` | `--lm-primary-tint` | active sidebar item, active palette result | 4.5 | 6.51 pass (`#1F47C4` on `#E9EDF9`) | 9.30 pass (`#5BDFFF` on `#142B3E`) |
@@ -36,8 +36,8 @@ formula and are rounded down to two decimals.
 | `--lm-warning-text` | `--lm-warning-tint` | warning message and tag | 4.5 | 6.51 pass (`#87420C` on `#F7EEE6`) | 8.52 pass (`#FFB334` on `#272526`) |
 | `--lm-danger-text` | `--lm-danger-tint` | error message and tag | 4.5 | 7.83 pass (`#8C1721` on `#F8E8E9`) | 5.15 pass (`#FF5147` on `#271A28`) |
 | `--lm-info-text` | `--lm-info-tint` | info message and tag | 4.5 | 8.42 pass (`#1A3A9C` on `#E9EDF9`) | 9.30 pass (`#5BDFFF` on `#142B3E`) |
-| `--lm-success` | `--lm-surface` | green status text and icons | 4.5 | 4.55 pass (`#028844` on `#FFFFFF`) | 10.09 pass (`#58DD70` on `#10182B`) |
-| `--lm-warning` | `--lm-surface` | orange status text and icons | 4.5 | 5.14 pass (`#B15204` on `#FFFFFF`) | 9.89 pass (`#FFB334` on `#10182B`) |
+| `--lm-success` | `--lm-surface` | green progress labels, outlined success button border | 4.5 | 4.55 pass (`#028844` on `#FFFFFF`) | 10.09 pass (`#58DD70` on `#10182B`) |
+| `--lm-warning` | `--lm-surface` | orange progress labels, outlined warning button border | 4.5 | 5.14 pass (`#B15204` on `#FFFFFF`) | 9.89 pass (`#FFB334` on `#10182B`) |
 | `--lm-danger` | `--lm-surface` | red status text, required marks | 4.5 | 6.61 pass (`#B71920` on `#FFFFFF`) | 5.49 pass (`#FF5147` on `#10182B`) |
 | `--lm-info` | `--lm-surface` | info status text and icons | 4.5 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
 | `--lm-on-success` | `--lm-success` | success button | 4.5 | 4.55 pass (`#FFFFFF` on `#028844`) | 10.66 pass (`#0A1224` on `#58DD70`) |
@@ -50,9 +50,18 @@ formula and are rounded down to two decimals.
 | `--lm-danger-text` | `--lm-surface` | outlined danger button | 4.5 | 9.29 pass (`#8C1721` on `#FFFFFF`) | 5.49 pass (`#FF5147` on `#10182B`) |
 | `--lm-info-text` | `--lm-surface` | outlined info button | 4.5 | 9.86 pass (`#1A3A9C` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
 | `--lm-surface` | `--lm-text-2` | grey button, dark tag, message header | 4.5 | 9.74 pass (`#FFFFFF` on `#39445C`) | 9.75 pass (`#10182B` on `#B7C1D3`) |
-| `--lm-border-control` | `--lm-surface` | input, select and checkbox borders | 3.0 | 3.71 pass (`#79859C` on `#FFFFFF`) | 3.29 pass (`#5E6B84` on `#10182B`) |
-| `--lm-border-control` | `--lm-bg` | controls placed on the page | 3.0 | 3.43 pass (`#79859C` on `#F3F6FB`) | 3.47 pass (`#5E6B84` on `#0A1224`) |
-| `--lm-border-control` | `--lm-surface-raised` | inputs in modals and the command palette | 3.0 | 3.71 pass (`#79859C` on `#FFFFFF`) | 3.16 pass (`#5E6B84` on `#131C2F`) |
+| `--lm-success-text` | `--lm-surface-sunken` | green status text (has-text-success, CPU load) on striped rows and the page | 4.5 | 6.18 pass (`#046A3C` on `#F3F6FB`) | 10.39 pass (`#58DD70` on `#0D1527`) |
+| `--lm-success-text` | `--lm-surface-hover` | green status text (has-text-success, CPU load) on hovered rows | 4.5 | 6.10 pass (`#046A3C` on `#F2F4FB`) | 9.19 pass (`#58DD70` on `#102236`) |
+| `--lm-success-text` | `--lm-primary-tint` | green status text (has-text-success, CPU load) on selected rows | 4.5 | 5.72 pass (`#046A3C` on `#E9EDF9`) | 8.29 pass (`#58DD70` on `#142B3E`) |
+| `--lm-warning-text` | `--lm-surface-sunken` | orange status text (has-text-warning, CPU load) on striped rows and the page | 4.5 | 6.88 pass (`#87420C` on `#F3F6FB`) | 10.18 pass (`#FFB334` on `#0D1527`) |
+| `--lm-warning-text` | `--lm-surface-hover` | orange status text (has-text-warning, CPU load) on hovered rows | 4.5 | 6.78 pass (`#87420C` on `#F2F4FB`) | 9.00 pass (`#FFB334` on `#102236`) |
+| `--lm-warning-text` | `--lm-primary-tint` | orange status text (has-text-warning, CPU load) on selected rows | 4.5 | 6.37 pass (`#87420C` on `#E9EDF9`) | 8.13 pass (`#FFB334` on `#142B3E`) |
+| `--lm-danger-text` | `--lm-surface-sunken` | footnote and required marks (sup), red status text on striped rows and the page | 4.5 | 8.57 pass (`#8C1721` on `#F3F6FB`) | 5.65 pass (`#FF5147` on `#0D1527`) |
+| `--lm-danger-text` | `--lm-surface-hover` | footnote and required marks (sup), red status text on hovered rows | 4.5 | 8.45 pass (`#8C1721` on `#F2F4FB`) | 4.99 pass (`#FF5147` on `#102236`) |
+| `--lm-danger-text` | `--lm-primary-tint` | footnote and required marks (sup), red status text on selected rows | 4.5 | 7.94 pass (`#8C1721` on `#E9EDF9`) | 4.51 pass (`#FF5147` on `#142B3E`) |
+| `--lm-border-control` | `--lm-surface` | input, select, checkbox and radio borders | 3.0 | 3.71 pass (`#79859C` on `#FFFFFF`) | 3.75 pass (`#67748C` on `#10182B`) |
+| `--lm-border-control` | `--lm-bg` | controls placed on the page | 3.0 | 3.43 pass (`#79859C` on `#F3F6FB`) | 3.95 pass (`#67748C` on `#0A1224`) |
+| `--lm-border-control` | `--lm-surface-raised` | inputs in modals and the command palette | 3.0 | 3.71 pass (`#79859C` on `#FFFFFF`) | 3.60 pass (`#67748C` on `#131C2F`) |
 | `--lm-focus` | `--lm-bg` | focus ring on the page | 3.0 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 12.89 pass (`#06F2C4` on `#0A1224`) |
 | `--lm-focus` | `--lm-surface` | focus ring in cards, header and sidebar | 3.0 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 12.21 pass (`#06F2C4` on `#10182B`) |
 | `--lm-focus` | `--lm-surface-raised` | focus ring in modals and dropdowns | 3.0 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.74 pass (`#06F2C4` on `#131C2F`) |
@@ -61,3 +70,8 @@ formula and are rounded down to two decimals.
 | `--lm-success` | `--lm-surface-sunken` | low load progress fill | 3.0 | 4.20 pass (`#028844` on `#F3F6FB`) | 10.39 pass (`#58DD70` on `#0D1527`) |
 | `--lm-warning` | `--lm-surface-sunken` | medium load progress fill | 3.0 | 4.75 pass (`#B15204` on `#F3F6FB`) | 10.18 pass (`#FFB334` on `#0D1527`) |
 | `--lm-danger` | `--lm-surface-sunken` | high load progress fill | 3.0 | 6.10 pass (`#B71920` on `#F3F6FB`) | 5.65 pass (`#FF5147` on `#0D1527`) |
+| `--lm-border-control` | `--lm-surface-sunken` | checkbox and input borders on striped rows | 3.0 | 3.43 pass (`#79859C` on `#F3F6FB`) | 3.86 pass (`#67748C` on `#0D1527`) |
+| `--lm-border-control` | `--lm-surface-hover` | checkbox and input borders on hovered rows | 3.0 | 3.38 pass (`#79859C` on `#F2F4FB`) | 3.41 pass (`#67748C` on `#102236`) |
+| `--lm-border-control` | `--lm-primary-tint` | checkbox and input borders on selected rows | 3.0 | 3.17 pass (`#79859C` on `#E9EDF9`) | 3.08 pass (`#67748C` on `#142B3E`) |
+| `--lm-white` | `--lm-border-control` | the cross of close buttons (.delete) | 3.0 | 3.71 pass (`#FFFFFF` on `#79859C`) | 4.71 pass (`#FFFFFF` on `#67748C`) |
+| `--lm-white` | `--lm-slate-700` | the cross of a hovered or focused close button | 3.0 | 9.74 pass (`#FFFFFF` on `#39445C`) | 9.74 pass (`#FFFFFF` on `#39445C`) |
