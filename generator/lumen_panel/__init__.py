@@ -6,7 +6,7 @@ own assets (CSS, fonts, logo, command palette) are added. No KeyHelp file is par
 package.
 """
 
-__version__ = "0.0.0"  # x-release-please-version
+__version__ = "0.1.0"  # x-release-please-version
 
 THEME_DIR_NAME = "lumen"
 THEME_DISPLAY_NAME = "Lumen"
