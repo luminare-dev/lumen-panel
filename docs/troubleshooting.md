@@ -117,7 +117,8 @@ set `default_theme` (table `settings`, category `general`) back to `bulma` in Ke
 ([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)). The
 command above does the first step without deleting anything. Whether the panel falls back to the
 default theme without the second step has not been tested; if pages still fail, do the second
-step as Keyweb describes
+step as Keyweb describes, with the theme that was active before (for example `lumen`) where its
+folder is still installed
 ([If the panel cannot show the Theme page](install.md#if-the-panel-cannot-show-the-theme-page)).
 Then open an issue with the KeyHelp version and the template the error names.
 

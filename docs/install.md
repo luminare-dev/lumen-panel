@@ -19,7 +19,7 @@ also develop your own themes." There are two routes:
 Most of this guide is route A. [Route B](#route-b-white-label-only) comes at the end, together with
 a [list of the panel labels](#panel-labels-in-english-and-german) in English and German.
 
-### Two themes: Lumen and Lumen Dark
+## Two themes: Lumen and Lumen Dark
 
 The generator builds two themes from the same default theme and the same assets. Install either,
 or both and switch between them under **Configuration** → **Appearance** → **Theme**:
@@ -36,12 +36,18 @@ or both and switch between them under **Configuration** → **Appearance** → *
 
 **Lumen Dark is not the dark mode of KeyHelp Pro.** Its dark design is lumen-panel's own
 stylesheet on top of the panel's standard light stylesheet, the way any custom theme may restyle
-the panel. It declares no dark mode (`has_dark_mode: false`), never loads the default theme's
-dark stylesheets or its dark images, and does not enable, unlock or imitate the panel's dark-mode
-switch: on a panel without Pro, the panel's own dark mode stays unavailable, and Lumen Dark looks
-the same with or without Pro
+the panel. It declares no dark mode (`has_dark_mode: false`). It does not enable or unlock the
+panel's dark mode, has no dark-mode switch, and loads none of the default theme's dark
+stylesheets or images: on a panel without Pro, the panel's own dark mode stays unavailable, and
+Lumen Dark adds nothing that depends on Pro
 ([ADR 0011](adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)). Its description on the
 Theme page says the same.
+
+A few things stay as the panel draws them for light pages, because no stylesheet reaches them: the
+doughnut charts keep their white segment borders (white rings on the dark card), logos uploaded
+under White Label are shown as they are (one made for light backgrounds sits on the dark header
+and login box), and the rich text editor's editing area is a light sheet on purpose, so the
+colours its toolbar applies stay readable and messages look as they will on white.
 
 The two never share a folder, a backup folder, a run lock, a hold or a compiled template:
 installing, updating, rolling back or removing one leaves the other as it is
@@ -293,7 +299,7 @@ before, and the new theme is only listed on the Theme page.
 | `/home/keyhelp/www/keyhelp/theme/lumen/` (Lumen), `/home/keyhelp/www/keyhelp/theme/lumen-dark/` (Lumen Dark) | created, or replaced in one atomic rename. Holds `templates/` (the patched copy of the default templates), `assets/` (the theme's own files: Lumen's four stylesheets, or Lumen Dark's two, the command palette, the font and the logo files), `_settings.json` (what the Theme page lists), `_screenshot.png`, the build record `_lumen_build.json` and `LUMEN-README.txt`. Owner `keyhelp:keyhelp`, folders 755, files 644. |
 | `theme/.lumen-staging-<timestamp>/`, `theme/.lumen-previous-<timestamp>/` (Lumen), `theme/.lumen-dark-staging-<timestamp>/`, `theme/.lumen-dark-previous-<timestamp>/` (Lumen Dark) | exist only while a run works; a stopped run's folders are moved to the backups by the next run of the same theme. |
 | `/home/keyhelp/www/keyhelp/cache/twig/<2 hex>/<hex>.php` | only the compiled templates whose recorded source lies below the theme's own `templates/` folder (`theme/lumen/templates/` or `theme/lumen-dark/templates/`) are moved to the backup folder (`twig-cache/`, and `twig-cache-late/` for the second pass). Every other entry stays, the other theme's included. A first install finds none. |
-| `/root/backups/lumen-panel/` | created with mode 700. Lumen's: the run lock `.lock`, the hold file `HOLD` (after a `rollback` or `hold`) and one folder per run, named by its UTC time (for example `20261021T041348050556Z`), with `ROLLBACK.txt` and, as the run needs them, `lumen/` (the previous build), `twig-cache/`, `twig-cache-late/`, `stale/` and `failed-staging/`. Lumen Dark keeps the same set in its subfolder `lumen-dark/` (mode 700), with `lumen-dark/` as the previous build in each run folder. Nothing in it is ever deleted; remove old folders yourself. |
+| `/root/backups/lumen-panel/` | created with mode 700. Lumen's: the run lock `.lock`, the hold file `HOLD` (after a `rollback` or `hold`) and one folder per run, named by its UTC time (for example `20261021T041348050556Z`, so Lumen's run folders are `/root/backups/lumen-panel/2*/`), with `ROLLBACK.txt` and, as the run needs them, `lumen/` (the previous build), `twig-cache/`, `twig-cache-late/`, `stale/` and `failed-staging/`. Lumen Dark keeps the same set in its subfolder `lumen-dark/` (mode 700; its run folders are `/root/backups/lumen-panel/lumen-dark/2*/`), with `lumen-dark/` as the previous build in each run folder. Nothing in it is ever deleted; remove old run folders yourself, and only those that match `2*`: the `lumen-dark/` folder holds Lumen Dark's lock, hold and backups and must stay while Lumen Dark is installed. |
 | not changed | the default theme `theme/bulma` (only read), the other lumen-panel theme, KeyHelp's database and settings (the selected theme, the White Label settings), every other file of the panel, the system (no packages; units only if you install them). |
 
 ## Check the installed theme
@@ -324,19 +330,38 @@ X.Y.Z)` (or `Lumen Dark`) and exits 0. Go on only when both commands exit 0.
 
 ## Activate Lumen or Lumen Dark in the panel
 
-1. Log in to the panel as a main administrator.
-2. Open **Configuration**, then **Theme** in the **Appearance** group. The page lists every theme
+The selected theme applies to every account on the server, client accounts included, so the steps
+below first check, without saving anything, that the panel lists the new theme under its folder
+name.
+
+1. Note which theme is active now, as root on the server. Keyweb names the setting
+   `default_theme` (table `settings`, category `general`,
+   [community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)); in
+   KeyHelp's database, `SELECT value FROM settings WHERE category = 'general' AND name = 'default_theme';`
+   only reads it (`lumen` while Lumen is active, `bulma` for the default theme). That value is
+   what you go back to if the new selection fails
+   ([If the panel cannot show the Theme page](#if-the-panel-cannot-show-the-theme-page)).
+2. Log in to the panel as a main administrator.
+3. Open **Configuration**, then **Theme** in the **Appearance** group. The page lists every theme
    folder with its preview, **Description**, **Version**, **Author** and **Website**; its help text
    reads "Change the theme for all accounts on this server."
-3. Select **Lumen** or **Lumen Dark**.
-4. For Lumen, choose the **Default design mode** below it: **Default** (light) or **Dark mode**.
+4. Before the first selection of a theme, view the page source (Ctrl+U) and search for its radio
+   button: it must read `name="theme_id" value="lumen-dark"` for Lumen Dark (`value="lumen"` for
+   Lumen), the folder name, and the theme's preview image must load on the page. If the value
+   differs, do not save; [open an issue](https://github.com/luminare-dev/lumen-panel/issues) with
+   what the page shows.
+5. Select **Lumen** or **Lumen Dark**.
+6. For Lumen, choose the **Default design mode** below it: **Default** (light) or **Dark mode**.
    Every user can still switch with **Enable dark mode** or **Disable dark mode** in the user menu,
    and Lumen follows that switch. Keyweb lists dark mode among the features of KeyHelp Pro on its
    [product page](https://www.keyweb.de/en/keyhelp/keyhelp/); where the panel shows no dark mode,
    Lumen shows its light design. Lumen Dark declares no dark mode, so the page shows no design
    mode for it and the user menu has no switch: it is always dark, for every account.
-5. Click **Save**. KeyHelp clears its template cache when the theme changes (changelog of KeyHelp
+7. Click **Save**. KeyHelp clears its template cache when the theme changes (changelog of KeyHelp
    19.3, "Template cache now gets deleted when switching between themes").
+8. Open the login page in a private browser window and check that it loads the new theme's
+   stylesheet (`/theme/lumen-dark/assets/lumen-night.css` for Lumen Dark,
+   `/theme/lumen/assets/lumen.css` for Lumen; developer tools, Network tab).
 
 To switch between the two later, select the other one on the same page and save; nothing on disk
 changes, and both stay current with `sync`.
@@ -382,7 +407,10 @@ Keyweb's fix for a theme that breaks the panel has two steps: remove the theme's
 ([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)). The
 command above does the first step without deleting anything. Whether the panel falls back to the
 default theme without the second step has not been tested; if pages still fail, do the second
-step as Keyweb describes.
+step as Keyweb describes, with the value you noted before the selection (for example `lumen`,
+when Lumen Dark failed and Lumen was active before) instead of `bulma`, as long as that theme's
+folder is still installed:
+`UPDATE settings SET value = 'lumen' WHERE category = 'general' AND name = 'default_theme';`.
 
 ### Roll back to the previous build
 
@@ -446,7 +474,8 @@ are opt-in:
   installed theme, Lumen and Lumen Dark, is rebuilt when it needs it, and a theme that is not
   installed is skipped. It runs with low priority, a 200 MB memory limit and a sandbox (only
   `theme/`, `cache/twig/` and `/root/backups/lumen-panel` are writable, `theme/bulma` stays
-  read-only, no network). Exit code 75 starts it again 10 minutes later.
+  read-only, no network). Exit code 75 starts it again 10 minutes later; it wins over a failure
+  of the other theme, so a busy theme is always retried.
 - `lumen-panel-sync.path` starts the service when `theme/bulma/_settings.json` changes, which every
   panel update does.
 - `lumen-panel-sync.timer` starts the service every day at 05:30 (plus up to 15 minutes of random
@@ -497,8 +526,7 @@ Read the [changelog](../CHANGELOG.md) entries between your version and the new o
 
 ```bash
 cd /opt/lumen-panel/generator
-python3 -m lumen_panel hold                          # the units do not rebuild halfway through
-python3 -m lumen_panel hold --variant lumen-dark     # the same for Lumen Dark, if installed
+python3 -m lumen_panel hold --variant all            # both themes: the units do not rebuild halfway through
 cd /opt/lumen-panel
 git fetch --tags
 git checkout --quiet vX.Y.Z                          # the new release
@@ -517,9 +545,11 @@ python3 -m lumen_panel install --variant lumen-dark --keyhelp /home/keyhelp/www/
 python3 -m lumen_panel install --variant lumen-dark --keyhelp /home/keyhelp/www/keyhelp
 ```
 
-If a dry run fails, nothing changed and that theme's hold is still set. Either fix the cause and
-run `install`, or go back to the previous tag (`git checkout --quiet vOLD` and that tag's assets)
-and run `python3 -m lumen_panel release` (and `release --variant lumen-dark`). Do not leave a hold
+`install` ends the hold of the theme it installs. A hold set by `hold --variant all` on a theme
+that is not installed changes nothing; `python3 -m lumen_panel release --variant all` removes
+every hold that is left. If a dry run fails, nothing changed and that theme's hold is still set.
+Either fix the cause and run `install`, or go back to the previous tag (`git checkout --quiet vOLD`
+and that tag's assets) and run `python3 -m lumen_panel release --variant all`. Do not leave a hold
 set: while it is, `sync` does not follow KeyHelp updates for that theme.
 
 Then [check the installed theme](#check-the-installed-theme) and

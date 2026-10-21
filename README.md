@@ -35,8 +35,9 @@ Tested with KeyHelp 26.1.1.
 
 Install either or both, and switch between them under **Configuration** → **Appearance** →
 **Theme**. **Lumen Dark is not the dark mode of KeyHelp Pro**: its dark design is lumen-panel's
-own stylesheet on top of the panel's standard light stylesheet, it declares no dark mode, and it
-never loads, enables or imitates the panel's dark stylesheets, dark-mode switch or dark images
+own stylesheet on top of the panel's standard light stylesheet, and it declares no dark mode. It
+does not enable or unlock the panel's dark mode, has no dark-mode switch, and loads none of the
+panel's dark stylesheets or images
 ([ADR 0011](docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)).
 
 ## Screenshots
@@ -184,17 +185,21 @@ one of them changed.
   In Lumen, dark mode follows the panel's own per-user switch; right-to-left pages use the default
   theme's RTL build plus logical properties; reduced motion is respected. Every design-token pair
   in [docs/contrast.md](docs/contrast.md) meets WCAG 2.2 AA in light mode, dark mode and Lumen
-  Dark (74 pairs, including the default theme's checkboxes, Select2 options, status text on
-  striped and hovered rows, close buttons and footnote marks, which Lumen overrides). The table
-  covers the colours Lumen sets, not rules of the default theme it leaves alone.
+  Dark (93 pairs, including the default theme's checkboxes, Select2 options, status text on
+  striped and hovered rows, close buttons and footnote marks, which Lumen overrides), with one
+  transient exception: in Lumen Dark, an error mark inside a code-editor selection is 3.57:1 while
+  it is selected. The table covers the colours Lumen sets, not rules of the default theme it
+  leaves alone.
 - **Lumen Dark.** The Lumen components with the dark token set (the Night background `#0A1224`,
   `color-scheme: dark` for scrollbars and native controls) on top of the panel's standard light
   stylesheet, plus `src/styles/night.css` for everything that stylesheet still paints light:
   disabled and read-only fields, help and status colours, spinners, file inputs, tables,
-  blockquotes, code, menus, scrollbars, the code editor (CodeMirror, syntax colours that pass
-  4.5:1) and the rich text editor (Trumbowyg). The monitoring charts are shown inverted with the
-  hue turned back; the panel's images for light backgrounds sit on a small light plate. A live
-  test audits the installed default stylesheet for light rules Lumen Dark does not cover yet.
+  blockquotes, code, menus, scrollbars, autofilled fields, selected text, the code editor
+  (CodeMirror, syntax colours that pass 4.5:1) and the rich text editor (Trumbowyg, dark toolbar
+  and dialogs around a light editing sheet). The monitoring charts are shown inverted with the hue
+  turned back; the panel's images for light backgrounds sit on a small light plate. Live tests
+  audit the installed default stylesheet and the editors' stylesheets for light rules Lumen Dark
+  does not cover yet.
 - **Command palette.** Ctrl+K (Cmd+K on a Mac), or the search button in the header, on every
   page after login (dark in Lumen Dark). It lists the panel's own sidebar and user-menu links, searches them while
   ignoring case and accents, and works fully with the keyboard and a screen reader (modal dialog,
@@ -296,9 +301,16 @@ Fixes go into the latest minor release only. See the
 - In Lumen, Chart.js charts and the code and text editors (CodeMirror, Trumbowyg) keep the default
   theme's colours ([docs/keyhelp-markup.md](docs/keyhelp-markup.md)).
 - In Lumen Dark, what no stylesheet can reach stays as the panel draws it for light pages: the
-  doughnut charts (no text, an HTML legend next to them), the embedded Rspamd interface, and the
-  panel's images for light backgrounds, which sit on a small light plate. The monitoring charts are
-  shown inverted, so their series keep their hue in a lighter tone.
+  doughnut charts (no text, an HTML legend next to them; their white segment borders show as white
+  rings on the dark card), the embedded Rspamd interface, and the panel's images for light
+  backgrounds and the app catalogue's logos, which sit on a small light plate. The monitoring
+  charts are shown inverted: their labels pass 4.5:1, but the light series (orange, yellow, grey)
+  come out darker, about as faint on the card as they are on white in the default theme, and
+  tooltips appear light.
+- In Lumen Dark, the rich text editor's editing area (e-mail to all users, the configuration
+  message) is a light sheet, because the editor's colour menu applies inline colours chosen for
+  white, and the messages are read on white. White Label logos are shown as uploaded: a logo made
+  for light backgrounds sits on the dark header and login box.
 - Lumen Dark has no light mode of its own; a light panel is Lumen (or the default theme), selected
   by an administrator for all accounts. Route B (White Label only) covers Lumen, not Lumen Dark.
 
@@ -306,10 +318,10 @@ Fixes go into the latest minor release only. See the
 
 | What | Value | How it was measured |
 |---|---|---|
-| Contrast, text pairs | 57 pairs (52 in every mode, 5 only in Lumen Dark: editor syntax, chart labels), lowest 4.55:1 (light), 4.51:1 (dark and Lumen Dark), minimum 4.5:1 | `python3 scripts/contrast.py`, WCAG 2.x formula, 2026-10-21; full table in [docs/contrast.md](docs/contrast.md) |
-| Contrast, UI parts | 17 pairs (control borders, focus rings, progress fills, close-button crosses, the editor cursor), lowest 3.17:1 (light) and 3.08:1 (dark and Lumen Dark), minimum 3:1 | same |
-| Generator and repository tests | 211 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
-| Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (12 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; not installed yet. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash) | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), KeyHelp 26.1.1, 2026-10-21 |
+| Contrast, text pairs | 70 pairs (52 in every mode, 18 only in Lumen Dark: selected text, editor syntax and selections, the rich text editor's sheet and dialogs, chart labels), lowest 4.55:1 (light), 4.51:1 (dark and Lumen Dark), minimum 4.5:1; plus one transient pair at 3:1 (an error mark inside a code selection, 3.57:1) | `python3 scripts/contrast.py`, WCAG 2.x formula, 2026-10-21; full table in [docs/contrast.md](docs/contrast.md) |
+| Contrast, UI parts | 22 pairs (control borders, focus rings, progress fills, close-button crosses, the editor cursor, the active toolbar button, inline-coloured icons), lowest 3.17:1 (light) and 3.08:1 (dark and Lumen Dark), minimum 3:1 | same |
+| Generator and repository tests | 220 Python tests pass, 1 skipped (a template-only test), with gitleaks and markdownlint-cli2 on the path | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only), including the audits of its default and editor stylesheets |
+| Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (12 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; not installed yet. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash), and its patch-set hash is the installed build's: `check-update` reports the installed Lumen up to date with the assets it was installed from | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), KeyHelp 26.1.1, 2026-10-21 |
 | Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library); 2 more for Lumen Dark added since, not yet run | `npm test` in CI (Node.js 22), 2026-10-21 |
 | Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
 | Stylesheet size | about 46 KB per file, minified (Lumen's four files); Lumen Dark's two files are not measured yet | `node scripts/build-css.mjs` in CI, 2026-10-21 |
@@ -363,7 +375,10 @@ Keyweb AG. "KeyHelp" is named only to describe what this project works with. Thi
 contains no KeyHelp file. lumen-panel never uses or changes the KeyHelp logo files, and its
 documentation does not link them: the themes show their own logo in their place, or your White
 Label logo. The themes are built from the KeyHelp installation on the server where they run
-([why](#why-no-keyhelp-files-are-in-this-repository)). Lumen Dark uses nothing of KeyHelp Pro
+([why](#why-no-keyhelp-files-are-in-this-repository)). Lumen Dark adds nothing that loads, sets or
+reads the panel's dark mode. Its patches never use the switch, the dark stylesheets or the `dark/`
+images, and the panel's own unchanged templates pick `dark/` images only when the panel itself
+reports dark mode, which it does not offer without KeyHelp Pro or for a theme that declares none
 ([ADR 0011](docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)).
 
 ## Licence
