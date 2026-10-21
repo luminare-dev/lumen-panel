@@ -24,6 +24,7 @@ Tested with KeyHelp 26.1.1.
 [![release](https://img.shields.io/github/v/release/luminare-dev/lumen-panel?sort=semver)](https://github.com/luminare-dev/lumen-panel/releases)
 [![licence](https://img.shields.io/github/license/luminare-dev/lumen-panel)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/luminare-dev/lumen-panel/badge)](https://scorecard.dev/viewer/?uri=github.com/luminare-dev/lumen-panel)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15777/badge)](https://www.bestpractices.dev/projects/15777)
 
 ## Two themes
 
@@ -342,8 +343,8 @@ Fixes go into the latest minor release only. See the
   [Code of conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md) ·
   [Security](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) ·
   [Support](https://github.com/luminare-dev/.github/blob/main/SUPPORT.md)
-- Project page: not published yet; the Luminare open-source overview is
-  <https://luminare.tech/open-source/>
+- Project page: <https://luminare.tech/open-source/lumen-panel/>
+- OpenSSF Best Practices: <https://www.bestpractices.dev/projects/15777> (passing)
 
 ## Official KeyHelp resources
 
