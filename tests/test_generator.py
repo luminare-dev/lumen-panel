@@ -77,13 +77,13 @@ class PatchTest(Env):
         out = self.tmp / "t"
         shutil.copytree(self.bulma / "templates", out)
         patches = load_patches(fk.PATCHES)
-        apply_patches(out, patches, {"LUMEN_VERSION": "9.9.9", "LUMEN_ASSET_HASH": "abc"})
+        apply_patches(out, patches, {"LUMEN_VERSION": "9.9.9", "LUMEN_ASSET_HASH": "abc", "LUMEN_THEME_DIR": "lumen"})
         for p in patches:
             text = (out / p.file).read_text(encoding="utf-8")
             self.assertEqual(text.count(p.marker), 1, p.id)
             self.assertNotIn("@@", text)
         base = (out / "layout/base.twig").read_text(encoding="utf-8")
-        self.assertLess(base.index("/theme/bulma/assets/css/style.css"), base.index("/theme/lumen/assets/lumen"))
+        self.assertLess(base.index("/theme/bulma/assets/css/style"), base.index("/theme/lumen/assets/lumen"))
         self.assertLess(base.index("/theme/lumen/assets/lumen"), base.index("{% block page_css %}"))
         self.assertLess(base.index("{% block lumen_island %}"), base.index("</body>"))
         intern = (out / "layout/intern.twig").read_text(encoding="utf-8")
@@ -99,7 +99,7 @@ class PatchTest(Env):
         base.write_text(base.read_text(encoding="utf-8").replace("{% block page_css %}{% endblock %}", ""), encoding="utf-8")
         before = {p: p.read_bytes() for p in out.rglob("*.twig")}
         with self.assertRaises(PatchError) as ctx:
-            apply_patches(out, load_patches(fk.PATCHES), {"LUMEN_VERSION": "1", "LUMEN_ASSET_HASH": "x"})
+            apply_patches(out, load_patches(fk.PATCHES), {"LUMEN_VERSION": "1", "LUMEN_ASSET_HASH": "x", "LUMEN_THEME_DIR": "lumen"})
         self.assertEqual(len(ctx.exception.failures), 1)
         self.assertIn("base-stylesheet", ctx.exception.failures[0])
         self.assertIn("not found", ctx.exception.failures[0])

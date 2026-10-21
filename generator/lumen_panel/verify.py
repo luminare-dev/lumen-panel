@@ -1,7 +1,11 @@
 """Check a built (or installed) Lumen theme folder before KeyHelp gets to see it.
 
+The variant (Lumen or Lumen Dark) is read from the build record; a caller can name the variant
+it expects, and a folder named after one variant (theme/lumen, theme/lumen-dark) must hold a
+build of that variant.
+
 Checks:
-  1. _settings.json and _lumen_build.json exist and say what a Lumen build says;
+  1. _settings.json and _lumen_build.json exist and say what a build of the variant says;
   2. every default-theme template has a counterpart (against the live default theme when
      --keyhelp is given, otherwise against the build record), and there are no stale extras;
   2b. every template has the right content, byte for byte: with --keyhelp, an unpatched template
@@ -10,8 +14,12 @@ Checks:
      truncated or half-copied template fails here;
   3. every patch of the build record is present exactly once (its marker comment);
   4. the patched templates pass the Twig sanity check (delimiters and block tags balanced);
-  5. every theme/lumen/... file a template refers to exists below the theme folder;
-  6. _screenshot.png exists.
+  5. every theme/<variant>/... file a template refers to exists below the theme folder, and no
+     template refers to the folder of another variant;
+  6. _screenshot.png exists;
+  7. for a variant without a dark mode (Lumen Dark): no template can load one of the default
+     theme's dark stylesheets, and no patch text uses the panel's dark-mode switch, its dark
+     stylesheets or its 'dark/' images (the Pro boundary, docs/adr/0011).
 """
 
 from __future__ import annotations
@@ -21,11 +29,12 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import THEME_DISPLAY_NAME
+from . import BASE_THEME_DIR_NAME, variants
 from .build import MANIFEST_NAME
 from .keyhelp import KeyHelpError, KeyHelpTree, list_files
 from .patches import PatchError, marker, patch_contents, patch_from_record, read_text_exact
 from .twig import asset_references, check as twig_check
+from .variants import PRO_DARK_MODE_MARKERS, Variant
 
 
 @dataclass
@@ -102,18 +111,59 @@ def _check_contents(templates_dir: Path, files: list[str], manifest: dict, live:
                              "files reproduce exactly)")
 
 
-def verify(theme_dir: Path, keyhelp_root: Path | None = None) -> VerifyReport:
+def _variant_of(theme_dir: Path, manifest: dict | None, expected: Variant | None,
+                report: VerifyReport) -> Variant | None:
+    """The variant the folder holds (build record; builds before Lumen Dark are Lumen)."""
+    name = (manifest or {}).get("variant", variants.DEFAULT_VARIANT.name)
+    found = variants.VARIANTS.get(name) if isinstance(name, str) else None
+    if found is None:
+        report.errors.append(f"{MANIFEST_NAME}: unknown variant {name!r}")
+        return None
+    if expected is not None and found is not expected:
+        report.errors.append(f"{MANIFEST_NAME}: a build of '{found.display_name}', expected '{expected.display_name}'")
+        return None
+    named = variants.by_dir_name(theme_dir.name)
+    if named is not None and named is not found:
+        report.errors.append(f"{theme_dir}: the folder of '{named.display_name}' holds a build of "
+                             f"'{found.display_name}'")
+        return None
+    return found
+
+
+def _check_pro_boundary(templates_dir: Path, files: list[str], manifest: dict, report: VerifyReport) -> None:
+    """A variant without a dark mode never loads or switches the panel's own dark mode."""
+    before = len(report.errors)
+    for rel in files:
+        if not rel.endswith(".twig"):
+            continue
+        src = (templates_dir / rel).read_text(encoding="utf-8", errors="replace")
+        for ref in asset_references(src, BASE_THEME_DIR_NAME):
+            if ref.startswith("assets/css/") and "-dark" in ref:
+                report.errors.append(f"templates/{rel}: can load the default theme's dark stylesheet "
+                                     f"theme/bulma/{ref}; this variant has no dark mode")
+    for item in manifest.get("patches", []):
+        text = item.get("text", "") if isinstance(item, dict) else ""
+        used = [m for m in PRO_DARK_MODE_MARKERS if m in text]
+        if used:
+            report.errors.append(f"patch {item.get('id')}: its text uses {', '.join(used)} (the panel's dark mode); "
+                                 "this variant has no dark mode")
+    if len(report.errors) == before:
+        report.passed.append("pro boundary (no dark stylesheet, dark-mode switch or dark images of the panel)")
+
+
+def verify(theme_dir: Path, keyhelp_root: Path | None = None, variant: Variant | None = None) -> VerifyReport:
     report = VerifyReport()
     settings = _load_json(theme_dir / "_settings.json", report)
     manifest = _load_json(theme_dir / MANIFEST_NAME, report)
-    if settings is not None:
-        wrong = [k for k, v in (("name", THEME_DISPLAY_NAME), ("path_to_templates", "templates/"),
-                                ("has_dark_mode", True)) if settings.get(k) != v]
+    v = _variant_of(theme_dir, manifest, variant, report)
+    if settings is not None and v is not None:
+        wrong = [k for k, want in (("name", v.display_name), ("path_to_templates", "templates/"),
+                                   ("has_dark_mode", v.has_dark_mode)) if settings.get(k) != want]
         if wrong or not settings.get("lumen_base_version"):
             report.errors.append(f"_settings.json: unexpected or missing {', '.join(wrong) or 'lumen_base_version'}")
         else:
             report.passed.append("settings")
-    if manifest is None:
+    if manifest is None or v is None:
         return report
 
     templates_dir = theme_dir / "templates"
@@ -175,20 +225,27 @@ def verify(theme_dir: Path, keyhelp_root: Path | None = None) -> VerifyReport:
     if twig_ok and patched:
         report.passed.append(f"twig syntax ({len(patched)} patched files)")
 
-    # 5. referenced theme/lumen/ files exist
+    # 5. referenced theme/<variant>/ files exist; no reference to another variant's folder
     refs_ok = True
     nrefs = 0
+    others = [o for o in variants.VARIANTS.values() if o is not v]
     for rel in sorted(have):
         if not rel.endswith(".twig"):
             continue
-        for ref in asset_references((templates_dir / rel).read_text(encoding="utf-8", errors="replace")):
+        src = (templates_dir / rel).read_text(encoding="utf-8", errors="replace")
+        for ref in asset_references(src, v.dir_name):
             nrefs += 1
             if ref.startswith("<dynamic>"):
                 refs_ok = False
-                report.errors.append(f"templates/{rel}: cannot resolve theme/lumen/{ref[9:]}")
+                report.errors.append(f"templates/{rel}: cannot resolve theme/{v.dir_name}/{ref[9:]}")
             elif not (theme_dir / ref).is_file():
                 refs_ok = False
-                report.errors.append(f"templates/{rel}: theme/lumen/{ref} does not exist")
+                report.errors.append(f"templates/{rel}: theme/{v.dir_name}/{ref} does not exist")
+        for other in others:
+            for ref in asset_references(src, other.dir_name):
+                refs_ok = False
+                report.errors.append(f"templates/{rel}: refers to theme/{other.dir_name}/{ref.removeprefix('<dynamic>')}, "
+                                     f"the folder of '{other.display_name}'")
     if refs_ok:
         report.passed.append(f"assets ({nrefs} references resolved)")
 
@@ -197,4 +254,8 @@ def verify(theme_dir: Path, keyhelp_root: Path | None = None) -> VerifyReport:
         report.passed.append("screenshot")
     else:
         report.errors.append("_screenshot.png: missing")
+
+    # 7. the Pro boundary of a variant without a dark mode
+    if not v.has_dark_mode:
+        _check_pro_boundary(templates_dir, sorted(have), manifest, report)
     return report

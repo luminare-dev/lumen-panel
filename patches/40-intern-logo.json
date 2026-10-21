@@ -4,7 +4,7 @@
   "description": "Show the Luminare compact lockup in the header instead of the KeyHelp logo (the KeyHelp logo files are not touched). A white-label logo, when configured, still wins because it is rendered by the branch before this one.",
   "mode": "replace",
   "anchor": "<img src=\"theme/bulma/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">",
-  "text": "<img class=\"lumen-logo lumen-logo--header\" src=\"/theme/lumen/assets/brand/luminare-lockup-compact-{{ _app.theme.is_dark_mode ? 'dark' : 'light' }}.svg?v=@@LUMEN_ASSET_HASH@@\" width=\"127\" height=\"42\" alt=\"Luminare Development\">",
+  "text": "<img class=\"lumen-logo lumen-logo--header\" src=\"/theme/@@LUMEN_THEME_DIR@@/assets/brand/luminare-lockup-compact-{{ _app.theme.is_dark_mode ? 'dark' : 'light' }}.svg?v=@@LUMEN_ASSET_HASH@@\" width=\"127\" height=\"42\" alt=\"Luminare Development\">",
   "assets": [
     "brand/luminare-lockup-compact-light.svg",
     "brand/luminare-lockup-compact-dark.svg"

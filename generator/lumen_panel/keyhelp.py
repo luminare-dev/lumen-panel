@@ -10,8 +10,12 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from . import BASE_THEME_DIR_NAME, THEME_DIR_NAME
+
+if TYPE_CHECKING:
+    from .variants import Variant
 
 
 class KeyHelpError(Exception):
@@ -41,6 +45,10 @@ class KeyHelpTree:
     @property
     def lumen_theme(self) -> Path:
         return self.theme_root / THEME_DIR_NAME
+
+    def theme(self, variant: "Variant") -> Path:
+        """The folder of one lumen-panel theme variant (theme/lumen, theme/lumen-dark)."""
+        return self.theme_root / variant.dir_name
 
     @property
     def twig_cache(self) -> Path:

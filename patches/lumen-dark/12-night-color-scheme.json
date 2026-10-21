@@ -1,0 +1,8 @@
+{
+  "id": "night-color-scheme",
+  "file": "layout/base.twig",
+  "description": "Lumen Dark is always dark: the page declares the dark colour scheme, so the browser draws the page background, scrollbars and native form controls dark from the first paint.",
+  "mode": "replace",
+  "anchor": "<meta name=\"color-scheme\" content=\"{{ _app.theme.is_dark_mode ? 'dark' : 'light' }}\">",
+  "text": "<meta name=\"color-scheme\" content=\"dark\">"
+}

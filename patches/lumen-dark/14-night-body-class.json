@@ -1,0 +1,8 @@
+{
+  "id": "night-body-class",
+  "file": "layout/base.twig",
+  "description": "The lumen-night hook class on <body>, appended after the class the default theme sets there (which stays as it is).",
+  "mode": "insert_after",
+  "anchor": "<body class=\"{{ _app.theme.is_dark_mode ? 'dark-mode' : 'default-mode' }}",
+  "text": " lumen-night"
+}

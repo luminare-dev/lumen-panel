@@ -4,7 +4,7 @@
   "description": "Load the Lumen stylesheet right after the default theme's stylesheet, before page CSS and white-label CSS (so both can still override it). The variant follows KeyHelp's own dark-mode and text-direction switches.",
   "mode": "insert_before",
   "anchor": "{% block page_css %}{% endblock %}",
-  "text": "<link rel=\"stylesheet\" href=\"/theme/lumen/assets/lumen{{ _app.theme.is_dark_mode ? '-dark' }}{{ _app.text_direction == 'rtl' ? '-rtl' }}.css?v=@@LUMEN_ASSET_HASH@@\">\n\n    ",
+  "text": "<link rel=\"stylesheet\" href=\"/theme/@@LUMEN_THEME_DIR@@/assets/lumen{{ _app.theme.is_dark_mode ? '-dark' }}{{ _app.text_direction == 'rtl' ? '-rtl' }}.css?v=@@LUMEN_ASSET_HASH@@\">\n\n    ",
   "assets": [
     "lumen.css",
     "lumen-dark.css",
