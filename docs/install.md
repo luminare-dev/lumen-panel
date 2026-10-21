@@ -89,7 +89,8 @@ the first release is published, stay on `main` and skip the `git checkout`.
 ### Alternative: the release archive
 
 Every release has a source archive, a `SHA256SUMS` file and, for releases made while the
-repository is public, a build provenance attestation. The archive holds the same files as the tag:
+repository is public, signed build provenance (`lumen-panel-X.Y.Z.tar.gz.intoto.jsonl`, a Sigstore
+bundle with a SLSA provenance statement). The archive holds the same files as the tag:
 
 ```bash
 V=X.Y.Z
@@ -97,12 +98,36 @@ cd /root
 curl -fsSLO "https://github.com/luminare-dev/lumen-panel/releases/download/v$V/lumen-panel-$V.tar.gz"
 curl -fsSLO "https://github.com/luminare-dev/lumen-panel/releases/download/v$V/SHA256SUMS"
 sha256sum -c SHA256SUMS                                # lumen-panel-X.Y.Z.tar.gz: OK
-gh attestation verify "lumen-panel-$V.tar.gz" --repo luminare-dev/lumen-panel   # optional, GitHub CLI
 tar -xzf "lumen-panel-$V.tar.gz" -C /opt && mv "/opt/lumen-panel-$V" /opt/lumen-panel
 chown -R root:root /opt/lumen-panel && chmod -R go-w /opt/lumen-panel
 ```
 
-Stop if `sha256sum -c` does not print `OK`.
+Stop if `sha256sum -c` does not print `OK`. To also check where the archive came from, verify it
+as described in the next section before you unpack it.
+
+### Verify a release
+
+`sha256sum -c SHA256SUMS` shows that the archive arrived complete and unchanged. The build
+provenance shows that the release workflow of `luminare-dev/lumen-panel` built it on GitHub
+Actions: it is signed with a short-lived Sigstore certificate issued to that workflow and recorded
+in the public Rekor transparency log. The release workflow runs the same check before it publishes
+a release. Check it with the [GitHub CLI](https://cli.github.com/), in the folder with the
+downloaded archive:
+
+```bash
+V=X.Y.Z
+sha256sum -c SHA256SUMS                                # lumen-panel-X.Y.Z.tar.gz: OK
+# Provenance stored on GitHub (needs `gh auth login`):
+gh attestation verify "lumen-panel-$V.tar.gz" --repo luminare-dev/lumen-panel
+# The same check with the provenance file of the release (no login, no GitHub API):
+curl -fsSLO "https://github.com/luminare-dev/lumen-panel/releases/download/v$V/lumen-panel-$V.tar.gz.intoto.jsonl"
+gh attestation verify "lumen-panel-$V.tar.gz" --repo luminare-dev/lumen-panel --bundle "lumen-panel-$V.tar.gz.intoto.jsonl"
+```
+
+Each command exits with a non-zero status when the check fails; stop then. The `--bundle` form
+still downloads Sigstore's trusted root. On a machine without internet access, run
+`gh attestation trusted-root > trusted_root.jsonl` on a connected machine, copy the file over and
+add `--custom-trusted-root trusted_root.jsonl`.
 
 ## Get the built assets
 

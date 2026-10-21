@@ -247,7 +247,7 @@ Fixes go into the latest minor release only. See the
 |---|---|---|
 | Contrast, text pairs | 51 pairs, lowest 4.55:1 (light) and 4.51:1 (dark), minimum 4.5:1 | `python3 scripts/contrast.py`, WCAG 2.x formula, 2026-10-21; full table in [docs/contrast.md](docs/contrast.md) |
 | Contrast, UI parts | 16 pairs (control borders, focus rings, progress fills, close-button crosses), lowest 3.17:1 (light) and 3.08:1 (dark), minimum 3:1 | same |
-| Generator and repository tests | 173 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
+| Generator and repository tests | 179 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
 | Generator against the live panel | build and verify pass: 215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly; dry run passes; `install` ran, the theme is not selected yet | `python3 -m lumen_panel build` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), then `install` on the panel, KeyHelp 26.1.1, 2026-10-21 |
 | Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library) | `npm test` in CI (Node.js 22), 2026-10-21 |
 | Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
@@ -263,7 +263,8 @@ Fixes go into the latest minor release only. See the
   [Official KeyHelp resources](docs/keyhelp-resources.md)
 - [Changelog](CHANGELOG.md) (written by release-please) and
   [releases](https://github.com/luminare-dev/lumen-panel/releases) (each release has
-  `SHA256SUMS`, and a build provenance attestation while the repository is public)
+  `SHA256SUMS` and, while the repository is public, signed SLSA build provenance as
+  `<archive>.intoto.jsonl`; [how to verify a release](docs/install.md#verify-a-release))
 - [Contributing](https://github.com/luminare-dev/.github/blob/main/CONTRIBUTING.md) ·
   [Code of conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md) ·
   [Security](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) ·

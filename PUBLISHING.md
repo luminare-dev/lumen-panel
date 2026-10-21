@@ -169,8 +169,9 @@ Facts and links in this file were checked on 2026-10-06 (A7 and B17 on 2026-10-0
 - [ ] Before merging the release pull request, the commit history check from B6 (with the
       private term list) still reports 0 findings.
 - [ ] After the merge, the `release` workflow creates the draft release and the tag, builds
-      `<slug>-X.Y.Z.tar.gz` with `SHA256SUMS`, attests the archive and publishes the release.
-      Verify it from outside with the commands below this list.
+      `<slug>-X.Y.Z.tar.gz` with `SHA256SUMS`, attests the archive, attaches the attestation as
+      `<slug>-X.Y.Z.tar.gz.intoto.jsonl`, checks it and publishes the release. Verify it from
+      outside with the commands below this list.
 - [ ] Registry uploads follow their own rules: Galaxy versions can never be changed or deleted
       (test the tarball first, stay below 1.0.0 until the interface is stable); a grafana.com
       dashboard names its licence in the description.
@@ -181,6 +182,7 @@ Facts and links in this file were checked on 2026-10-06 (A7 and B17 on 2026-10-0
 gh release download vX.Y.Z -R luminare-dev/<slug>
 sha256sum -c SHA256SUMS
 gh attestation verify <slug>-X.Y.Z.tar.gz -R luminare-dev/<slug>
+gh attestation verify <slug>-X.Y.Z.tar.gz -R luminare-dev/<slug> --bundle <slug>-X.Y.Z.tar.gz.intoto.jsonl
 ```
 
 ## D. Upkeep

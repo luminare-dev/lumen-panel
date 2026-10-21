@@ -27,5 +27,9 @@ in one run because a tag created with `GITHUB_TOKEN` does not start other workfl
 
 - Good: works with immutable releases; a published release never changes.
 - Good: `sha256sum -c SHA256SUMS` and `gh attestation verify` prove where an archive came from.
+- Good: the attestation is also attached as `<archive>.intoto.jsonl` (the Sigstore bundle from
+  `actions/attest`, named as `slsa-github-generator` names it) and checked with
+  `gh attestation verify --bundle` before the release is published. Users can check it without
+  the GitHub API, and the OpenSSF Scorecard Signed-Releases check finds the provenance.
 - Bad: the release pull request has to be closed and reopened once so that the required checks run
   on it.

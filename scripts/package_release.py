@@ -7,7 +7,8 @@ Creates, from a git ref (normally the release tag):
                                  same bytes with the same git version)
   dist/SHA256SUMS                "<sha256>  <file>" lines, readable by `sha256sum -c`
 
-The release workflow attests every file listed in SHA256SUMS (actions/attest) and uploads both.
+The release workflow attests the archive (actions/attest), adds the attestation as
+<archive>.intoto.jsonl and uploads all three files.
 
 Usage: python3 scripts/package_release.py --ref v0.1.0 [--name my-project] [--out dist]
 """
