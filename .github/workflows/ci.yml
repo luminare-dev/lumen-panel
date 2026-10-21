@@ -84,11 +84,13 @@ jobs:
           set -euo pipefail
           test -f dist/assets/lumen-night.css
           test -f dist/assets/lumen-night-rtl.css
-          if grep -l -e 'style-dark' -e 'img/dark' -e 'is_dark_mode' -e 'has_dark_mode' \
+          if grep -l -e 'style-dark' -e 'img/dark' -e 'is_dark_mode' -e 'has_dark_mode' -e '/theme/bulma/' \
               dist/assets/lumen-night.css dist/assets/lumen-night-rtl.css; then
-            echo "error: a Lumen Dark stylesheet refers to the panel's dark mode" >&2
+            echo "error: a Lumen Dark stylesheet refers to the panel's dark mode or its files" >&2
             exit 1
           fi
+          # the same check as the unit test, here with the built files present
+          python3 -m unittest tests.test_variants.ProBoundaryTest.test_lumen_dark_css_never_uses_the_panel_dark_assets
 
       - name: Built file sizes
         run: |
