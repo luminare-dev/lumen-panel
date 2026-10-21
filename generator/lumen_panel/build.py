@@ -31,19 +31,15 @@ from . import __version__
 from .keyhelp import KeyHelpError, KeyHelpTree, list_files, tree_sha256
 from .patches import Patch, apply_patches, load_patches, patch_record, patch_set_sha256, patched_files
 from .screenshot import write_screenshot
-from .variants import ALL_STYLESHEETS, DEFAULT_VARIANT, LUMEN, Variant
+from .variants import ALL_STYLESHEETS, DEFAULT_VARIANT, Variant
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PATCHES = REPO_ROOT / "patches"
 DEFAULT_ASSETS = REPO_ROOT / "dist" / "assets"
-DEFAULT_SCREENSHOT = LUMEN.screenshot_file
-SCREENSHOT_LOCKUP = LUMEN.screenshot_lockup
 
 # Files every variant needs besides its own stylesheets; the patches add their own "assets" lists.
 COMMON_ASSETS = ("lumen-island.js", "fonts/Sora[wght].ttf", "fonts/OFL.txt")
-REQUIRED_ASSETS = LUMEN.stylesheets + COMMON_ASSETS   # Lumen's (kept for callers of older versions)
 
-SETTINGS_DESCRIPTION = LUMEN.description
 MANIFEST_NAME = "_lumen_build.json"
 README_NAME = "LUMEN-README.txt"
 
