@@ -18,6 +18,15 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: false,
     target: ["chrome111", "edge111", "firefox121", "safari16.4"],
+    // The gallery bundles React and React DOM: their licence notice travels with every chunk.
+    // scripts/check-gallery.mjs checks it, and copies LICENSE, NOTICE and THIRD_PARTY_NOTICES.md.
+    rolldownOptions: {
+      output: {
+        banner:
+          "/*! lumen-panel gallery | MIT | https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
+          "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */",
+      },
+    },
   },
   server: {
     fs: { allow: [fileURLToPath(new URL("..", import.meta.url))] },

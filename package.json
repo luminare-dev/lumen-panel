@@ -18,7 +18,7 @@
     "build": "npm run build:css && npm run build:island && npm run build:gallery",
     "build:css": "node scripts/build-css.mjs",
     "build:island": "vite build --config island/vite.config.js && node scripts/check-island.mjs",
-    "build:gallery": "vite build --config gallery/vite.config.js",
+    "build:gallery": "vite build --config gallery/vite.config.js && node scripts/check-gallery.mjs",
     "dev": "npm run build:css && npm run build:island && vite --config gallery/vite.config.js",
     "preview": "vite preview --config gallery/vite.config.js",
     "test": "vitest run --config island/vitest.config.js",

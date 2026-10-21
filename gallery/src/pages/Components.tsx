@@ -50,12 +50,20 @@ export function Cards() {
 }
 
 const DOMAINS = [
-  ["example.org", "web1", "Let's Encrypt", "is-success", "valid"],
-  ["app.example.net", "web2", "Let's Encrypt", "is-warning", "renews in 9 days"],
-  ["mail.example.com", "web1", "none", "is-danger", "missing"],
-  ["docs.example.org", "web3", "custom", "is-info", "valid"],
-  ["test.example", "web2", "self-signed", "is-light", "self-signed"],
+  ["example.org", "web1", "Let's Encrypt", "is-success", "valid", "active"],
+  ["app.example.net", "web2", "Let's Encrypt", "is-warning", "renews in 9 days", "active"],
+  ["mail.example.com", "web1", "none", "is-danger", "missing", "locked"],
+  ["docs.example.org", "web3", "custom", "is-info", "valid", "active"],
+  ["test.example", "web2", "self-signed", "is-light", "self-signed", "pending"],
 ] as const;
+
+// State shown like the panel's status cells: an icon plus a word in a status text colour, which
+// must keep 4.5:1 on striped, hovered and selected rows too.
+const STATES = {
+  active: ["has-text-success", "check", "Active"],
+  pending: ["has-text-warning", "warning", "Pending"],
+  locked: ["has-text-danger", "warning", "Locked"],
+} as const;
 
 export function DomainTable() {
   return (
@@ -71,13 +79,14 @@ export function DomainTable() {
             <th scope="col">Domain</th>
             <th scope="col">Account</th>
             <th scope="col">Certificate</th>
+            <th scope="col">State</th>
             <th scope="col" className="has-text-right">
               Status
             </th>
           </tr>
         </thead>
         <tbody>
-          {DOMAINS.map(([domain, user, cert, tag, status]) => (
+          {DOMAINS.map(([domain, user, cert, tag, status, state]) => (
             <tr key={domain}>
               <td>
                 <label className="checkbox">
@@ -89,6 +98,12 @@ export function DomainTable() {
               </td>
               <td className="has-text-grey">{user}</td>
               <td>{cert}</td>
+              <td>
+                <span className={`icon-text ${STATES[state][0]}`}>
+                  <Icon name={STATES[state][1]} size="is-small" />
+                  <span>{STATES[state][2]}</span>
+                </span>
+              </td>
               <td className="has-text-right">
                 <span className={`tag ${tag}`}>{status}</span>
               </td>
@@ -455,7 +470,7 @@ export function Tags() {
           <span className="tag is-light">light</span>
         </div>
         <div className="tags has-addons">
-          <span className="tag is-dark">KeyHelp</span>
+          <span className="tag is-dark">Panel</span>
           <span className="tag is-info">26.1.1</span>
         </div>
       </Card>
@@ -503,15 +518,46 @@ export function Notifications() {
   );
 }
 
+const FOCUSABLE = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
+
 export function Modals() {
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  // A modal dialog: focus moves in on open, Tab and Shift+Tab stay inside, Escape closes, and
+  // focus returns to the button that opened it.
   useEffect(() => {
     if (!open) return undefined;
+    const opener = openerRef.current;
+    closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      const items = Array.from(dialog?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!dialog || !first || !last) return;
+      const active = document.activeElement;
+      const inside = active instanceof Node && dialog.contains(active);
+      if (event.shiftKey && (!inside || active === first)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (!inside || active === last)) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      opener?.focus();
+    };
   }, [open]);
   return (
     <>
@@ -519,7 +565,14 @@ export function Modals() {
       <Card icon="window" title="Overlays">
         <div className="columns">
           <div className="column">
-            <button className="button is-link" type="button" onClick={() => setOpen(true)}>
+            <button
+              className="button is-link"
+              type="button"
+              onClick={(event) => {
+                openerRef.current = event.currentTarget;
+                setOpen(true);
+              }}
+            >
               Open modal
             </button>
           </div>
@@ -544,12 +597,12 @@ export function Modals() {
       {open && (
         <div className="modal is-active">
           <div className="modal-background" onClick={() => setOpen(false)} />
-          <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
+          <div ref={dialogRef} className="modal-card" role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
             <header className="modal-card-head">
               <p className="modal-card-title" id="gallery-modal-title">
                 Connection data
               </p>
-              <button className="delete" type="button" aria-label="Close" onClick={() => setOpen(false)} />
+              <button ref={closeRef} className="delete" type="button" aria-label="Close" onClick={() => setOpen(false)} />
             </header>
             <section className="modal-card-body">
               <table className="table is-fullwidth">

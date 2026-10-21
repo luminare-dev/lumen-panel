@@ -9,12 +9,15 @@
 ## Bundled into the built files (not in the repository)
 
 `npm run build` writes these into `dist/assets/` (the theme's files) and `gallery/dist/` (the
-static gallery); their licence notices travel with the built files.
+static gallery). The command palette and every gallery script start with a banner that names
+React and React DOM and their licence, and Bulma's stylesheet keeps its own banner;
+`scripts/check-island.mjs` and `scripts/check-gallery.mjs` fail the build without them. The
+gallery build also copies `LICENSE`, `NOTICE` and this file into `gallery/dist/`.
 
 | Component | Version | Licence | Built file |
 |---|---|---|---|
 | React, React DOM, scheduler | see `package-lock.json` | MIT, Copyright (c) Meta Platforms, Inc. and affiliates | `dist/assets/lumen-island.js`, `gallery/dist/` |
-| Bulma | 0.9.4 | MIT, Copyright (c) 2023 Jeremy Thomas | `gallery/dist/` only (the gallery's base stylesheet) |
+| Bulma | 0.9.4 | MIT, Copyright (c) 2022 Jeremy Thomas | `gallery/dist/` only (the gallery's base stylesheet) |
 
 Build and test tools (Vite, Rolldown, lightningcss, TypeScript, Vitest, jsdom, Testing Library
 and their dependencies) are used to build and test, not distributed; `package-lock.json` lists

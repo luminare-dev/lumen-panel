@@ -156,13 +156,14 @@ export function App({ bulma }: { bulma: Stylesheets }) {
               </div>
             </div>
             <div className="level-left">
-              <button className="button level-item" type="button" aria-pressed={dark} onClick={() => setMode(dark ? "light" : "dark")}>
+              {/* Below 769px these two move into the user menu, so the header fits a 320px screen. */}
+              <button className="button level-item is-hidden-mobile" type="button" aria-pressed={dark} onClick={() => setMode(dark ? "light" : "dark")}>
                 <Icon name="moon" />
-                <span className="is-hidden-mobile">Dark mode</span>
+                <span>Dark mode</span>
               </button>
-              <button className="button level-item" type="button" aria-pressed={rtl} onClick={() => setDir(rtl ? "ltr" : "rtl")}>
+              <button className="button level-item is-hidden-mobile" type="button" aria-pressed={rtl} onClick={() => setDir(rtl ? "ltr" : "rtl")}>
                 <Icon name="direction" />
-                <span className="is-hidden-mobile">Right to left</span>
+                <span>Right to left</span>
               </button>
               <a
                 id="app-user-menu-toggle"
@@ -181,6 +182,7 @@ export function App({ bulma }: { bulma: Stylesheets }) {
                     <Svg name="user" className="fa fa-user fa-stack-1x fa-inverse" />
                   </span>
                 </span>
+                <span className="is-sr-only">User menu</span>
                 <span className="is-hidden-mobile">admin</span>
               </a>
               <a
@@ -208,6 +210,9 @@ export function App({ bulma }: { bulma: Stylesheets }) {
         </a>
         <button className="dropdown-item gallery-menu-button" type="button" onClick={() => setMode(dark ? "light" : "dark")}>
           {dark ? "Light mode" : "Dark mode"}
+        </button>
+        <button className="dropdown-item gallery-menu-button" type="button" onClick={() => setDir(rtl ? "ltr" : "rtl")}>
+          {rtl ? "Left to right" : "Right to left"}
         </button>
         <hr className="dropdown-divider" />
         <a className="dropdown-item" href="#login">
