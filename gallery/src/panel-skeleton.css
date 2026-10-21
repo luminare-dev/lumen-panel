@@ -259,3 +259,112 @@ kbd {
   font-size: 0.85em;
   padding: 0 0.3em;
 }
+
+/* User menu: fixed under the header at the end side, like the panel. */
+#user-menu {
+  inset-block-start: 4rem;
+  inset-inline-end: 0;
+  min-width: 14rem;
+  padding-block: 0.5rem;
+  position: fixed;
+  z-index: 1020;
+}
+
+.gallery-menu-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  width: 100%;
+}
+
+/* Gallery-only helpers. */
+.gallery-skip {
+  background: var(--lm-surface, #fff);
+  border: 2px solid var(--lm-focus, #1f47c4);
+  border-radius: 6px;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  padding: 0.5rem 1rem;
+  position: fixed;
+  transform: translateY(-200%);
+  z-index: 2000;
+}
+
+.gallery-skip:focus {
+  transform: none;
+}
+
+.gallery-lead {
+  margin-bottom: 1.5rem;
+  max-width: 48rem;
+}
+
+.gallery-chip {
+  block-size: 0.9rem;
+  border: 1px solid var(--lm-border-control, #79859c);
+  border-radius: 4px;
+  display: inline-block;
+  inline-size: 0.9rem;
+  margin-inline-end: 0.5rem;
+  vertical-align: -0.1rem;
+}
+
+.gallery-scale,
+.gallery-radii {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+}
+
+.gallery-scale li {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 9rem 1fr;
+}
+
+.gallery-bar {
+  background: var(--lm-primary, #1f47c4);
+  block-size: 0.75rem;
+  border-radius: 2px;
+  display: block;
+}
+
+.gallery-radii {
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+}
+
+.gallery-radii li {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.gallery-radius {
+  background: var(--lm-primary-tint, #e9edf9);
+  block-size: 4rem;
+  border: 1px solid var(--lm-primary, #1f47c4);
+  display: block;
+  inline-size: 6rem;
+}
+
+.gallery-weights {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 1.5rem;
+  gap: 1.5rem;
+}
+
+.gallery-numbers {
+  font-variant-numeric: tabular-nums;
+}
+
+fieldset.field {
+  border: 0;
+  margin-inline: 0;
+  min-inline-size: 0;
+  padding: 0;
+}

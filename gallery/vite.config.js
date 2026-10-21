@@ -3,6 +3,7 @@
 // dist/assets (stylesheets, island, fonts, logos) is served as the public folder, so the gallery
 // loads lumen{-dark}{-rtl}.css and lumen-island.js exactly as the panel does.
 // Build the stylesheets and the island first: npm run build:css && npm run build:island
+// Output: gallery/dist, with relative paths (base "./"), so it can be served from any folder.
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
@@ -13,9 +14,12 @@ export default defineConfig({
   publicDir: fileURLToPath(new URL("../dist/assets", import.meta.url)),
   plugins: [react()],
   build: {
-    outDir: fileURLToPath(new URL("../dist/gallery", import.meta.url)),
+    outDir: fileURLToPath(new URL("./dist", import.meta.url)),
     emptyOutDir: true,
     sourcemap: false,
     target: ["chrome111", "edge111", "firefox121", "safari16.4"],
+  },
+  server: {
+    fs: { allow: [fileURLToPath(new URL("..", import.meta.url))] },
   },
 });
