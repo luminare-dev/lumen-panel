@@ -78,8 +78,15 @@
   color: var(--lm-on-primary-tint);
 }
 
+/*
+ * The selected option. The default theme paints it with !important, and Select2 4.1 takes
+ * aria-selected="true" off it as soon as the pointer or the arrow keys highlight another option,
+ * so it needs an !important of its own (the highlighted rule below still wins while highlighted).
+ */
+.select2-results__option--selected,
 .select2-container--default .select2-results__option--selected {
-  background-color: var(--lm-surface-sunken);
+  background-color: var(--lm-surface-sunken) !important;
+  color: var(--lm-text);
   font-weight: 600;
 }
 
