@@ -1,5 +1,7 @@
-# Caller: lint, tests and the full-history secret scan on every pull request and push to main.
-# Required checks for the main ruleset: "ci / lint-test" and "secrets / gitleaks".
+# Caller: lint, tests and the full-history secret scan on every pull request and push to main,
+# plus the project's own asset build (stylesheets, command palette, gallery) and an end-to-end
+# generator build against the fake panel tree of the tests.
+# Required checks for the main ruleset: "ci / lint-test", "assets", "secrets / gitleaks".
 name: ci
 
 on:
@@ -26,3 +28,43 @@ jobs:
     uses: ./.github/workflows/reusable-gitleaks.yml
     permissions:
       contents: read
+
+  assets:
+    name: assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Install the locked dependencies (no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Command palette unit tests
+        run: npm test
+
+      - name: Build stylesheets, command palette and gallery
+        run: npm run build
+
+      - name: Contrast table is current and every pair passes
+        run: python3 scripts/contrast.py --check
+
+      - name: Generator build and verify with the built assets (fake panel tree)
+        run: |
+          set -euo pipefail
+          python3 tests/fakekeyhelp.py "$RUNNER_TEMP/keyhelp"
+          cd generator
+          python3 -m lumen_panel build --keyhelp "$RUNNER_TEMP/keyhelp" --out "$RUNNER_TEMP/lumen"
+          python3 -m lumen_panel verify "$RUNNER_TEMP/lumen" --keyhelp "$RUNNER_TEMP/keyhelp"
+
+      - name: Built file sizes
+        run: ls -l dist/assets dist/assets/brand dist/gallery
