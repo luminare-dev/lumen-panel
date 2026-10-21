@@ -7,8 +7,8 @@
  * lumen-night-rtl.css). The components already paint most of the panel from the tokens; this
  * file covers what the light base still paints light and the Lumen components leave alone,
  * because in Lumen's own dark mode the panel's dark stylesheet takes care of it. Nothing here
- * loads, names or imitates the panel's dark stylesheets, its dark-mode switch or its 'dark/'
- * images (docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md).
+ * loads or names the panel's dark stylesheets or its 'dark/' images, and nothing sets or
+ * imitates its dark-mode switch (docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md).
  *
  * Like the rest of Lumen, rules match the selector they replace and win by coming later, so
  * White Label CSS still overrides them. Only the editors' own stylesheets load after Lumen (in the

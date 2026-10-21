@@ -1,8 +1,17 @@
 /* Lumen Dark: page, text helpers, code, separators and images made for light backgrounds. */
 
-/* Scrollbars of the page itself (Firefox, and Chrome and Edge 121 and later). */
+/*
+ * Scrollbars (Firefox, and Chrome and Edge 121 and later). The value is inherited, so the track is
+ * transparent: cards, modals, text areas and dropdowns show their own surface behind the thumb.
+ */
 html {
-  scrollbar-color: var(--lm-border-control) var(--lm-bg);
+  scrollbar-color: var(--lm-border-control) transparent;
+}
+
+/* Selected text: the primary tint is too close to the cards and the page to show a selection. */
+::selection {
+  background-color: var(--lm-royal);
+  color: var(--lm-white);
 }
 
 /* Bare tables and the panel's summary rows set a dark grey text colour of their own. */
@@ -165,4 +174,20 @@ a.has-text-link-dark:focus {
   border-radius: var(--lm-radius-s);
   box-sizing: content-box;
   padding: 2px;
+}
+
+/* The logos of the application catalogue are made for light backgrounds as well. */
+[data-category] > .card .column.is-narrow > img {
+  background-color: var(--lm-white);
+  border-radius: var(--lm-radius-s);
+  box-sizing: content-box;
+  padding: 4px;
+}
+
+/*
+ * Icons the templates colour dark red inline (the footer icon, the KeyDisc storage icon) would be
+ * below 3:1 on the dark page; !important is the only way past an inline style.
+ */
+[style*="color: #a02833"] {
+  color: var(--lm-ember-bright) !important;
 }

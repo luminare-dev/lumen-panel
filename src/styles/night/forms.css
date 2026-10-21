@@ -97,3 +97,40 @@ fieldset[disabled] .checkbox,
 .select.is-warning:not(:hover)::after {
   border-color: var(--lm-warning);
 }
+
+/* The arrow of a grey or primary select: the base draws it dark grey, lost on a dark card. */
+.select.is-dark:not(:hover)::after {
+  border-color: var(--lm-text-2);
+}
+
+.select.is-primary:not(:hover)::after {
+  border-color: var(--lm-primary);
+}
+
+/* A focused read-only field shows the focus ring (the rule above takes the base's away). */
+input[readonly]:focus {
+  border-color: var(--lm-focus) !important;
+  box-shadow: 0 0 0 1px var(--lm-focus) !important;
+}
+
+/*
+ * Fields the browser fills in (saved logins, passwords): the base paints them light blue with an
+ * inset shadow and leaves the text colour to the browser, which is light here. The same
+ * selectors, later, paint them with the primary tint and the text colour.
+ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+select:-webkit-autofill,
+select:-webkit-autofill:hover {
+  -webkit-text-fill-color: var(--lm-text);
+  box-shadow: 0 0 0 100px var(--lm-primary-tint) inset;
+  caret-color: var(--lm-text);
+}
+
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1px var(--lm-focus), 0 0 0 100px var(--lm-primary-tint) inset;
+}

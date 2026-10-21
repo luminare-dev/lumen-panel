@@ -12,6 +12,19 @@
   color: var(--lm-link-hover);
 }
 
+/*
+ * The spinner of an outlined grey or primary button: the base draws it dark grey (the same
+ * selectors with !important), which disappears on a dark card.
+ */
+.button.is-dark.is-outlined.is-loading::after {
+  border-color: transparent transparent var(--lm-text-2) var(--lm-text-2) !important;
+}
+
+.button.is-primary.is-outlined.is-loading::after,
+.button.is-link.is-outlined.is-loading::after {
+  border-color: transparent transparent var(--lm-primary) var(--lm-primary) !important;
+}
+
 /* A hovered outlined button is filled with its colour; its spinner takes the text colour on it. */
 .button.is-link.is-outlined.is-loading:hover::after,
 .button.is-link.is-outlined.is-loading.is-hovered::after,
