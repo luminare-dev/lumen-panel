@@ -1,6 +1,6 @@
 {
   "name": "lumen-panel",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "A modern theme for the KeyHelp hosting panel: stylesheets, a command palette island and a design-system gallery",
   "license": "MIT",
