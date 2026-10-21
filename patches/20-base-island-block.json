@@ -1,0 +1,8 @@
+{
+  "id": "base-island-block",
+  "file": "layout/base.twig",
+  "description": "An empty block right before </body>. Only the internal layout fills it, so the command palette script loads on panel pages and never on the login page or in popups.",
+  "mode": "insert_before",
+  "anchor": "</body>",
+  "text": "{% block lumen_island %}{% endblock %}\n"
+}

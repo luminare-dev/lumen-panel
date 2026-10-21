@@ -1,0 +1,8 @@
+{
+  "id": "extern-hero",
+  "file": "layout/extern.twig",
+  "description": "Add the lumen-extern hook class to the login hero, so the login styles never touch other heroes.",
+  "mode": "replace",
+  "anchor": "<section class=\"hero is-primary is-fullheight\">",
+  "text": "<section class=\"hero is-primary is-fullheight lumen-extern\">"
+}

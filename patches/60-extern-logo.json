@@ -1,0 +1,12 @@
+{
+  "id": "extern-logo",
+  "file": "layout/extern.twig",
+  "description": "Show the Luminare horizontal lockup on the login and password pages instead of the KeyHelp logo. A white-label login logo still wins.",
+  "mode": "replace",
+  "anchor": "<img src=\"theme/bulma/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">",
+  "text": "<img class=\"lumen-logo lumen-logo--login\" src=\"/theme/lumen/assets/brand/luminare-lockup-horizontal-{{ _app.theme.is_dark_mode ? 'dark' : 'light' }}.svg?v=@@LUMEN_ASSET_HASH@@\" width=\"300\" height=\"114\" alt=\"Luminare Development\">",
+  "assets": [
+    "brand/luminare-lockup-horizontal-light.svg",
+    "brand/luminare-lockup-horizontal-dark.svg"
+  ]
+}
