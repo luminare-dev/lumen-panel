@@ -1,0 +1,192 @@
+/* Progress meters, tooltips (tippy "light-border"), colour helpers and small panel parts. */
+
+.progress {
+  background-color: var(--lm-surface-sunken);
+  border-radius: var(--lm-radius-pill);
+  box-shadow: inset 0 0 0 1px var(--lm-border);
+}
+
+.progress::-webkit-progress-bar {
+  background-color: var(--lm-surface-sunken);
+}
+
+.progress::-webkit-progress-value {
+  background-color: var(--lm-primary);
+}
+
+.progress::-moz-progress-bar {
+  background-color: var(--lm-primary);
+}
+
+.progress[data-load-level="low"] {
+  color: var(--lm-success);
+}
+
+.progress[data-load-level="low"]::-webkit-progress-value {
+  background-color: var(--lm-success);
+}
+
+.progress[data-load-level="low"]::-moz-progress-bar {
+  background-color: var(--lm-success);
+}
+
+.progress[data-load-level="medium"] {
+  color: var(--lm-warning);
+}
+
+.progress[data-load-level="medium"]::-webkit-progress-value {
+  background-color: var(--lm-warning);
+}
+
+.progress[data-load-level="medium"]::-moz-progress-bar {
+  background-color: var(--lm-warning);
+}
+
+.progress[data-load-level="high"] {
+  color: var(--lm-danger);
+}
+
+.progress[data-load-level="high"]::-webkit-progress-value {
+  background-color: var(--lm-danger);
+}
+
+.progress[data-load-level="high"]::-moz-progress-bar {
+  background-color: var(--lm-danger);
+}
+
+.cpu-load[data-load-level="low"] .cpu-load-percent {
+  color: var(--lm-success);
+}
+
+.cpu-load[data-load-level="medium"] .cpu-load-percent {
+  color: var(--lm-warning);
+}
+
+.cpu-load[data-load-level="high"] .cpu-load-percent {
+  color: var(--lm-danger);
+}
+
+/* Tooltips */
+.tippy-box[data-theme~="light-border"] {
+  background-color: var(--lm-surface-raised);
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-m);
+  box-shadow: var(--lm-shadow-2);
+  color: var(--lm-text);
+  font-size: 0.875rem;
+}
+
+.tippy-box[data-theme~="light-border"] > .tippy-content {
+  padding: var(--lm-space-2) var(--lm-space-3);
+}
+
+.tippy-box[data-theme~="light-border"] > .tippy-backdrop {
+  background-color: var(--lm-surface-raised);
+}
+
+.tippy-box[data-theme~="light-border"] > .tippy-svg-arrow {
+  fill: var(--lm-surface-raised);
+}
+
+.tippy-box[data-theme~="light-border"] > .tippy-arrow::after,
+.tippy-box[data-theme~="light-border"] > .tippy-svg-arrow::after {
+  color: var(--lm-border);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="top"] > .tippy-arrow::before {
+  border-top-color: var(--lm-surface-raised);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="top"] > .tippy-arrow::after {
+  border-top-color: var(--lm-border);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="bottom"] > .tippy-arrow::before {
+  border-bottom-color: var(--lm-surface-raised);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="bottom"] > .tippy-arrow::after {
+  border-bottom-color: var(--lm-border);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="left"] > .tippy-arrow::before {
+  border-left-color: var(--lm-surface-raised);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="left"] > .tippy-arrow::after {
+  border-left-color: var(--lm-border);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="right"] > .tippy-arrow::before {
+  border-right-color: var(--lm-surface-raised);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="right"] > .tippy-arrow::after {
+  border-right-color: var(--lm-border);
+}
+
+/*
+ * Colour helpers (Bulma marks them !important). The default greys are too light for body text
+ * on white (#7a7a7a is 4.3:1, #b5b5b5 is 2.1:1), so all greys map to the muted text token.
+ */
+.has-text-grey,
+.has-text-grey-dark,
+.has-text-grey-light,
+.has-text-grey-lighter {
+  color: var(--lm-text-muted) !important;
+}
+
+.has-text-dark,
+.has-text-black,
+.has-text-black-bis,
+.has-text-black-ter {
+  color: var(--lm-text-strong) !important;
+}
+
+.has-text-link,
+.has-text-primary {
+  color: var(--lm-link) !important;
+}
+
+a.has-text-link:hover,
+a.has-text-link:focus,
+a.has-text-primary:hover,
+a.has-text-primary:focus {
+  color: var(--lm-link-hover) !important;
+}
+
+.has-text-info {
+  color: var(--lm-info) !important;
+}
+
+.has-text-success {
+  color: var(--lm-success) !important;
+}
+
+.has-text-warning {
+  color: var(--lm-warning) !important;
+}
+
+.has-text-danger {
+  color: var(--lm-danger) !important;
+}
+
+.has-background-light,
+.has-background-white-ter,
+.has-background-white-bis {
+  background-color: var(--lm-surface-sunken) !important;
+}
+
+ul.horizontal-separated-list li + li::before {
+  color: var(--lm-border-control);
+}
+
+.panel {
+  border-radius: var(--lm-radius-l);
+  box-shadow: none;
+}
+
+.panel-block {
+  border-color: var(--lm-border);
+  color: var(--lm-text);
+}

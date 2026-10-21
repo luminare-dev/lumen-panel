@@ -1,0 +1,56 @@
+/* Tabs: an underline indicator in the brand colour; boxed tabs get a top accent instead. */
+
+.tabs a {
+  border-bottom-color: var(--lm-border);
+  color: var(--lm-text-2);
+  font-weight: 500;
+  transition: color var(--lm-duration) var(--lm-ease), border-color var(--lm-duration) var(--lm-ease),
+    background-color var(--lm-duration) var(--lm-ease);
+}
+
+.tabs a:hover {
+  border-bottom-color: var(--lm-border-control);
+  color: var(--lm-text-strong);
+}
+
+.tabs ul {
+  border-bottom-color: var(--lm-border);
+}
+
+.tabs li.is-active a {
+  border-bottom-color: var(--lm-primary);
+  color: var(--lm-on-primary-tint);
+  font-weight: 600;
+}
+
+.tabs.is-boxed a {
+  border-radius: var(--lm-radius-m) var(--lm-radius-m) 0 0;
+}
+
+.tabs.is-boxed a:hover {
+  background-color: var(--lm-surface-hover);
+  border-bottom-color: var(--lm-border);
+}
+
+.tabs.is-boxed li.is-active a {
+  background-color: var(--lm-surface);
+  border-color: var(--lm-border);
+  border-bottom-color: transparent !important;
+  box-shadow: inset 0 2px 0 var(--lm-primary);
+  color: var(--lm-on-primary-tint);
+}
+
+.tabs.is-toggle a {
+  border-color: var(--lm-border-control);
+}
+
+.tabs.is-toggle a:hover {
+  background-color: var(--lm-surface-hover);
+  border-color: var(--lm-text-2);
+}
+
+.tabs.is-toggle li.is-active a {
+  background-color: var(--lm-primary);
+  border-color: var(--lm-primary);
+  color: var(--lm-on-primary);
+}

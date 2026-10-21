@@ -1,0 +1,99 @@
+/* Base typography, links, focus rings. */
+
+html {
+  background-color: var(--lm-bg);
+}
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: var(--lm-font);
+}
+
+body {
+  background-color: var(--lm-bg);
+  color: var(--lm-text);
+  font-optical-sizing: auto;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+strong {
+  color: var(--lm-text-strong);
+  font-weight: 600;
+}
+
+a {
+  color: var(--lm-link);
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--lm-link-hover);
+}
+
+hr {
+  background-color: var(--lm-border);
+  height: 1px;
+}
+
+::selection {
+  background-color: var(--lm-primary-tint);
+  color: var(--lm-text-strong);
+}
+
+.title,
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  color: var(--lm-text-strong);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  color: var(--lm-text-2);
+}
+
+.content-title {
+  margin-block: var(--lm-space-2) var(--lm-space-5);
+}
+
+.content-title .title.is-4 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+code {
+  background-color: var(--lm-surface-sunken);
+  border-radius: var(--lm-radius-s);
+  color: var(--lm-text);
+}
+
+pre {
+  background-color: var(--lm-surface-sunken);
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-m);
+  color: var(--lm-text);
+}
+
+/* Focus: one visible ring for every keyboard-reachable element. */
+:focus-visible {
+  outline: var(--lm-ring) solid var(--lm-focus);
+  outline-offset: var(--lm-ring-offset);
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  border-radius: var(--lm-radius-s);
+  outline: var(--lm-ring) solid var(--lm-focus);
+  outline-offset: var(--lm-ring-offset);
+}

@@ -1,0 +1,174 @@
+/*
+ * Notifications and messages. The panel shows its events (info, success, warning, error) as
+ * .message boxes; the accent bar sits on the inline-start side in both text directions.
+ */
+
+.notification {
+  background-color: var(--lm-surface-sunken);
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-l);
+  color: var(--lm-text);
+}
+
+.message {
+  background-color: var(--lm-surface-sunken);
+  border-radius: var(--lm-radius-l);
+}
+
+.message-body {
+  border-color: var(--lm-border-control);
+  border-radius: var(--lm-radius-l);
+  border-style: solid;
+  border-width: 0;
+  border-inline-start-width: 4px;
+  color: var(--lm-text);
+  padding: var(--lm-space-4) var(--lm-space-5);
+}
+
+.message-header {
+  background-color: var(--lm-text-2);
+  border-start-end-radius: var(--lm-radius-l);
+  border-start-start-radius: var(--lm-radius-l);
+  color: var(--lm-surface);
+}
+
+.notification strong,
+.message-body strong {
+  color: inherit;
+}
+
+.notification .delete,
+.message .delete {
+  background-color: var(--lm-border-control);
+}
+
+.notification .delete:hover,
+.message .delete:hover {
+  background-color: var(--lm-text-2);
+}
+
+.notification.is-link,
+.notification.is-link.is-light {
+  background-color: var(--lm-primary-tint);
+  border-color: transparent;
+  color: var(--lm-on-primary-tint);
+}
+
+.message.is-link {
+  background-color: var(--lm-primary-tint);
+}
+
+.message.is-link .message-body {
+  border-color: var(--lm-primary);
+  color: var(--lm-on-primary-tint);
+}
+
+.message.is-link .message-header {
+  background-color: var(--lm-primary);
+  color: var(--lm-on-primary);
+}
+
+.notification.is-primary,
+.notification.is-primary.is-light {
+  background-color: var(--lm-primary-tint);
+  border-color: transparent;
+  color: var(--lm-on-primary-tint);
+}
+
+.message.is-primary {
+  background-color: var(--lm-primary-tint);
+}
+
+.message.is-primary .message-body {
+  border-color: var(--lm-primary);
+  color: var(--lm-on-primary-tint);
+}
+
+.message.is-primary .message-header {
+  background-color: var(--lm-primary);
+  color: var(--lm-on-primary);
+}
+
+.notification.is-info,
+.notification.is-info.is-light {
+  background-color: var(--lm-info-tint);
+  border-color: transparent;
+  color: var(--lm-info-text);
+}
+
+.message.is-info {
+  background-color: var(--lm-info-tint);
+}
+
+.message.is-info .message-body {
+  border-color: var(--lm-info);
+  color: var(--lm-info-text);
+}
+
+.message.is-info .message-header {
+  background-color: var(--lm-info);
+  color: var(--lm-on-info);
+}
+
+.notification.is-success,
+.notification.is-success.is-light {
+  background-color: var(--lm-success-tint);
+  border-color: transparent;
+  color: var(--lm-success-text);
+}
+
+.message.is-success {
+  background-color: var(--lm-success-tint);
+}
+
+.message.is-success .message-body {
+  border-color: var(--lm-success);
+  color: var(--lm-success-text);
+}
+
+.message.is-success .message-header {
+  background-color: var(--lm-success);
+  color: var(--lm-on-success);
+}
+
+.notification.is-warning,
+.notification.is-warning.is-light {
+  background-color: var(--lm-warning-tint);
+  border-color: transparent;
+  color: var(--lm-warning-text);
+}
+
+.message.is-warning {
+  background-color: var(--lm-warning-tint);
+}
+
+.message.is-warning .message-body {
+  border-color: var(--lm-warning);
+  color: var(--lm-warning-text);
+}
+
+.message.is-warning .message-header {
+  background-color: var(--lm-warning);
+  color: var(--lm-on-warning);
+}
+
+.notification.is-danger,
+.notification.is-danger.is-light {
+  background-color: var(--lm-danger-tint);
+  border-color: transparent;
+  color: var(--lm-danger-text);
+}
+
+.message.is-danger {
+  background-color: var(--lm-danger-tint);
+}
+
+.message.is-danger .message-body {
+  border-color: var(--lm-danger);
+  color: var(--lm-danger-text);
+}
+
+.message.is-danger .message-header {
+  background-color: var(--lm-danger);
+  color: var(--lm-on-danger);
+}

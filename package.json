@@ -1,0 +1,33 @@
+{
+  "name": "lumen-panel",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A modern theme for the KeyHelp hosting panel: stylesheets, a command palette island and a design-system gallery",
+  "license": "MIT",
+  "author": "Paul Pasaurek",
+  "homepage": "https://luminare.tech/open-source/lumen-panel/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luminare-dev/lumen-panel.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "npm run build:css && npm run build:island && npm run build:gallery",
+    "build:css": "node scripts/build-css.mjs",
+    "build:island": "vite build --config island/vite.config.js",
+    "build:gallery": "vite build --config gallery/vite.config.js",
+    "dev": "vite --config gallery/vite.config.js",
+    "test": "node --test \"island/test/*.test.js\""
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.1.2",
+    "bulma": "0.9.4",
+    "lightningcss": "1.33.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "vite": "8.3.4"
+  }
+}

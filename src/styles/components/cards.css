@@ -1,0 +1,84 @@
+/* Cards (every panel section is a card), boxes, framed images. */
+
+.card {
+  background-color: var(--lm-surface);
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-l);
+  box-shadow: var(--lm-shadow-1);
+  color: var(--lm-text);
+}
+
+.card-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--lm-border);
+  border-start-end-radius: var(--lm-radius-l);
+  border-start-start-radius: var(--lm-radius-l);
+  box-shadow: none;
+  min-height: 3.5rem;
+}
+
+.card-header.is-collapsible {
+  transition: background-color var(--lm-duration) var(--lm-ease);
+}
+
+.card-header.is-collapsible:hover {
+  background-color: var(--lm-surface-hover);
+}
+
+.card-header-title {
+  color: var(--lm-text-strong);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: var(--lm-space-3) var(--lm-space-5);
+}
+
+.card-header-icon {
+  color: var(--lm-primary);
+  padding: var(--lm-space-3) var(--lm-space-4);
+}
+
+.card-header-icon:first-child {
+  padding-inline: var(--lm-space-5) 0;
+}
+
+.card-header-icon + .card-header-title {
+  padding-inline-start: var(--lm-space-3);
+}
+
+.card-content {
+  padding: var(--lm-space-5);
+}
+
+.card-footer {
+  background-color: transparent;
+  border-top: 1px solid var(--lm-border);
+}
+
+.card-footer-item {
+  padding: var(--lm-space-3) var(--lm-space-5);
+}
+
+.card-footer-item:not(:last-child) {
+  border-left: 0;
+  border-right: 0;
+  border-inline-end: 1px solid var(--lm-border);
+}
+
+.card.is-card-on-card {
+  background-color: var(--lm-surface-sunken);
+  box-shadow: none;
+}
+
+.box {
+  background-color: var(--lm-surface);
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-xl);
+  box-shadow: var(--lm-shadow-1);
+  color: var(--lm-text);
+}
+
+img.has-frame {
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-m);
+  box-shadow: none;
+}

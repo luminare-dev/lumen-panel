@@ -1,0 +1,146 @@
+/*
+ * Design tokens. Brand values come from the Luminare brand kit (palette/tokens.json). A derived
+ * value is always a mix of two brand colours, written as "mix(a NN%, b)" in its comment;
+ * scripts/contrast.py recomputes every mix, checks the hex and the contrast of every text and
+ * background pair the stylesheet uses (docs/contrast.md).
+ *
+ * The light block applies by default. The dark block applies when KeyHelp renders a page in
+ * dark mode (body.dark-mode); the -dark builds also apply it to :root.
+ */
+
+:root {
+  /* Brand colours (palette/tokens.json) */
+  --lm-lumen: #5BDFFF;
+  --lm-sky: #2B8FF0;
+  --lm-azure: #2D63DE;
+  --lm-royal: #1F47C4;
+  --lm-abyss: #15308A;
+  --lm-night: #0A1224;
+  --lm-slate-700: #39445C;
+  --lm-slate-500: #5E6B84;
+  --lm-slate-300: #B7C1D3;
+  --lm-slate-100: #E3E8F1;
+  --lm-mist: #F3F6FB;
+  --lm-white: #FFFFFF;
+  --lm-mint: #06F2C4;
+  --lm-verdant: #028844;
+  --lm-verdant-bright: #58DD70;
+  --lm-amber: #B15204;
+  --lm-amber-bright: #FFB334;
+  --lm-ember: #B71920;
+  --lm-ember-bright: #FF5147;
+
+  /* Type, space (8px grid), shape, motion */
+  --lm-font: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --lm-font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --lm-space-1: 4px;
+  --lm-space-2: 8px;
+  --lm-space-3: 12px;
+  --lm-space-4: 16px;
+  --lm-space-5: 24px;
+  --lm-space-6: 32px;
+  --lm-space-7: 48px;
+  --lm-radius-s: 6px;
+  --lm-radius-m: 10px;
+  --lm-radius-l: 12px;
+  --lm-radius-xl: 14px;
+  --lm-radius-pill: 999px;
+  --lm-ring: 2px;
+  --lm-ring-offset: 2px;
+  --lm-duration: 160ms;
+  --lm-ease: cubic-bezier(0.2, 0, 0, 1);
+  --lm-sidebar-width: 250px;
+
+  /* Light mode */
+  color-scheme: light;
+  --lm-bg: var(--lm-mist);
+  --lm-surface: var(--lm-white);
+  --lm-surface-raised: var(--lm-white);
+  --lm-surface-sunken: var(--lm-mist);
+  --lm-surface-hover: #F2F4FB; /* mix(royal 6%, white) */
+  --lm-border: var(--lm-slate-100);
+  --lm-border-control: #79859C; /* mix(slate-500 70%, slate-300) */
+  --lm-text: var(--lm-night);
+  --lm-text-strong: var(--lm-night);
+  --lm-text-2: var(--lm-slate-700);
+  --lm-text-muted: var(--lm-slate-500);
+  --lm-link: var(--lm-royal);
+  --lm-link-hover: var(--lm-abyss);
+  --lm-primary: var(--lm-royal);
+  --lm-primary-hover: var(--lm-azure);
+  --lm-primary-active: var(--lm-abyss);
+  --lm-on-primary: var(--lm-white);
+  --lm-primary-tint: #E9EDF9; /* mix(royal 10%, white) */
+  --lm-on-primary-tint: var(--lm-royal);
+  --lm-focus: var(--lm-royal);
+  --lm-success: var(--lm-verdant);
+  --lm-on-success: var(--lm-white);
+  --lm-success-tint: #E6F3EC; /* mix(verdant 10%, white) */
+  --lm-success-text: #046A3C; /* mix(verdant 75%, night) */
+  --lm-warning: var(--lm-amber);
+  --lm-on-warning: var(--lm-white);
+  --lm-warning-tint: #F7EEE6; /* mix(amber 10%, white) */
+  --lm-warning-text: #87420C; /* mix(amber 75%, night) */
+  --lm-danger: var(--lm-ember);
+  --lm-on-danger: var(--lm-white);
+  --lm-danger-tint: #F8E8E9; /* mix(ember 10%, white) */
+  --lm-danger-text: #8C1721; /* mix(ember 75%, night) */
+  --lm-info: var(--lm-royal);
+  --lm-on-info: var(--lm-white);
+  --lm-info-tint: #E9EDF9; /* mix(royal 10%, white) */
+  --lm-info-text: #1A3A9C; /* mix(royal 75%, night) */
+  --lm-overlay: rgb(10 18 36 / 55%);
+  --lm-hover-filter: brightness(0.92);
+  --lm-shadow-1: 0 1px 2px rgb(10 18 36 / 5%);
+  --lm-shadow-2: 0 12px 32px rgb(10 18 36 / 12%);
+  --lm-glow-1: rgb(43 143 240 / 16%);
+  --lm-glow-2: rgb(91 223 255 / 18%);
+}
+
+/* Dark mode: KeyHelp's own toggle (Profile menu) puts .dark-mode on <body>. */
+:root:has(> body.dark-mode),
+body.dark-mode {
+  color-scheme: dark;
+  --lm-bg: var(--lm-night);
+  --lm-surface: #10182B; /* mix(night 88%, slate-700) */
+  --lm-surface-raised: #131C2F; /* mix(night 80%, slate-700) */
+  --lm-surface-sunken: #0D1527; /* mix(night 94%, slate-700) */
+  --lm-surface-hover: #102236; /* mix(lumen 8%, night) */
+  --lm-border: #303A4F; /* mix(slate-500 45%, night) */
+  --lm-border-control: var(--lm-slate-500);
+  --lm-text: var(--lm-mist);
+  --lm-text-strong: var(--lm-white);
+  --lm-text-2: var(--lm-slate-300);
+  --lm-text-muted: #9CA7BB; /* mix(slate-300 70%, slate-500) */
+  --lm-link: var(--lm-lumen);
+  --lm-link-hover: #7CE5FF; /* mix(lumen 80%, white) */
+  --lm-primary: var(--lm-lumen);
+  --lm-primary-hover: #7CE5FF; /* mix(lumen 80%, white) */
+  --lm-primary-active: var(--lm-sky);
+  --lm-on-primary: var(--lm-night);
+  --lm-primary-tint: #142B3E; /* mix(lumen 12%, night) */
+  --lm-on-primary-tint: var(--lm-lumen);
+  --lm-focus: var(--lm-mint);
+  --lm-success: var(--lm-verdant-bright);
+  --lm-on-success: var(--lm-night);
+  --lm-success-tint: #132A2D; /* mix(verdant-bright 12%, night) */
+  --lm-success-text: var(--lm-verdant-bright);
+  --lm-warning: var(--lm-amber-bright);
+  --lm-on-warning: var(--lm-night);
+  --lm-warning-tint: #272526; /* mix(amber-bright 12%, night) */
+  --lm-warning-text: var(--lm-amber-bright);
+  --lm-danger: var(--lm-ember-bright);
+  --lm-on-danger: var(--lm-night);
+  --lm-danger-tint: #271A28; /* mix(ember-bright 12%, night) */
+  --lm-danger-text: var(--lm-ember-bright);
+  --lm-info: var(--lm-lumen);
+  --lm-on-info: var(--lm-night);
+  --lm-info-tint: #142B3E; /* mix(lumen 12%, night) */
+  --lm-info-text: var(--lm-lumen);
+  --lm-overlay: rgb(3 6 14 / 72%);
+  --lm-hover-filter: brightness(1.12);
+  --lm-shadow-1: 0 1px 2px rgb(0 0 0 / 30%);
+  --lm-shadow-2: 0 16px 40px rgb(0 0 0 / 45%);
+  --lm-glow-1: rgb(31 71 196 / 30%);
+  --lm-glow-2: rgb(91 223 255 / 12%);
+}

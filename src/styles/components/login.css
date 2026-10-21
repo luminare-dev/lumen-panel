@@ -1,0 +1,46 @@
+/*
+ * Login and password pages (layout/extern.twig). The lumen-extern class comes from the patch set,
+ * so these rules never reach other heroes.
+ */
+
+.hero.is-primary.lumen-extern {
+  background-color: var(--lm-bg);
+  background-image:
+    radial-gradient(60rem 40rem at 10% -10%, var(--lm-glow-1), transparent 60%),
+    radial-gradient(50rem 36rem at 110% 110%, var(--lm-glow-2), transparent 60%);
+  color: var(--lm-text);
+}
+
+.lumen-extern .box {
+  border-radius: var(--lm-radius-xl);
+  box-shadow: var(--lm-shadow-2);
+  padding: var(--lm-space-6);
+}
+
+.lumen-extern .lumen-logo--login {
+  display: block;
+  height: auto;
+  margin-inline: auto;
+  max-width: 100%;
+  width: 300px;
+}
+
+.lumen-extern .box + .has-text-centered,
+.lumen-extern .has-text-grey-lighter {
+  color: var(--lm-text-2) !important;
+}
+
+.lumen-extern .box + .has-text-centered a {
+  text-decoration: underline;
+}
+
+.lumen-extern .button.is-fullwidth {
+  font-weight: 600;
+  min-height: 2.75rem;
+}
+
+@media screen and (max-width: 768px) {
+  .lumen-extern .box {
+    padding: var(--lm-space-5) var(--lm-space-4);
+  }
+}

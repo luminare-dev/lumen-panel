@@ -1,0 +1,11 @@
+/*
+ * Sora (SIL Open Font License 1.1, assets/fonts/OFL.txt), served by the theme itself from
+ * /theme/lumen/assets/fonts/: no third-party font request. The panel's CSP allows font-src *.
+ */
+@font-face {
+  font-family: "Sora";
+  src: url("fonts/Sora%5Bwght%5D.ttf") format("truetype");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}

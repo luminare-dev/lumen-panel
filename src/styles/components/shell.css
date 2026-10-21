@@ -1,0 +1,187 @@
+/*
+ * App shell: header (#header, #top-nav), user menu, sidebar (#sidebar, #sidebar-navigation),
+ * content area, breadcrumbs and footer. Positions and widths stay as the default theme sets them
+ * (its RTL build mirrors them); only colours, borders, spacing and type change here, with logical
+ * properties so both directions work.
+ */
+
+#header {
+  background-color: var(--lm-surface);
+  border-bottom: 1px solid var(--lm-border);
+  box-shadow: none;
+  padding: 7px var(--lm-space-2);
+  padding-inline-start: var(--lm-space-4);
+}
+
+#header img.lumen-logo--header {
+  display: block;
+  height: 3rem;
+  width: auto;
+}
+
+#header a {
+  color: var(--lm-text-2);
+}
+
+#header a:hover {
+  color: var(--lm-text-strong);
+}
+
+#header a.level-item {
+  border-radius: var(--lm-radius-m);
+}
+
+/* The square icon tiles (user menu, back to admin): a soft tint instead of a solid block. */
+#header .fa-stack .fa-square,
+#header .fa-stack .fa-square.has-text-link {
+  color: var(--lm-primary-tint) !important;
+}
+
+#header .fa-stack .fa-inverse {
+  color: var(--lm-on-primary-tint);
+}
+
+#header .has-text-link {
+  color: var(--lm-link) !important;
+}
+
+#user-menu {
+  background-color: var(--lm-surface-raised);
+  border: 1px solid var(--lm-border);
+  border-top: 0;
+  border-inline-end: 0;
+  border-end-start-radius: var(--lm-radius-l);
+  box-shadow: var(--lm-shadow-2);
+}
+
+/* Sidebar */
+#sidebar {
+  background-color: var(--lm-surface);
+  border-left: 0;
+  border-right: 0;
+  border-inline-end: 1px solid var(--lm-border);
+  box-shadow: none;
+  padding-block: var(--lm-space-4);
+  scrollbar-color: var(--lm-border-control) transparent;
+  scrollbar-width: thin;
+}
+
+@media screen and (max-width: 1023px) {
+  #sidebar {
+    border-top: 1px solid var(--lm-border);
+    box-shadow: var(--lm-shadow-2);
+  }
+}
+
+#sidebar-overlay {
+  background-color: var(--lm-overlay);
+}
+
+#sidebar .menu .menu-label {
+  border-radius: var(--lm-radius-m);
+  color: var(--lm-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.5rem;
+  padding: var(--lm-space-1) var(--lm-space-2);
+}
+
+#sidebar .menu .menu-label:hover {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+#sidebar .menu .menu-label .icon {
+  color: var(--lm-text-2);
+}
+
+#sidebar .menu .menu-list {
+  margin-left: 0;
+  margin-right: 0;
+  margin-inline-start: var(--lm-space-2);
+}
+
+#sidebar .menu-list a {
+  border-radius: var(--lm-radius-m);
+  color: var(--lm-text-2);
+  font-weight: 500;
+  line-height: 1.4;
+  margin-block: 1px;
+  padding: 7px var(--lm-space-3);
+  position: relative;
+  transition: background-color var(--lm-duration) var(--lm-ease), color var(--lm-duration) var(--lm-ease);
+}
+
+/* The default theme draws a small chevron before every item; the indent says the same. */
+#sidebar .menu-list a > small {
+  display: none;
+}
+
+#sidebar .menu-list a:hover {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+#sidebar .menu-list a.is-active {
+  background-color: var(--lm-primary-tint);
+  color: var(--lm-on-primary-tint);
+  font-weight: 600;
+}
+
+#sidebar .menu-list a.is-active::before {
+  background-color: var(--lm-primary);
+  border-end-end-radius: 3px;
+  border-start-end-radius: 3px;
+  content: "";
+  inset-block: 8px;
+  inset-inline-start: 0;
+  position: absolute;
+  width: 3px;
+}
+
+/* Content */
+#content {
+  padding: var(--lm-space-5) var(--lm-space-6);
+}
+
+@media screen and (max-width: 768px) {
+  #content {
+    padding: var(--lm-space-4);
+  }
+}
+
+.breadcrumb a {
+  color: var(--lm-text-2);
+}
+
+.breadcrumb a:hover {
+  color: var(--lm-link-hover);
+}
+
+.breadcrumb li + li::before {
+  color: var(--lm-border-control);
+}
+
+.breadcrumb li.is-active a,
+.breadcrumb li.is-disabled a {
+  color: var(--lm-text-muted);
+}
+
+#footer {
+  color: var(--lm-text-muted);
+  padding-block: var(--lm-space-7) var(--lm-space-5);
+}
+
+#footer .content {
+  color: var(--lm-text-muted);
+  font-size: 0.875rem;
+}
+
+#footer a {
+  color: var(--lm-text-2);
+}
+
+#footer a:hover {
+  color: var(--lm-link-hover);
+}

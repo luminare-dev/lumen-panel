@@ -1,0 +1,70 @@
+/* Tags and badges: soft tints with dark text (light mode) or bright text (dark mode). */
+
+.tag:not(body) {
+  background-color: var(--lm-surface-sunken);
+  border-radius: var(--lm-radius-pill);
+  box-shadow: inset 0 0 0 1px var(--lm-border);
+  color: var(--lm-text-2);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.tag:not(body).is-light,
+.tag:not(body).is-white {
+  background-color: var(--lm-surface-sunken);
+  color: var(--lm-text-2);
+}
+
+.tag:not(body).is-dark,
+.tag:not(body).is-black {
+  background-color: var(--lm-text-2);
+  box-shadow: none;
+  color: var(--lm-surface);
+}
+
+.tag:not(body).is-delete:hover,
+.tag:not(body).is-delete:focus {
+  background-color: var(--lm-surface-hover);
+}
+
+.tag:not(body).is-link,
+.tag:not(body).is-link.is-light {
+  background-color: var(--lm-primary-tint);
+  box-shadow: none;
+  color: var(--lm-on-primary-tint);
+}
+
+.tag:not(body).is-primary,
+.tag:not(body).is-primary.is-light {
+  background-color: var(--lm-primary-tint);
+  box-shadow: none;
+  color: var(--lm-on-primary-tint);
+}
+
+.tag:not(body).is-info,
+.tag:not(body).is-info.is-light {
+  background-color: var(--lm-info-tint);
+  box-shadow: none;
+  color: var(--lm-info-text);
+}
+
+.tag:not(body).is-success,
+.tag:not(body).is-success.is-light {
+  background-color: var(--lm-success-tint);
+  box-shadow: none;
+  color: var(--lm-success-text);
+}
+
+.tag:not(body).is-warning,
+.tag:not(body).is-warning.is-light {
+  background-color: var(--lm-warning-tint);
+  box-shadow: none;
+  color: var(--lm-warning-text);
+}
+
+.tag:not(body).is-danger,
+.tag:not(body).is-danger.is-light {
+  background-color: var(--lm-danger-tint);
+  box-shadow: none;
+  color: var(--lm-danger-text);
+}

@@ -1,0 +1,74 @@
+/* Modals and dropdowns: raised surfaces with a soft shadow and a hairline border. */
+
+.modal-background {
+  background-color: var(--lm-overlay);
+}
+
+.modal-card,
+.modal-content {
+  border-radius: var(--lm-radius-xl);
+}
+
+.modal-card {
+  border: 1px solid var(--lm-border);
+  box-shadow: var(--lm-shadow-2);
+}
+
+.modal-card-head,
+.modal-card-foot {
+  background-color: var(--lm-surface-raised);
+  border-color: var(--lm-border);
+  padding: var(--lm-space-4) var(--lm-space-5);
+}
+
+.modal-card-head {
+  border-bottom: 1px solid var(--lm-border);
+}
+
+.modal-card-foot {
+  border-top: 1px solid var(--lm-border);
+  gap: var(--lm-space-2);
+}
+
+.modal-card-title {
+  color: var(--lm-text-strong);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.modal-card-body {
+  background-color: var(--lm-surface-raised);
+  color: var(--lm-text);
+  padding: var(--lm-space-5);
+}
+
+.modal-close {
+  background-color: var(--lm-overlay);
+}
+
+.dropdown-content {
+  background-color: var(--lm-surface-raised);
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-l);
+  box-shadow: var(--lm-shadow-2);
+}
+
+.dropdown-item {
+  color: var(--lm-text);
+}
+
+a.dropdown-item:hover,
+button.dropdown-item:hover {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+a.dropdown-item.is-active,
+button.dropdown-item.is-active {
+  background-color: var(--lm-primary-tint);
+  color: var(--lm-on-primary-tint);
+}
+
+.dropdown-divider {
+  background-color: var(--lm-border);
+}

@@ -1,0 +1,25 @@
+/*
+ * lumen-panel: a modern theme for the KeyHelp hosting panel.
+ * a Luminare Development open-source project, MIT licence (code). https://github.com/luminare-dev/lumen-panel
+ *
+ * Loaded after the default theme's stylesheet. No cascade layers on purpose: the default theme's
+ * rules are unlayered, and unlayered rules beat layered ones, so every override here matches the
+ * selector it replaces and wins by coming later. White-label CSS still comes after this file.
+ */
+@import "tokens.css";
+@import "fonts.css";
+@import "components/base.css";
+@import "components/shell.css";
+@import "components/cards.css";
+@import "components/tables.css";
+@import "components/forms.css";
+@import "components/select2.css";
+@import "components/buttons.css";
+@import "components/tags.css";
+@import "components/notifications.css";
+@import "components/modals.css";
+@import "components/tabs.css";
+@import "components/pagination.css";
+@import "components/misc.css";
+@import "components/login.css";
+@import "components/motion.css";

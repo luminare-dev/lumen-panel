@@ -1,0 +1,150 @@
+/* Form fields: labels, inputs, textareas, selects, checkboxes, file inputs, addons. */
+
+.label {
+  color: var(--lm-text-strong);
+  font-weight: 600;
+}
+
+.help {
+  color: var(--lm-text-muted);
+}
+
+.input,
+.textarea,
+.select select {
+  background-color: var(--lm-surface);
+  border-color: var(--lm-border-control);
+  border-radius: var(--lm-radius-m);
+  box-shadow: none;
+  color: var(--lm-text);
+  transition: border-color var(--lm-duration) var(--lm-ease), box-shadow var(--lm-duration) var(--lm-ease);
+}
+
+.input::placeholder,
+.textarea::placeholder,
+.select select::placeholder {
+  color: var(--lm-text-muted);
+  opacity: 1;
+}
+
+.input:hover,
+.input.is-hovered,
+.textarea:hover,
+.textarea.is-hovered,
+.select select:hover,
+.select select.is-hovered {
+  border-color: var(--lm-text-2);
+}
+
+.input:focus,
+.input.is-focused,
+.input:active,
+.input.is-active,
+.textarea:focus,
+.textarea.is-focused,
+.textarea:active,
+.textarea.is-active,
+.select select:focus,
+.select select.is-focused,
+.select select:active,
+.select select.is-active {
+  border-color: var(--lm-focus);
+  box-shadow: 0 0 0 1px var(--lm-focus);
+  outline: none;
+}
+
+.input[disabled],
+.textarea[disabled],
+.select select[disabled],
+fieldset[disabled] .input,
+fieldset[disabled] .textarea,
+fieldset[disabled] .select select {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border);
+  box-shadow: none;
+  color: var(--lm-text-muted);
+}
+
+.input[readonly],
+.textarea[readonly] {
+  background-color: var(--lm-surface-sunken);
+}
+
+.input.is-danger,
+.textarea.is-danger,
+.select.is-danger select {
+  border-color: var(--lm-danger);
+}
+
+.input.is-danger:focus,
+.textarea.is-danger:focus,
+.select.is-danger select:focus {
+  box-shadow: 0 0 0 1px var(--lm-danger);
+}
+
+.input.is-success,
+.textarea.is-success {
+  border-color: var(--lm-success);
+}
+
+.select:not(.is-multiple):not(.is-loading)::after {
+  border-color: var(--lm-text-2);
+}
+
+.select:not(.is-multiple):not(.is-loading):hover::after {
+  border-color: var(--lm-text-strong);
+}
+
+.select select option {
+  background-color: var(--lm-surface);
+  color: var(--lm-text);
+}
+
+.checkbox:hover,
+.radio:hover {
+  color: var(--lm-text-strong);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--lm-primary);
+}
+
+.file-cta,
+.file-name {
+  border-color: var(--lm-border-control);
+}
+
+.file-cta {
+  background-color: var(--lm-surface-sunken);
+  color: var(--lm-text);
+}
+
+.file-name {
+  background-color: var(--lm-surface);
+  color: var(--lm-text);
+}
+
+.file.is-link .file-cta {
+  background-color: var(--lm-primary);
+  border-color: transparent;
+  color: var(--lm-on-primary);
+}
+
+.file.is-link:hover .file-cta,
+.file.is-link.is-hovered .file-cta {
+  background-color: var(--lm-primary-hover);
+  border-color: transparent;
+  color: var(--lm-on-primary);
+}
+
+.file-label:hover .file-cta {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+.button.is-static {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border-control);
+  color: var(--lm-text-2);
+}

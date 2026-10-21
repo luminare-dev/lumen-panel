@@ -1,0 +1,89 @@
+/* Select2 4.1 search fields (default theme), styled like the native inputs. */
+
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+  background-color: var(--lm-surface);
+  border: 1px solid var(--lm-border-control);
+  border-radius: var(--lm-radius-m);
+  color: var(--lm-text);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: var(--lm-text);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: var(--lm-text-muted);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--lm-text-2) transparent transparent;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-color: transparent transparent var(--lm-text-2);
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--multiple {
+  border-color: var(--lm-focus);
+  box-shadow: 0 0 0 1px var(--lm-focus);
+}
+
+.select2-container--default.select2-container--disabled .select2-selection--single,
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--lm-primary-tint);
+  border-color: transparent;
+  border-radius: var(--lm-radius-pill);
+  color: var(--lm-on-primary-tint);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  border-color: transparent;
+  color: var(--lm-on-primary-tint);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover,
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:focus {
+  background-color: transparent;
+  color: var(--lm-text-strong);
+}
+
+.select2-dropdown {
+  background-color: var(--lm-surface-raised);
+  border-color: var(--lm-border);
+  border-radius: var(--lm-radius-m);
+  box-shadow: var(--lm-shadow-2);
+  color: var(--lm-text);
+  overflow: hidden;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field,
+.select2-container--default .select2-search--inline .select2-search__field {
+  background-color: var(--lm-surface);
+  border-color: var(--lm-border-control);
+  border-radius: var(--lm-radius-s);
+  color: var(--lm-text);
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+  background-color: var(--lm-primary-tint);
+  color: var(--lm-on-primary-tint);
+}
+
+.select2-container--default .select2-results__option--selected {
+  background-color: var(--lm-surface-sunken);
+  font-weight: 600;
+}
+
+.select2-container--default .select2-results__option--disabled,
+.select2-container--default .select2-results__group {
+  color: var(--lm-text-muted);
+}

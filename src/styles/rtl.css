@@ -1,0 +1,15 @@
+/*
+ * Additions for right-to-left pages (the -rtl builds). The component rules use logical
+ * properties and the default theme's RTL stylesheet mirrors the layout, so little is needed here.
+ */
+
+/* Letter-spacing breaks the joined letters of Arabic script; keep it at normal everywhere. */
+[dir="rtl"] body,
+[dir="rtl"] body * {
+  letter-spacing: normal !important;
+}
+
+/* Uppercase labels mean nothing in scripts without case; keep the text as written. */
+[dir="rtl"] #sidebar .menu .menu-label {
+  text-transform: none;
+}

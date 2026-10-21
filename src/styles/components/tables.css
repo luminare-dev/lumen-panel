@@ -1,0 +1,55 @@
+/* Tables: quiet rules, readable numbers, soft stripes and hover. */
+
+.table {
+  background-color: transparent;
+  color: var(--lm-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.table td,
+.table th {
+  border-color: var(--lm-border);
+  padding: 10px var(--lm-space-3);
+}
+
+.table th {
+  color: var(--lm-text-2);
+  font-weight: 600;
+}
+
+.table thead td,
+.table thead th {
+  border-bottom-width: 1px;
+  color: var(--lm-text-2);
+}
+
+.table tfoot td,
+.table tfoot th {
+  border-top-width: 1px;
+  color: var(--lm-text-2);
+}
+
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+  background-color: var(--lm-surface-sunken);
+}
+
+.table.is-hoverable tbody tr:not(.is-selected):hover,
+.table.is-hoverable.is-striped tbody tr:not(.is-selected):hover,
+.table.is-hoverable.is-striped tbody tr:not(.is-selected):hover:nth-child(even) {
+  background-color: var(--lm-surface-hover);
+}
+
+.table tr.is-selected {
+  background-color: var(--lm-primary-tint);
+  color: var(--lm-text);
+}
+
+.table tr.is-selected td,
+.table tr.is-selected th {
+  border-color: var(--lm-border);
+}
+
+.table-container {
+  scrollbar-color: var(--lm-border-control) transparent;
+  scrollbar-width: thin;
+}
