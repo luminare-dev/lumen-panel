@@ -8,11 +8,25 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
+const BANNER =
+  "/*! lumen-panel gallery | MIT | https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
+  "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */\n";
+
+// The licence banner is added after minification (the minifier drops output banners).
+const licenceBanner = {
+  name: "lumen-licence-banner",
+  generateBundle(_options, bundle) {
+    for (const file of Object.values(bundle)) {
+      if (file.type === "chunk" && !file.code.startsWith("/*! lumen-panel ")) file.code = BANNER + file.code;
+    }
+  },
+};
+
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   base: "./",
   publicDir: fileURLToPath(new URL("../dist/assets", import.meta.url)),
-  plugins: [react()],
+  plugins: [react(), licenceBanner],
   build: {
     outDir: fileURLToPath(new URL("./dist", import.meta.url)),
     emptyOutDir: true,
@@ -20,13 +34,6 @@ export default defineConfig({
     target: ["chrome111", "edge111", "firefox121", "safari16.4"],
     // The gallery bundles React and React DOM: their licence notice travels with every chunk.
     // scripts/check-gallery.mjs checks it, and copies LICENSE, NOTICE and THIRD_PARTY_NOTICES.md.
-    rolldownOptions: {
-      output: {
-        banner:
-          "/*! lumen-panel gallery | MIT | https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
-          "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */",
-      },
-    },
   },
   server: {
     fs: { allow: [fileURLToPath(new URL("..", import.meta.url))] },
