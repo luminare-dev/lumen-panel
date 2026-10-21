@@ -9,11 +9,25 @@ import { defineConfig } from "vite";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+const BANNER =
+  `/*! lumen-panel ${pkg.version} command palette | MIT | ` +
+  "https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
+  "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */\n";
+
+// The licence banner is added after minification (the minifier drops output banners).
+const licenceBanner = {
+  name: "lumen-licence-banner",
+  generateBundle(_options, bundle) {
+    for (const file of Object.values(bundle)) {
+      if (file.type === "chunk" && !file.code.startsWith("/*! lumen-panel ")) file.code = BANNER + file.code;
+    }
+  },
+};
 
 export default defineConfig({
   root,
   publicDir: false,
-  plugins: [react()],
+  plugins: [react(), licenceBanner],
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
   build: {
     outDir: "dist/assets",
@@ -27,14 +41,6 @@ export default defineConfig({
       name: "LumenIsland",
       formats: ["iife"],
       fileName: () => "lumen-island.js",
-    },
-    rolldownOptions: {
-      output: {
-        banner:
-          `/*! lumen-panel ${pkg.version} command palette | MIT | ` +
-          "https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
-          "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */",
-      },
     },
   },
 });

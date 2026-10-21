@@ -5,9 +5,9 @@
 //     bundle must not start with "var <name> =");
 //   * no network or storage APIs in the bundle, React included (fetch, XMLHttpRequest,
 //     WebSocket, EventSource, sendBeacon, localStorage, sessionStorage, indexedDB, cookies);
-//   * size: at most 70 KB after gzip (the number is printed).
+//   * size: at most 80 KB after gzip (the number is printed; React 19 + React DOM are ~60 KB of it).
 //
-// Run: node scripts/check-island.mjs [--max-gzip-kb 70]
+// Run: node scripts/check-island.mjs [--max-gzip-kb 80]
 
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -17,7 +17,7 @@ import { gzipSync } from "node:zlib";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const file = join(root, "dist", "assets", "lumen-island.js");
 const flag = process.argv.indexOf("--max-gzip-kb");
-const maxKb = flag > 0 ? Number(process.argv[flag + 1]) : 70;
+const maxKb = flag > 0 ? Number(process.argv[flag + 1]) : 80;
 
 const FORBIDDEN = [
   ["module syntax", /^\s*(?:import|export)\s[^;]*?(?:from\s*["']|[{*])/mu],

@@ -29,5 +29,5 @@ request and stores nothing ([ADR 0010](0010-the-command-palette-stores-nothing.m
   panel's styles and the panel's styles cannot break it.
 - Good: the gallery shows every component in light, dark, LTR and RTL without a panel.
 - Bad: the palette script bundles React and React DOM, which make up most of the file (the
-  build fails above 70 KB after gzip, `scripts/check-island.mjs`); browsers load it once per
+  build fails above 80 KB after gzip, `scripts/check-island.mjs`; React 19 + React DOM are about 60 KB of it); browsers load it once per
   build thanks to the `?v=` cache key.

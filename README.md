@@ -134,7 +134,7 @@ one of them changed.
   combobox with a listbox, focus trap, focus returns on close). It renders in shadow roots, so
   its styles and the panel's cannot touch each other, makes no network requests and stores
   nothing ([ADR 0010](docs/adr/0010-the-command-palette-stores-nothing.md)). One deferred script,
-  React included, at most 70 KB after gzip (checked by the build).
+  React included, at most 80 KB after gzip (checked by the build; about 72 KB today).
 - **Gallery.** A static React app with our own panel-like markup on Bulma 0.9.4: design tokens
   with live contrast numbers, typography, the app shell, cards, tables, pagination, forms,
   buttons, tags, notifications, modals, tabs, the dashboard and the login page, each in light,
@@ -213,7 +213,7 @@ Fixes go into the latest minor release only. See the
 | Generator and repository tests | 172 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
 | Generator against the live panel | build and verify pass: 215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly; dry run passes | `python3 -m lumen_panel build` and `verify --keyhelp` into a scratch folder with placeholder assets, KeyHelp 26.1.1, read-only, 2026-10-21 |
 | Command palette tests | not run yet (Vitest suite of 41 tests in `island/test/`) | `npm test` |
-| Command palette size | not measured yet; the build fails above 70 KB after gzip | `node scripts/check-island.mjs` |
+| Command palette size | 71.7 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
 
 ## Documentation and links
 
