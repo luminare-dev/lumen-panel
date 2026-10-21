@@ -1,7 +1,8 @@
 # Caller: lint, tests and the full-history secret scan on every pull request and push to main,
 # plus the project's own asset build (stylesheets, command palette, gallery: type check, unit
-# tests, build, bundle check) and an end-to-end generator build against the fake panel tree of
-# the tests. The static gallery is kept as a build artifact for 14 days.
+# tests, build, bundle check) and an end-to-end generator build of both themes, Lumen and Lumen
+# Dark, against the fake panel tree of the tests. The static gallery is kept as a build artifact
+# for 14 days, the built theme assets (both themes' stylesheets) for 30.
 # Required checks for the main ruleset: "ci / lint-test", "assets", "secrets / gitleaks".
 name: ci
 
@@ -62,14 +63,32 @@ jobs:
       - name: Contrast table is current and every pair passes
         run: python3 scripts/contrast.py --check
 
-      - name: Generator build and verify with the built assets (fake panel tree)
+      - name: Generator build and verify of both themes with the built assets (fake panel tree)
         run: |
           set -euo pipefail
           python3 tests/fakekeyhelp.py "$RUNNER_TEMP/keyhelp"
           cd generator
-          python3 -m lumen_panel build --keyhelp "$RUNNER_TEMP/keyhelp" --out "$RUNNER_TEMP/lumen"
-          python3 -m lumen_panel verify "$RUNNER_TEMP/lumen" --keyhelp "$RUNNER_TEMP/keyhelp"
-          test -f "$RUNNER_TEMP/lumen/assets/lumen-island.js"
+          for variant in lumen lumen-dark; do
+            python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp" --out "$RUNNER_TEMP/$variant"
+            python3 -m lumen_panel verify "$RUNNER_TEMP/$variant" --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp"
+            test -f "$RUNNER_TEMP/$variant/assets/lumen-island.js"
+          done
+          # each theme folder holds its own stylesheets only
+          test -f "$RUNNER_TEMP/lumen/assets/lumen.css"
+          test ! -e "$RUNNER_TEMP/lumen/assets/lumen-night.css"
+          test -f "$RUNNER_TEMP/lumen-dark/assets/lumen-night-rtl.css"
+          test ! -e "$RUNNER_TEMP/lumen-dark/assets/lumen.css"
+
+      - name: Lumen Dark never refers to the panel's dark stylesheets or images
+        run: |
+          set -euo pipefail
+          test -f dist/assets/lumen-night.css
+          test -f dist/assets/lumen-night-rtl.css
+          if grep -l -e 'style-dark' -e 'img/dark' -e 'is_dark_mode' -e 'has_dark_mode' \
+              dist/assets/lumen-night.css dist/assets/lumen-night-rtl.css; then
+            echo "error: a Lumen Dark stylesheet refers to the panel's dark mode" >&2
+            exit 1
+          fi
 
       - name: Built file sizes
         run: |
@@ -84,7 +103,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Keep the built theme assets (installed on the server from this artifact)
+      - name: Keep the built theme assets of both themes (installed on the server from this artifact)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: theme-assets
