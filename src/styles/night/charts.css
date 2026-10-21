@@ -1,0 +1,13 @@
+/*
+ * Lumen Dark: Chart.js draws into a <canvas>, so no stylesheet can set its colours, and the panel
+ * picks them for a light page. The monitoring charts (the only ones with text: axis labels, the
+ * legend, tooltips) are therefore shown inverted with the hue turned back, the usual way to put a
+ * chart drawn for light pages on a dark one: Chart.js's grey labels (#666666) become #999999 and
+ * the faint grid lines light. Each series keeps its hue, but the light ones (orange, yellow, grey)
+ * come out darker, about as faint on the card as they are on white in the default theme, and the
+ * tooltips appear light. Doughnut charts have no text and an HTML legend in the panel's colours
+ * next to them, so they stay as drawn, white segment borders included.
+ */
+canvas.app-chart[data-chart-datasets] {
+  filter: invert(1) hue-rotate(180deg);
+}

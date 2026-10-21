@@ -54,6 +54,31 @@
   background-color: var(--lm-danger);
 }
 
+/* The password strength meter (the panel's script sets is-danger, is-warning or is-success). */
+.progress.is-success::-webkit-progress-value {
+  background-color: var(--lm-success);
+}
+
+.progress.is-success::-moz-progress-bar {
+  background-color: var(--lm-success);
+}
+
+.progress.is-warning::-webkit-progress-value {
+  background-color: var(--lm-warning);
+}
+
+.progress.is-warning::-moz-progress-bar {
+  background-color: var(--lm-warning);
+}
+
+.progress.is-danger::-webkit-progress-value {
+  background-color: var(--lm-danger);
+}
+
+.progress.is-danger::-moz-progress-bar {
+  background-color: var(--lm-danger);
+}
+
 .cpu-load[data-load-level="low"] .cpu-load-percent {
   color: var(--lm-success-text);
 }

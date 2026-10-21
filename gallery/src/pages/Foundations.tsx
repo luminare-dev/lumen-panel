@@ -1,17 +1,28 @@
 // Foundations: design tokens with live contrast numbers, typography, and the app shell.
 import { useMemo } from "react";
 import pairsFile from "../../../src/styles/contrast-pairs.json";
-import { formatRatio, hex, ratio, readToken, type Rgb } from "../contrast";
+import { formatRatio, hex, ratio, readToken, toRgb, type Rgb } from "../contrast";
 import { Card, Icon, Lead } from "../parts";
+
+/** light: Lumen; dark: Lumen in the panel's dark mode; night: the Lumen Dark theme. */
+export type GalleryMode = "light" | "dark" | "night";
+
+export const MODE_LABEL: Record<GalleryMode, string> = { light: "light mode", dark: "dark mode", night: "Lumen Dark" };
 
 interface Pair {
   fg: string;
   bg: string;
   min: number;
   use: string;
+  /** The modes the pair is drawn in (all three when absent). */
+  modes?: string[];
 }
 
 const PAIRS: Pair[] = (pairsFile as { pairs: Pair[] }).pairs;
+
+/** A pair colour is a token name or a literal #RRGGBB (docs/contrast.md). */
+const isLiteral = (colour: string) => colour.startsWith("#");
+const paint = (colour: string) => (isLiteral(colour) ? colour : `var(--lm-${colour})`);
 
 const BRAND = [
   "lumen", "sky", "azure", "royal", "abyss", "night", "mint",
@@ -48,17 +59,18 @@ function Swatch({ name, value, against }: { name: string; value: Rgb | null; aga
   );
 }
 
-export function Tokens({ mode, styleTick }: { mode: "light" | "dark"; styleTick: number }) {
+export function Tokens({ mode, styleTick }: { mode: GalleryMode; styleTick: number }) {
   // Recomputed whenever the mode or the loaded stylesheet changes.
   const values = useMemo(() => {
     void styleTick;
     const names = new Set([...BRAND, ...SEMANTIC.flatMap((g) => g.names), ...PAIRS.flatMap((p) => [p.fg, p.bg])]);
     const out: Record<string, Rgb | null> = {};
-    for (const name of names) out[name] = readToken(name);
+    for (const name of names) out[name] = isLiteral(name) ? toRgb(name) : readToken(name);
     return out;
   }, [mode, styleTick]);
   const surface = values.surface ?? null;
-  const rows = PAIRS.map((p) => {
+  const label = MODE_LABEL[mode];
+  const rows = PAIRS.filter((p) => !p.modes || p.modes.includes(mode)).map((p) => {
     const fg = values[p.fg];
     const bg = values[p.bg];
     return { ...p, r: fg && bg ? ratio(fg, bg) : null };
@@ -70,10 +82,10 @@ export function Tokens({ mode, styleTick }: { mode: "light" | "dark"; styleTick:
     <>
       <Lead>
         Every colour is a <code>--lm-*</code> custom property. The values below are read from the stylesheet this page
-        has loaded, in {mode} mode, and every contrast ratio is computed here in the browser with the WCAG 2.x formula.
-        The same table for both modes is generated into <code>docs/contrast.md</code>.
+        has loaded, in {label}, and every contrast ratio is computed here in the browser with the WCAG 2.x formula. The
+        same table for light mode, dark mode and Lumen Dark is generated into <code>docs/contrast.md</code>.
       </Lead>
-      <Card icon="palette" title="Brand colours (Luminare palette, the same in both modes)">
+      <Card icon="palette" title="Brand colours (Luminare palette, the same in every mode)">
         <ul className="gallery-swatches">
           {BRAND.map((name) => (
             <Swatch key={name} name={name} value={values[name] ?? null} against={null} />
@@ -81,7 +93,7 @@ export function Tokens({ mode, styleTick }: { mode: "light" | "dark"; styleTick:
         </ul>
       </Card>
       {SEMANTIC.map((g) => (
-        <Card key={g.group} icon="palette" title={`${g.group} (${mode} mode)`}>
+        <Card key={g.group} icon="palette" title={`${g.group} (${label})`}>
           <ul className="gallery-swatches">
             {g.names.map((name) => (
               <Swatch key={name} name={name} value={values[name] ?? null} against={name === "surface" ? null : surface} />
@@ -89,7 +101,7 @@ export function Tokens({ mode, styleTick }: { mode: "light" | "dark"; styleTick:
           </ul>
         </Card>
       ))}
-      <Card icon="table" title={`Contrast pairs: ${passed} of ${measured.length} pass in ${mode} mode`}>
+      <Card icon="table" title={`Contrast pairs: ${passed} of ${measured.length} pass in ${label}`}>
         <div className="table-container">
           <table className="table is-fullwidth is-striped">
             <caption className="has-text-left has-text-grey">
@@ -112,11 +124,11 @@ export function Tokens({ mode, styleTick }: { mode: "light" | "dark"; styleTick:
               {rows.map((row) => (
                 <tr key={`${row.fg}|${row.bg}|${row.use}`}>
                   <td>
-                    <span className="gallery-chip" style={{ background: `var(--lm-${row.fg})` }} aria-hidden="true" />
+                    <span className="gallery-chip" style={{ background: paint(row.fg) }} aria-hidden="true" />
                     <code>{row.fg}</code>
                   </td>
                   <td>
-                    <span className="gallery-chip" style={{ background: `var(--lm-${row.bg})` }} aria-hidden="true" />
+                    <span className="gallery-chip" style={{ background: paint(row.bg) }} aria-hidden="true" />
                     <code>{row.bg}</code>
                   </td>
                   <td className="has-text-grey">{row.use}</td>

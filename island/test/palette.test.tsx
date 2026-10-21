@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Palette, isToggleKey } from "../src/Palette";
-import { isApplePlatform } from "../src/page";
+import { isApplePlatform, isDarkPage } from "../src/page";
 import type { Entry } from "../src/types";
 
 const ENTRIES: Entry[] = [
@@ -37,6 +37,7 @@ const selected = () => screen.getAllByRole("option").find((o) => o.getAttribute(
 beforeEach(() => {
   document.documentElement.setAttribute("lang", "en");
   document.documentElement.setAttribute("dir", "ltr");
+  document.documentElement.classList.remove("lumen-night");
   document.body.className = "default-mode";
 });
 
@@ -237,6 +238,35 @@ describe("page state", () => {
       document.body.className = "default-mode";
     });
     await waitFor(() => expect(screen.getByRole("dialog").closest(".lm")?.classList.contains("is-dark")).toBe(false));
+  });
+
+  it("is dark in Lumen Dark, which marks <html> and <body> with lumen-night", async () => {
+    document.documentElement.classList.add("lumen-night");
+    document.body.className = "default-mode lumen-night";
+    const { user } = setup();
+    const dialog = await openWithShortcut(user);
+    expect(dialog.closest(".lm")?.classList.contains("is-dark")).toBe(true);
+    act(() => {
+      document.body.className = "default-mode";
+    });
+    // <html> still says Lumen Dark: the palette stays dark
+    expect(screen.getByRole("dialog").closest(".lm")?.classList.contains("is-dark")).toBe(true);
+    act(() => {
+      document.documentElement.classList.remove("lumen-night");
+    });
+    await waitFor(() => expect(screen.getByRole("dialog").closest(".lm")?.classList.contains("is-dark")).toBe(false));
+  });
+
+  it("reads Lumen Dark from either hook class", () => {
+    document.body.className = "default-mode lumen-night";
+    expect(isDarkPage(document)).toBe(true);
+    document.body.className = "default-mode";
+    expect(isDarkPage(document)).toBe(false);
+    document.documentElement.classList.add("lumen-night");
+    expect(isDarkPage(document)).toBe(true);
+    document.documentElement.classList.remove("lumen-night");
+    document.body.className = "dark-mode";
+    expect(isDarkPage(document)).toBe(true);
   });
 
   it("marks its own English text as English in a panel language it has no strings for", async () => {

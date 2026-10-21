@@ -1,0 +1,8 @@
+{
+  "id": "night-html-class",
+  "file": "layout/base.twig",
+  "description": "The lumen-night hook class on <html>, so the command palette (and anything else of lumen-panel) knows the page is in Lumen Dark from the start.",
+  "mode": "replace",
+  "anchor": "<html lang=\"{{ _app.language }}\" dir=\"{{ _app.text_direction }}\">",
+  "text": "<html class=\"lumen-night\" lang=\"{{ _app.language }}\" dir=\"{{ _app.text_direction }}\">"
+}

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
@@ -97,6 +98,61 @@ class RtlAndCascadeTest(unittest.TestCase):
         index = (STYLES / "index.css").read_text(encoding="utf-8")
         for path in sorted((STYLES / "components").glob("*.css")):
             self.assertIn(f'@import "components/{path.name}";', index)
+        self.assertNotIn("night", index, "Lumen's own stylesheets never include the Lumen Dark additions")
+
+
+class NightTest(unittest.TestCase):
+    """Lumen Dark: lumen-night.css = index.css + the dark tokens on :root + night.css."""
+
+    def test_night_imports_every_part(self):
+        night = (STYLES / "night.css").read_text(encoding="utf-8")
+        parts = sorted((STYLES / "night").glob("*.css"))
+        self.assertGreaterEqual(len(parts), 5)
+        for path in parts:
+            self.assertIn(f'@import "night/{path.name}";', night)
+
+    def test_the_build_writes_both_night_stylesheets(self):
+        script = (ROOT / "scripts" / "build-css.mjs").read_text(encoding="utf-8")
+        self.assertIn('bundled("night.css")', script)
+        self.assertRegex(script, r'"lumen-night\.css": base \+ nightTokens \+ night,')
+        self.assertRegex(script, r'"lumen-night-rtl\.css": base \+ nightTokens \+ night \+ rtl,')
+        self.assertRegex(script, r'"lumen-dark\.css": base \+ dark,', "Lumen's builds stay as they were")
+
+    def test_the_dark_tokens_make_the_page_dark(self):
+        _, dark = contrast.blocks((STYLES / "tokens.css").read_text(encoding="utf-8"))
+        self.assertIn("color-scheme: dark;", dark, "native controls and scrollbars render dark")
+        decls = contrast.mode_declarations((STYLES / "tokens.css").read_text(encoding="utf-8"))
+        self.assertEqual(contrast.resolve("bg", decls["night"]), "#0A1224", "the Night background")
+        self.assertEqual(decls["night"], decls["dark"])
+
+    def test_editor_rules_win_over_the_editor_stylesheets(self):
+        """CodeMirror's and Trumbowyg's stylesheets load after Lumen's, so each editor rule needs the
+        .lumen-night prefix to outrank them."""
+        css = strip_comments((STYLES / "night" / "editors.css").read_text(encoding="utf-8"))
+        selectors = [sel.strip() for block in re.findall(r"([^{}]+)\{", css) for sel in block.split(",")]
+        self.assertGreater(len(selectors), 40)
+        for sel in selectors:
+            self.assertTrue(sel.startswith(".lumen-night "), sel)
+
+    def test_night_rules_other_than_the_editors_keep_white_label_in_charge(self):
+        """Outside the editors, rules match the selector they replace (no .lumen-night prefix), so
+        White Label CSS, which loads later, can still override them."""
+        for path in sorted((STYLES / "night").glob("*.css")):
+            if path.name == "editors.css":
+                continue
+            self.assertNotIn(".lumen-night", strip_comments(path.read_text(encoding="utf-8")), path.name)
+
+    def test_every_pair_is_checked_for_lumen_dark(self):
+        pairs = json.loads((STYLES / "contrast-pairs.json").read_text(encoding="utf-8"))["pairs"]
+        rows, problems = contrast.analyse((STYLES / "tokens.css").read_text(encoding="utf-8"), pairs)
+        self.assertEqual(problems, [])
+        for row in rows:
+            self.assertIsNotNone(row["night"], row["pair"])
+        night_only = [row for row in rows if row["pair"].get("modes") == ["night"]]
+        self.assertGreaterEqual(len(night_only), 5)
+        doc = (ROOT / "docs" / "contrast.md").read_text(encoding="utf-8")
+        self.assertIn("## Lumen Dark only", doc)
+        self.assertIn("Dark and Lumen Dark", doc)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
   "description": "Fill the lumen_island block on internal pages with the deferred command palette script (one file, no network requests of its own).",
   "mode": "insert_after",
   "anchor": "{% extends 'layout/base.twig' %}",
-  "text": "\n\n{% block lumen_island %}\n    <script defer src=\"/theme/lumen/assets/lumen-island.js?v=@@LUMEN_ASSET_HASH@@\"></script>\n{% endblock %}",
+  "text": "\n\n{% block lumen_island %}\n    <script defer src=\"/theme/@@LUMEN_THEME_DIR@@/assets/lumen-island.js?v=@@LUMEN_ASSET_HASH@@\"></script>\n{% endblock %}",
   "assets": [
     "lumen-island.js"
   ]

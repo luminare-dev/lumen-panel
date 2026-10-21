@@ -147,14 +147,19 @@ def check(src: str) -> list[str]:
 # file names a page can request. Only the two forms used by the patches are understood:
 # {{ expr ? 'a' }} (a or nothing) and {{ expr ? 'a' : 'b' }}.
 # --------------------------------------------------------------------------------------------
-_REF_RE = re.compile(r"""/?theme/lumen/(?P<path>(?:[^"'\s?<>{]|\{\{.*?\}\})+)""")
+_PATH = r"""(?P<path>(?:[^"'\s?<>{]|\{\{.*?\}\})+)"""
 _TERNARY_RE = re.compile(r"""\{\{\s*[^{}?]*?\?\s*'([^']*)'\s*(?::\s*'([^']*)'\s*)?\}\}""")
 
 
-def asset_references(src: str) -> list[str]:
-    """Every theme/lumen/... path a template refers to, with simple ternaries expanded."""
+def _ref_re(theme_dir: str) -> re.Pattern[str]:
+    # "theme/lumen/" never matches "theme/lumen-dark/": the folder name ends at the slash.
+    return re.compile(r"/?theme/" + re.escape(theme_dir) + "/" + _PATH)
+
+
+def asset_references(src: str, theme_dir: str = "lumen") -> list[str]:
+    """Every theme/<theme_dir>/... path a template refers to, with simple ternaries expanded."""
     refs: list[str] = []
-    for m in _REF_RE.finditer(src):
+    for m in _ref_re(theme_dir).finditer(src):
         path = m.group("path")
         parts: list[list[str]] = []
         pos = 0

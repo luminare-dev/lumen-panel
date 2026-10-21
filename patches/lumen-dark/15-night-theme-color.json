@@ -1,0 +1,8 @@
+{
+  "id": "night-theme-color",
+  "file": "layout/base.twig",
+  "description": "The browser's own interface colour on phones (address bar) matches the Night background instead of white. Only in the default favicon branch; a white-label favicon setup keeps its own tags.",
+  "mode": "replace",
+  "anchor": "<meta name=\"theme-color\" content=\"#ffffff\">",
+  "text": "<meta name=\"theme-color\" content=\"#0A1224\">"
+}

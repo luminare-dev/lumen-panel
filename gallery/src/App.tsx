@@ -1,14 +1,16 @@
 // The gallery shell mirrors the panel's internal layout (#header, #user-menu, #sidebar,
-// #content, #footer) and switches stylesheets the way the panel does: lumen{-dark}{-rtl}.css
-// plus body.dark-mode and <html dir>. Each sidebar link is a page (hash route).
-// The start state can be set in the URL, for screenshots: ?mode=dark&dir=rtl#forms
+// #content, #footer) and switches stylesheets the way the two themes do: Lumen loads
+// lumen{-dark}{-rtl}.css and follows body.dark-mode; Lumen Dark loads lumen-night{-rtl}.css and
+// marks <html> and <body> with lumen-night, on the same light base (Bulma and the panel
+// skeleton stand in for the default theme's light stylesheet). Each sidebar link is a page
+// (hash route). The start state can be set in the URL, for screenshots: ?mode=night&dir=rtl#forms
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Icon, Svg, type IconName } from "./parts";
 import { Buttons, Cards, Forms, Modals, Notifications, Pagination, Tables, Tabs, Tags } from "./pages/Components";
-import { Shell, Tokens, Typography } from "./pages/Foundations";
+import { MODE_LABEL, Shell, Tokens, Typography, type GalleryMode } from "./pages/Foundations";
 import { Dashboard, Login } from "./pages/Screens";
 
-type Mode = "light" | "dark";
+type Mode = GalleryMode;
 type Dir = "ltr" | "rtl";
 
 interface Ctx {
@@ -53,7 +55,7 @@ const NAV: { label: string; icon: IconName; pages: PageDef[] }[] = [
     icon: "pages",
     pages: [
       { id: "dashboard", label: "Dashboard", render: () => <Dashboard /> },
-      { id: "login", label: "Login page", render: (c) => <Login dark={c.mode === "dark"} /> },
+      { id: "login", label: "Login page", render: (c) => <Login dark={c.mode !== "light"} /> },
     ],
   },
 ];
@@ -77,25 +79,29 @@ export interface Stylesheets {
 }
 
 export function App({ bulma }: { bulma: Stylesheets }) {
-  const [mode, setMode] = useState<Mode>(() => initial("mode", ["light", "dark"] as const, "light"));
+  const [mode, setMode] = useState<Mode>(() => initial("mode", ["light", "dark", "night"] as const, "light"));
   const [dir, setDir] = useState<Dir>(() => initial("dir", ["ltr", "rtl"] as const, "ltr"));
   const [pageId, setPageId] = useState(pageFromHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [styleTick, setStyleTick] = useState(0);
-  const dark = mode === "dark";
+  const dark = mode === "dark"; // Lumen in the panel's dark mode
+  const night = mode === "night"; // the Lumen Dark theme
+  const darkLook = dark || night;
   const rtl = dir === "rtl";
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0]!;
 
   // Switch the stylesheets like the panel does; count each load so token readers refresh.
   useEffect(() => {
-    document.body.className = dark ? "dark-mode" : "default-mode";
+    document.body.className = dark ? "dark-mode" : night ? "default-mode lumen-night" : "default-mode";
+    document.documentElement.classList.toggle("lumen-night", night);
     document.documentElement.setAttribute("dir", dir);
-    document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", dark ? "dark" : "light");
+    document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", darkLook ? "dark" : "light");
     const bump = () => setStyleTick((t) => t + 1);
+    const lumen = night ? `./lumen-night${rtl ? "-rtl" : ""}.css` : `./lumen${dark ? "-dark" : ""}${rtl ? "-rtl" : ""}.css`;
     const links = [
       [document.getElementById("bulma-css"), rtl ? bulma.rtl : bulma.ltr],
-      [document.getElementById("lumen-css"), `./lumen${dark ? "-dark" : ""}${rtl ? "-rtl" : ""}.css`],
+      [document.getElementById("lumen-css"), lumen],
     ] as const;
     for (const [link, href] of links) {
       if (!link || link.getAttribute("href") === href) continue;
@@ -103,7 +109,7 @@ export function App({ bulma }: { bulma: Stylesheets }) {
       link.setAttribute("href", href);
     }
     bump();
-  }, [dark, dir, rtl, bulma]);
+  }, [dark, night, darkLook, dir, rtl, bulma]);
 
   useEffect(() => {
     const onHash = () => {
@@ -144,7 +150,7 @@ export function App({ bulma }: { bulma: Stylesheets }) {
                 <figure>
                   <img
                     className="lumen-logo lumen-logo--header"
-                    src={`./brand/luminare-lockup-compact-${dark ? "dark" : "light"}.svg`}
+                    src={`./brand/luminare-lockup-compact-${darkLook ? "dark" : "light"}.svg`}
                     width="127"
                     height="42"
                     alt="Luminare Development"
@@ -160,6 +166,10 @@ export function App({ bulma }: { bulma: Stylesheets }) {
               <button className="button level-item is-hidden-mobile" type="button" aria-pressed={dark} onClick={() => setMode(dark ? "light" : "dark")}>
                 <Icon name="moon" />
                 <span>Dark mode</span>
+              </button>
+              <button className="button level-item is-hidden-mobile" type="button" aria-pressed={night} onClick={() => setMode(night ? "light" : "night")}>
+                <Icon name="palette" />
+                <span>Lumen Dark</span>
               </button>
               <button className="button level-item is-hidden-mobile" type="button" aria-pressed={rtl} onClick={() => setDir(rtl ? "ltr" : "rtl")}>
                 <Icon name="direction" />
@@ -210,6 +220,9 @@ export function App({ bulma }: { bulma: Stylesheets }) {
         </a>
         <button className="dropdown-item gallery-menu-button" type="button" onClick={() => setMode(dark ? "light" : "dark")}>
           {dark ? "Light mode" : "Dark mode"}
+        </button>
+        <button className="dropdown-item gallery-menu-button" type="button" onClick={() => setMode(night ? "light" : "night")}>
+          {night ? "Lumen (light)" : "Lumen Dark"}
         </button>
         <button className="dropdown-item gallery-menu-button" type="button" onClick={() => setDir(rtl ? "ltr" : "rtl")}>
           {rtl ? "Left to right" : "Right to left"}
@@ -277,7 +290,8 @@ export function App({ bulma }: { bulma: Stylesheets }) {
               registered trademark of Keyweb AG.
             </p>
             <p className="is-size-7">
-              Showing {mode} mode, {rtl ? "right to left" : "left to right"}. Example data only.
+              Showing {night ? "Lumen Dark" : `Lumen, ${MODE_LABEL[mode]}`}, {rtl ? "right to left" : "left to right"}. Example
+              data only.
             </p>
           </div>
         </footer>

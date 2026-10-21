@@ -2,9 +2,10 @@
  * Command palette styles. They live in the island's shadow roots and cannot affect the panel.
  *
  * Colours come from the theme's --lm-* tokens, which inherit into the shadow roots, so the
- * palette follows the panel's light or dark mode exactly. The fallbacks after each token are the
- * same values (light in .lm, dark in .lm.is-dark; tests/test_island_css.py keeps them equal to
- * src/styles/tokens.css) for a page where the Lumen stylesheet is missing.
+ * palette follows the panel's light or dark mode exactly, and is always dark in Lumen Dark
+ * (page.ts). The fallbacks after each token are the same values (light in .lm, dark in
+ * .lm.is-dark; tests/test_island.py keeps them equal to src/styles/tokens.css) for a page where
+ * the Lumen stylesheet is missing.
  */
 
 :host {

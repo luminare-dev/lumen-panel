@@ -2,7 +2,8 @@
 # Runs on pull requests that touch the styles or the gallery, and by hand. It builds the
 # stylesheets and the gallery, serves the gallery on 127.0.0.1 and captures each page with the
 # Google Chrome that the GitHub-hosted Ubuntu image ships (headless, no extra dependency).
-# The gallery reads its start state from the URL: ?mode=light|dark&dir=ltr|rtl#<page>.
+# The gallery reads its start state from the URL: ?mode=light|dark|night&dir=ltr|rtl#<page>
+# (night is the Lumen Dark theme).
 # The PNGs are uploaded as the artifact "screenshots"; a maintainer reviews them and commits
 # the ones the README uses.
 name: screenshots
@@ -69,6 +70,12 @@ jobs:
           shot lumen-tokens        "?mode=light#tokens"      1440 900
           shot lumen-dashboard-rtl "?mode=light&dir=rtl#dashboard" 1440 900
           shot lumen-dashboard-narrow "?mode=light#dashboard" 390 844
+          shot lumen-dark-dashboard     "?mode=night#dashboard" 1440 900
+          shot lumen-dark-login         "?mode=night#login"     1440 900
+          shot lumen-dark-tables        "?mode=night#tables"    1440 900
+          shot lumen-dark-forms         "?mode=night#forms"     1440 900
+          shot lumen-dark-tokens        "?mode=night#tokens"    1440 900
+          shot lumen-dark-dashboard-rtl "?mode=night&dir=rtl#dashboard" 1440 900
           ls -l screenshots
 
       - name: Keep the screenshots

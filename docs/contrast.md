@@ -6,7 +6,15 @@ minimum. Text needs 4.5:1 (WCAG 2.2 SC 1.4.3, level AA); control borders, focus 
 fills and other indicators need 3:1 (SC 1.4.11). Ratios use the WCAG 2.x relative luminance
 formula and are rounded down to two decimals.
 
-| Foreground | Background | Used for | Min | Light | Dark |
+Lumen Dark (`theme/lumen-dark`) uses the dark token set on top of the panel's light
+stylesheet, so the dark column holds for it as well; every pair is checked in it again. The
+second table lists the pairs only Lumen Dark draws: selected text, the code editor's syntax
+colours on the editor, its highlighted line and its selection, the rich text editor's light
+editing sheet and toolbar, focus rings, inline-coloured icons and the monitoring charts'
+labels after their inversion. One text pair there has a 3:1 minimum: an error mark inside a
+code selection, a state that lasts only while the text is selected.
+
+| Foreground | Background | Used for | Min | Light | Dark and Lumen Dark |
 |---|---|---|---|---|---|
 | `--lm-text` | `--lm-bg` | page text, page title | 4.5 | 17.23 pass (`#0A1224` on `#F3F6FB`) | 17.23 pass (`#F3F6FB` on `#0A1224`) |
 | `--lm-text` | `--lm-surface` | text in cards, header, sidebar, tables, inputs | 4.5 | 18.66 pass (`#0A1224` on `#FFFFFF`) | 16.32 pass (`#F3F6FB` on `#10182B`) |
@@ -26,11 +34,12 @@ formula and are rounded down to two decimals.
 | `--lm-link` | `--lm-surface` | links in cards and tables | 4.5 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
 | `--lm-link` | `--lm-surface-sunken` | links on striped rows | 4.5 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 11.65 pass (`#5BDFFF` on `#0D1527`) |
 | `--lm-link-hover` | `--lm-surface` | hovered links | 4.5 | 11.52 pass (`#15308A` on `#FFFFFF`) | 12.21 pass (`#7CE5FF` on `#10182B`) |
+| `--lm-link-hover` | `--lm-surface-hover` | hovered and pressed text buttons | 4.5 | 10.48 pass (`#15308A` on `#F2F4FB`) | 11.12 pass (`#7CE5FF` on `#102236`) |
 | `--lm-on-primary` | `--lm-primary` | primary button, current page, checkbox tick and radio dot | 4.5 | 7.61 pass (`#FFFFFF` on `#1F47C4`) | 11.95 pass (`#0A1224` on `#5BDFFF`) |
 | `--lm-on-primary` | `--lm-primary-hover` | hovered primary button | 4.5 | 5.31 pass (`#FFFFFF` on `#2D63DE`) | 12.89 pass (`#0A1224` on `#7CE5FF`) |
 | `--lm-on-primary` | `--lm-primary-active` | pressed primary button, selected option | 4.5 | 11.52 pass (`#FFFFFF` on `#15308A`) | 5.59 pass (`#0A1224` on `#2B8FF0`) |
 | `--lm-on-primary-tint` | `--lm-primary-tint` | active sidebar item, active palette result | 4.5 | 6.51 pass (`#1F47C4` on `#E9EDF9`) | 9.30 pass (`#5BDFFF` on `#142B3E`) |
-| `--lm-text` | `--lm-primary-tint` | text next to the active item | 4.5 | 15.95 pass (`#0A1224` on `#E9EDF9`) | 13.41 pass (`#F3F6FB` on `#142B3E`) |
+| `--lm-text` | `--lm-primary-tint` | text next to the active item, autofilled fields (Lumen Dark) | 4.5 | 15.95 pass (`#0A1224` on `#E9EDF9`) | 13.41 pass (`#F3F6FB` on `#142B3E`) |
 | `--lm-text-muted` | `--lm-primary-tint` | group name of the active palette result | 4.5 | 4.58 pass (`#5E6B84` on `#E9EDF9`) | 5.99 pass (`#9CA7BB` on `#142B3E`) |
 | `--lm-success-text` | `--lm-success-tint` | success message and tag | 4.5 | 5.87 pass (`#046A3C` on `#E6F3EC`) | 8.58 pass (`#58DD70` on `#132A2D`) |
 | `--lm-warning-text` | `--lm-warning-tint` | warning message and tag | 4.5 | 6.51 pass (`#87420C` on `#F7EEE6`) | 8.52 pass (`#FFB334` on `#272526`) |
@@ -65,13 +74,43 @@ formula and are rounded down to two decimals.
 | `--lm-focus` | `--lm-bg` | focus ring on the page | 3.0 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 12.89 pass (`#06F2C4` on `#0A1224`) |
 | `--lm-focus` | `--lm-surface` | focus ring in cards, header and sidebar | 3.0 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 12.21 pass (`#06F2C4` on `#10182B`) |
 | `--lm-focus` | `--lm-surface-raised` | focus ring in modals and dropdowns | 3.0 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.74 pass (`#06F2C4` on `#131C2F`) |
-| `--lm-primary` | `--lm-surface` | active tab underline, active item bar, checked controls | 3.0 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
+| `--lm-primary` | `--lm-surface` | active tab underline, active item bar, checked controls, spinner of outlined primary buttons | 3.0 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
 | `--lm-primary` | `--lm-surface-sunken` | progress fill on its track | 3.0 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 11.65 pass (`#5BDFFF` on `#0D1527`) |
-| `--lm-success` | `--lm-surface-sunken` | low load progress fill | 3.0 | 4.20 pass (`#028844` on `#F3F6FB`) | 10.39 pass (`#58DD70` on `#0D1527`) |
-| `--lm-warning` | `--lm-surface-sunken` | medium load progress fill | 3.0 | 4.75 pass (`#B15204` on `#F3F6FB`) | 10.18 pass (`#FFB334` on `#0D1527`) |
-| `--lm-danger` | `--lm-surface-sunken` | high load progress fill | 3.0 | 6.10 pass (`#B71920` on `#F3F6FB`) | 5.65 pass (`#FF5147` on `#0D1527`) |
+| `--lm-success` | `--lm-surface-sunken` | low load progress fill, strong password | 3.0 | 4.20 pass (`#028844` on `#F3F6FB`) | 10.39 pass (`#58DD70` on `#0D1527`) |
+| `--lm-warning` | `--lm-surface-sunken` | medium load progress fill, fair password | 3.0 | 4.75 pass (`#B15204` on `#F3F6FB`) | 10.18 pass (`#FFB334` on `#0D1527`) |
+| `--lm-danger` | `--lm-surface-sunken` | high load progress fill, weak password | 3.0 | 6.10 pass (`#B71920` on `#F3F6FB`) | 5.65 pass (`#FF5147` on `#0D1527`) |
 | `--lm-border-control` | `--lm-surface-sunken` | checkbox and input borders on striped rows | 3.0 | 3.43 pass (`#79859C` on `#F3F6FB`) | 3.86 pass (`#67748C` on `#0D1527`) |
 | `--lm-border-control` | `--lm-surface-hover` | checkbox and input borders on hovered rows | 3.0 | 3.38 pass (`#79859C` on `#F2F4FB`) | 3.41 pass (`#67748C` on `#102236`) |
 | `--lm-border-control` | `--lm-primary-tint` | checkbox and input borders on selected rows | 3.0 | 3.17 pass (`#79859C` on `#E9EDF9`) | 3.08 pass (`#67748C` on `#142B3E`) |
 | `--lm-white` | `--lm-border-control` | the cross of close buttons (.delete) | 3.0 | 3.71 pass (`#FFFFFF` on `#79859C`) | 4.71 pass (`#FFFFFF` on `#67748C`) |
 | `--lm-white` | `--lm-slate-700` | the cross of a hovered or focused close button | 3.0 | 9.74 pass (`#FFFFFF` on `#39445C`) | 9.74 pass (`#FFFFFF` on `#39445C`) |
+
+## Lumen Dark only
+
+| Foreground | Background | Used for | Min | Lumen Dark |
+|---|---|---|---|---|
+| `--lm-link` | `--lm-surface-hover` | code editor: keywords, tags and links on the highlighted line | 4.5 | 10.30 pass (`#5BDFFF` on `#102236`) |
+| `--lm-mint` | `--lm-surface-sunken` | code editor: definitions, variables, types and built-ins | 4.5 | 12.57 pass (`#06F2C4` on `#0D1527`) |
+| `--lm-mint` | `--lm-surface-hover` | code editor: definitions and variables on the highlighted line | 4.5 | 11.12 pass (`#06F2C4` on `#102236`) |
+| `--lm-text-muted` | `--lm-surface-hover` | code editor: comments on the highlighted line | 4.5 | 6.63 pass (`#9CA7BB` on `#102236`) |
+| `--lm-text-strong` | `--lm-surface-sunken` | code editor: the text cursor | 3.0 | 18.20 pass (`#FFFFFF` on `#0D1527`) |
+| `--lm-focus` | `--lm-surface-sunken` | focus ring of read-only fields and of the code editor | 3.0 | 12.57 pass (`#06F2C4` on `#0D1527`) |
+| `--lm-white` | `--lm-royal` | selected text | 4.5 | 7.61 pass (`#FFFFFF` on `#1F47C4`) |
+| `--lm-text` | `--lm-abyss` | code editor: selected text | 4.5 | 10.64 pass (`#F3F6FB` on `#15308A`) |
+| `--lm-link` | `--lm-abyss` | code editor: keywords, tags and links in a selection | 4.5 | 7.38 pass (`#5BDFFF` on `#15308A`) |
+| `--lm-mint` | `--lm-abyss` | code editor: definitions and variables in a selection | 4.5 | 7.96 pass (`#06F2C4` on `#15308A`) |
+| `--lm-success-text` | `--lm-abyss` | code editor: numbers and atoms in a selection | 4.5 | 6.58 pass (`#58DD70` on `#15308A`) |
+| `--lm-warning-text` | `--lm-abyss` | code editor: strings and attributes in a selection | 4.5 | 6.44 pass (`#FFB334` on `#15308A`) |
+| `--lm-text-muted` | `--lm-abyss` | code editor: comments in a selection | 4.5 | 4.75 pass (`#9CA7BB` on `#15308A`) |
+| `--lm-danger-text` | `--lm-abyss` | code editor: error marks in a selection (only while selected; 4.5:1 and more outside it) | 3.0 | 3.57 pass (`#FF5147` on `#15308A`) |
+| `--lm-night` | `--lm-white` | rich text editor: text on its light editing sheet | 4.5 | 18.66 pass (`#0A1224` on `#FFFFFF`) |
+| `--lm-slate-500` | `--lm-white` | rich text editor: placeholder on the editing sheet | 4.5 | 5.36 pass (`#5E6B84` on `#FFFFFF`) |
+| `--lm-royal` | `--lm-white` | rich text editor: links on the editing sheet | 4.5 | 7.61 pass (`#1F47C4` on `#FFFFFF`) |
+| `--lm-abyss` | `--lm-white` | rich text editor: hovered links on the editing sheet | 4.5 | 11.52 pass (`#15308A` on `#FFFFFF`) |
+| `--lm-night` | `--lm-mist` | rich text editor: inline code on the editing sheet | 4.5 | 17.23 pass (`#0A1224` on `#F3F6FB`) |
+| `--lm-primary` | `--lm-primary-tint` | rich text editor: the bar of a toolbar button that is on | 3.0 | 9.30 pass (`#5BDFFF` on `#142B3E`) |
+| `--lm-focus` | `--lm-primary-tint` | rich text editor: focus ring of a toolbar button that is on | 3.0 | 10.03 pass (`#06F2C4` on `#142B3E`) |
+| `--lm-danger-text` | `--lm-surface-raised` | rich text editor: error text in its dialogs | 4.5 | 5.28 pass (`#FF5147` on `#131C2F`) |
+| `--lm-ember-bright` | `--lm-bg` | icons the templates colour dark red inline (footer, KeyDisc storage) | 3.0 | 5.79 pass (`#FF5147` on `#0A1224`) |
+| `--lm-ember-bright` | `--lm-surface` | icons the templates colour dark red inline, on a card | 3.0 | 5.49 pass (`#FF5147` on `#10182B`) |
+| `#999999` | `--lm-surface` | monitoring charts: Chart.js labels (#666666) after the night inversion, on the card | 4.5 | 6.20 pass (`#999999` on `#10182B`) |

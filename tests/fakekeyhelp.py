@@ -1,8 +1,8 @@
 """A small fake KeyHelp install for the generator tests, written for this project.
 
 The templates are minimal Twig skeletons of our own. The only lines they share with the real
-default theme are the patch anchors, which are read from patches/*.json, so the fixture always
-matches the patch set under test.
+default theme are the patch anchors, which are read from patches/*.json and the variant overlays
+(patches/lumen-dark/*.json), so the fixture always matches the patch sets under test.
 """
 
 from __future__ import annotations
@@ -16,25 +16,38 @@ ROOT = Path(__file__).resolve().parent.parent
 PATCHES = ROOT / "patches"
 
 
-def anchors(patches_dir: Path = PATCHES) -> dict[str, tuple[str, str]]:
-    """patch id -> (file, anchor)"""
-    out = {}
-    for path in sorted(patches_dir.glob("*.json")):
+def _patch_items(patches_dir: Path):
+    for path in sorted(patches_dir.glob("*.json")) + sorted(patches_dir.glob("*/*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
-        for item in data.get("patches", [data]):
-            out[item["id"]] = (item["file"], item["anchor"])
+        yield from data.get("patches", [data])
+
+
+def anchors(patches_dir: Path = PATCHES) -> dict[str, tuple[str, str]]:
+    """patch id -> (file, anchor), over Lumen's patch set and every variant overlay (an overlay
+    patch with the id of a base patch uses the same anchor)."""
+    out: dict[str, tuple[str, str]] = {}
+    for item in _patch_items(patches_dir):
+        out.setdefault(item["id"], (item["file"], item["anchor"]))
     return out
 
 
-def _templates(a: dict[str, tuple[str, str]]) -> dict[str, str]:
+def all_anchors(patches_dir: Path = PATCHES) -> set[tuple[str, str]]:
+    return {(item["file"], item["anchor"]) for item in _patch_items(patches_dir)}
+
+
+def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]]) -> dict[str, str]:
     A = {k: v[1] for k, v in a.items()}
+    body = A.get("night-body-class", "<body class=\"{{ _app.theme.is_dark_mode ? 'dark-mode' : 'default-mode' }}")
     files = {
         "layout/base.twig": (
-            "<!DOCTYPE html>\n<html lang=\"{{ _app.language }}\" dir=\"{{ _app.text_direction }}\">\n<head>\n"
+            "<!DOCTYPE html>\n"
+            f"{A.get('night-html-class', '<html>')}\n<head>\n"
+            f"    {A.get('night-color-scheme', '')}\n"
+            f"    {A.get('night-theme-color', '')}\n"
             "    <title>{{ _app.page_title }}</title>\n"
-            "    <link rel=\"stylesheet\" href=\"/theme/bulma/assets/css/style.css?{{ _globals.cache_control }}\">\n\n"
+            f"    {A.get('night-default-stylesheet', '<link rel=stylesheet href=/theme/bulma/assets/css/style.css>')}\n\n"
             f"    {A.get('base-stylesheet', '')}\n</head>\n"
-            "<body class=\"{{ _app.theme.is_dark_mode ? 'dark-mode' : 'default-mode' }}\">\n"
+            f"{body}\">\n"
             "    {% block body_content %}{% endblock %}\n"
             f"    <script src=\"/theme/bulma/assets/js/main.js\"></script>\n{A.get('base-island-block', '</body>')}\n</html>\n"
         ),
@@ -71,9 +84,8 @@ def _templates(a: dict[str, tuple[str, str]]) -> dict[str, str]:
             "{% for k, v in rows %}{{ k }}{% else %}-{% endfor %}\n{% endblock %}\n"
         ),
     }
-    known = set(files)
-    for patch_id, (rel, anchor) in a.items():   # patches added later still get their anchor
-        if rel not in known:
+    for rel, anchor in sorted(every):   # patches added later still get their anchor
+        if anchor not in files.get(rel, ""):
             files[rel] = files.get(rel, "") + anchor + "\n"
     return files
 
@@ -94,7 +106,7 @@ def make_keyhelp(root: Path, *, version: str = "26.1.1", patches_dir: Path = PAT
         "website": "https://example.org", "path_to_templates": "templates/", "has_dark_mode": True,
     }, indent=4), encoding="utf-8")
     (bulma / "_screenshot.png").write_bytes(tiny_png())
-    for rel, content in _templates(anchors(patches_dir)).items():
+    for rel, content in _templates(anchors(patches_dir), all_anchors(patches_dir)).items():
         path = bulma / "templates" / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
@@ -110,11 +122,13 @@ def set_version(root: Path, version: str) -> None:
 
 
 def make_assets(folder: Path, patches_dir: Path = PATCHES) -> Path:
-    """Placeholder files for everything the build requires (no npm build needed)."""
+    """Placeholder files for everything the builds of every variant require (no npm build needed)."""
     from lumen_panel.build import required_assets  # noqa: E402 (tests put generator/ on sys.path)
     from lumen_panel.patches import load_patches
+    from lumen_panel.variants import VARIANTS
 
-    for rel in required_assets(load_patches(patches_dir)):
+    needed = {rel for v in VARIANTS.values() for rel in required_assets(load_patches(patches_dir, v.patch_overlay), v)}
+    for rel in sorted(needed):
         path = folder / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         if rel.endswith(".svg"):
