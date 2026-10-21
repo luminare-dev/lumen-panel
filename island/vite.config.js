@@ -2,11 +2,12 @@
 // React is bundled in (production build); the stylesheet is inlined as a string for the
 // shadow root. No code splitting, no dynamic imports, no network requests at run time.
 import react from "@vitejs/plugin-react";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const pkg = await import("../package.json", { with: { type: "json" } });
+const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 export default defineConfig({
   root,
@@ -28,7 +29,7 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         banner:
-          `/*! lumen-panel ${pkg.default.version} command palette | MIT | ` +
+          `/*! lumen-panel ${pkg.version} command palette | MIT | ` +
           "https://github.com/luminare-dev/lumen-panel | includes React and React DOM " +
           "(MIT, Copyright (c) Meta Platforms, Inc. and affiliates) */",
       },
