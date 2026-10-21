@@ -1,4 +1,4 @@
-"""The preview image KeyHelp shows under Configuration -> Theme (``_screenshot.png``).
+"""The preview image KeyHelp shows under Configuration -> Appearance -> Theme (``_screenshot.png``).
 
 With PyMuPDF available (for example the brand venv), a mock of the panel is drawn from the
 design tokens and the Luminare lockup. Without it, the pre-rendered image shipped in

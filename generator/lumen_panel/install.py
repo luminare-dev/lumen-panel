@@ -317,8 +317,8 @@ def _rollback_text(tree: KeyHelpTree, backup: Path, parking: Path | None) -> str
         lines.append(f"  {parking} (with {SETTINGS} renamed to {PARKED_SETTINGS}), or, after the next run,")
         lines.append(f"  in <backup root>/<timestamp>/stale/{parking.name}; pass that folder to --from.")
     else:
-        lines.append("  1. In KeyHelp: Configuration -> Theme -> select the default theme and save.")
-        lines.append(f"  2. {me} uninstall --keyhelp {tree.root}")
+        lines.append("  1. In KeyHelp: Configuration -> Appearance -> Theme -> select the default theme and save.")
+        lines.append(f"  2. {me} uninstall --keyhelp {tree.root} --yes")
     return "\n".join(lines)
 
 
@@ -398,7 +398,7 @@ def _deploy(tree: KeyHelpTree, staging: Path, backup: Path, ts: str, out: Out, *
         raise PostSwapError(f"the new theme is installed at {tree.lumen_theme}, but a later step failed: "
                             + "; ".join(problems) + f". See {backup / 'ROLLBACK.txt'} and docs/runbook.md")
     if not had_previous:
-        out("Next: KeyHelp -> Configuration -> Theme -> select 'Lumen' and save.")
+        out("Next: KeyHelp -> Configuration -> Appearance -> Theme -> select 'Lumen' and save.")
     return EXIT_OK
 
 
@@ -635,7 +635,7 @@ def uninstall(keyhelp_root: Path, *, options: Options = Options(), panel_url: st
     if not tree.lumen_theme.exists() and not leftovers(tree):
         out(f"{tree.lumen_theme}: not installed; nothing to do")
         return EXIT_OK
-    out("Before removing: KeyHelp -> Configuration -> Theme -> select the default theme and save.")
+    out("Before removing: KeyHelp -> Configuration -> Appearance -> Theme -> select the default theme and save.")
     active = detect_active(panel_url, insecure=insecure) if panel_url else None
     if active is True:
         out(f"refused: {panel_url} still loads the Lumen stylesheet, so Lumen is the active theme")

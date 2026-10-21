@@ -2,7 +2,7 @@
 
 Output layout (``<out>/``):
 
-    _settings.json       what KeyHelp lists under Configuration -> Theme
+    _settings.json       what KeyHelp lists under Configuration -> Appearance -> Theme
     _screenshot.png      the preview image shown there
     _lumen_build.json    build record: base version and hashes, every template's sha256, the patches,
                          the asset and patch-set hashes (read by verify and check-update)
