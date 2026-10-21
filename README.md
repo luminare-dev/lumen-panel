@@ -24,12 +24,22 @@ panel's own default theme. Tested with KeyHelp 26.1.1.
 [![licence](https://img.shields.io/github/license/luminare-dev/lumen-panel)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/luminare-dev/lumen-panel/badge)](https://scorecard.dev/viewer/?uri=github.com/luminare-dev/lumen-panel)
 
-## Screenshot
+## Screenshots
 
-<!-- Screenshot slot: docs/images/lumen-light.png and docs/images/lumen-dark.png (1280x800),
-     taken from the gallery with example data only, shown in a <picture> like the header above. -->
-There is no screenshot in the repository yet. The [gallery](#gallery) renders every page and
-component in light and dark mode, left to right and right to left.
+Rendered from the [gallery](#gallery) with example data only (headless Chrome in the
+`screenshots` workflow, 1440 x 900 and 390 x 844 pixels). The live panel uses the same stylesheet.
+
+| Dashboard | Login page |
+|---|---|
+| ![Dashboard in the Lumen theme: sidebar, server information, utilisation bars and the domain table](docs/screenshots/lumen-dashboard.png) | ![Login page in the Lumen theme with the Luminare Development lockup](docs/screenshots/lumen-login.png) |
+
+| Forms | Tables |
+|---|---|
+| ![Form controls in the Lumen theme: text fields, password field, select, radio buttons, checkbox, an error state and a disabled field](docs/screenshots/lumen-forms.png) | ![Tables in the Lumen theme with striped rows and status tags](docs/screenshots/lumen-tables.png) |
+
+| Phone width (390 px) | Right to left |
+|---|---|
+| ![Dashboard at phone width with the collapsed navigation](docs/screenshots/lumen-dashboard-narrow.png) | ![Dashboard with right-to-left layout](docs/screenshots/lumen-dashboard-rtl.png) |
 
 ## Why
 
