@@ -27,7 +27,7 @@ checked and what it says, in [Official KeyHelp resources](keyhelp-resources.md).
 KeyHelp 26.1.1 (default theme 26.1.1) on Ubuntu 24.04 with Python 3.12, read-only, with
 placeholder assets; `install`, `rollback`, `sync`, `uninstall`, `hold` and `release`, including
 interrupted and parallel runs, are covered by the test suite on a fake panel tree. CI builds the
-assets, runs the 41 command palette tests and builds and verifies a theme from those assets on
+assets, runs the 50 command palette tests and builds and verifies a theme from those assets on
 every commit. `install` ran on the live KeyHelp 26.1.1 panel on 2026-10-21; the theme has not been
 selected yet, so activation, rollback and uninstall on a live panel are still to come. Route B has
 not been tried on a live panel yet.
