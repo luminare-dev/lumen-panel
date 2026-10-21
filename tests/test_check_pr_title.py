@@ -35,19 +35,21 @@ class TitleTest(unittest.TestCase):
         self.assertEqual(pt.problems("fix: ADR numbering starts at 0001"), [])
         self.assertTrue(pt.problems("feat: " + "x" * 100))
 
+    def test_dependabot_may_capitalise(self):
+        """Dependabot writes 'Bump ...'; only that bot is exempt from the lower-case rule."""
+        title = "ci(deps): Bump the actions group with 4 updates"
+        self.assertEqual(pt.problems(title, "dependabot[bot]"), [])
+        self.assertTrue(pt.problems(title, "someone"))
+        self.assertTrue(pt.problems(title))
+        self.assertTrue(pt.problems("Bump the actions group", "dependabot[bot]"))
+        self.assertTrue(any(p.startswith("wording") for p in pt.problems("ci(deps): Bump the pro version", "dependabot[bot]")))
+
     def test_offer_wording_is_rejected(self):
         """Release notes are built from the titles, so they must be offer-free too."""
         for title in ("feat: add pro version toggle", "docs: add donation link", "feat: coming soon page",
                       "docs: link the tebex package"):
             with self.subTest(title=title):
                 self.assertTrue(any(p.startswith("wording") for p in pt.problems(title)))
-
-    def test_dependabot_bump_is_accepted_only_from_dependabot(self):
-        title = "ci(deps): Bump the actions group with 4 updates"
-        self.assertEqual(pt.problems(title, "dependabot[bot]"), [])
-        self.assertTrue(pt.problems(title, "someone"))
-        self.assertTrue(pt.problems(title))
-        self.assertTrue(pt.problems("build(deps): Update vite", "dependabot[bot]"))
 
     def test_cli(self):
         with redirect_stdout(io.StringIO()):

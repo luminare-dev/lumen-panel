@@ -5,10 +5,10 @@
 # sha256 inputs in the reusable workflows) are not seen by Dependabot; bump them by hand
 # (PUBLISHING.md, monthly).
 #
-# Pull request titles must pass the pr-title check (Conventional Commits): the prefix carries the
-# type and scope, so the titles read "ci(deps): ..." and "build(deps): ...". Dependabot writes
-# "Bump" with a capital letter in some titles; scripts/check_pr_title.py accepts exactly that word
-# for pull requests opened by dependabot[bot].
+# Pull request titles must pass the pr-title check (Conventional Commits): "prefix" sets the type
+# and "include: scope" adds the scope, so the titles read "ci(deps): ..." and "build(deps): ...".
+# Dependabot capitalises the summary ("Bump ..."); scripts/check_pr_title.py relaxes only the
+# lower-case rule for dependabot[bot] (same configuration as oss-template).
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -19,7 +19,8 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: ci(deps)
+      prefix: ci
+      include: scope
     labels: [dependencies]
     groups:
       actions:
@@ -33,7 +34,8 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: build(deps)
+      prefix: build
+      include: scope
     labels: [dependencies]
     groups:
       dev-tools:
@@ -47,7 +49,8 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: build(deps)
+      prefix: build
+      include: scope
     labels: [dependencies]
     open-pull-requests-limit: 5
     groups:
