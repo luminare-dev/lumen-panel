@@ -15,7 +15,8 @@ The exact commands are in [Installation, Update lumen-panel](install.md#update-l
 2. With the optional units installed, run `python3 -m lumen_panel hold --variant all`, so they do
    not rebuild either theme while the code and the assets do not match yet.
 3. Fetch the new release: `git fetch --tags` and `git checkout --quiet vX.Y.Z` (or unpack the new
-   release archive after `sha256sum -c SHA256SUMS`).
+   release archive after `sha256sum -c SHA256SUMS` and
+   [verifying its provenance](install.md#verify-a-release)).
 4. Replace `dist/assets/` with the assets of the new tag: the CI artifact `theme-assets` of that
    commit with its digest checked, or a build on another machine
    ([Get the built assets](install.md#get-the-built-assets)); afterwards

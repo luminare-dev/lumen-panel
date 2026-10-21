@@ -19,9 +19,9 @@ gallery build also copies `LICENSE`, `NOTICE` and this file into `gallery/dist/`
 | React, React DOM, scheduler | see `package-lock.json` | MIT, Copyright (c) Meta Platforms, Inc. and affiliates | `dist/assets/lumen-island.js`, `gallery/dist/` |
 | Bulma | 0.9.4 | MIT, Copyright (c) 2022 Jeremy Thomas | `gallery/dist/` only (the gallery's base stylesheet) |
 
-Build and test tools (Vite, Rolldown, lightningcss, TypeScript, Vitest, jsdom, Testing Library
-and their dependencies) are used to build and test, not distributed; `package-lock.json` lists
-them with their licences.
+Build and test tools (Vite, Rolldown, lightningcss, TypeScript, Vitest, fast-check, jsdom,
+Testing Library and their dependencies) are used to build and test, not distributed;
+`package-lock.json` lists them with their licences.
 
 ## Not included
 

@@ -62,10 +62,11 @@ checked and what it says, in [Official KeyHelp resources](keyhelp-resources.md).
 KeyHelp 26.1.1 (default theme 26.1.1) on Ubuntu 24.04 with Python 3.12, read-only, with
 placeholder assets, for both themes; `install`, `rollback`, `sync`, `uninstall`, `hold` and
 `release`, including interrupted and parallel runs and both themes side by side, are covered by
-the test suite on a fake panel tree. CI builds the assets, runs the command palette tests and
+the test suite on a fake panel tree. CI builds the assets, runs the 52 command palette tests and
 builds and verifies both themes from those assets on every commit. Lumen was installed and
-selected on the live KeyHelp 26.1.1 panel on 2026-10-21; Lumen Dark has not been installed on a
-live panel yet. Route B has not been tried on a live panel yet.
+selected on the live KeyHelp 26.1.1 panel on 2026-10-21; Lumen Dark was installed next to it the
+same day (`verify` passed, including the Pro boundary check). Route B has not been tried on a
+live panel yet.
 
 ## Contents
 
@@ -125,7 +126,9 @@ the first release is published, stay on `main` and skip the `git checkout`.
 ### Alternative: the release archive
 
 Every release has a source archive, a `SHA256SUMS` file and, for releases made while the
-repository is public, a build provenance attestation. The archive holds the same files as the tag:
+repository is public, signed build provenance (`lumen-panel-X.Y.Z.tar.gz.intoto.jsonl`, a Sigstore
+bundle with a SLSA provenance statement). The archive holds the same files as the tag. Download
+and check it:
 
 ```bash
 V=X.Y.Z
@@ -133,12 +136,50 @@ cd /root
 curl -fsSLO "https://github.com/luminare-dev/lumen-panel/releases/download/v$V/lumen-panel-$V.tar.gz"
 curl -fsSLO "https://github.com/luminare-dev/lumen-panel/releases/download/v$V/SHA256SUMS"
 sha256sum -c SHA256SUMS                                # lumen-panel-X.Y.Z.tar.gz: OK
-gh attestation verify "lumen-panel-$V.tar.gz" --repo luminare-dev/lumen-panel   # optional, GitHub CLI
+```
+
+Stop if `sha256sum -c` does not print `OK`. To also check where the archive came from, run the
+commands from [Verify a release](#verify-a-release) now, in `/root`. Then unpack it in the same
+shell:
+
+```bash
 tar -xzf "lumen-panel-$V.tar.gz" -C /opt && mv "/opt/lumen-panel-$V" /opt/lumen-panel
 chown -R root:root /opt/lumen-panel && chmod -R go-w /opt/lumen-panel
 ```
 
-Stop if `sha256sum -c` does not print `OK`.
+### Verify a release
+
+`sha256sum -c SHA256SUMS` shows that the archive arrived complete and unchanged. The build
+provenance shows that the release workflow of `luminare-dev/lumen-panel`
+(`.github/workflows/reusable-release.yml`, started from the `main` branch) built it on GitHub
+Actions: it is signed with a short-lived Sigstore certificate issued to that workflow and recorded
+in the public Rekor transparency log. `--signer-workflow` and `--source-ref` make the commands
+below require exactly that workflow and branch; with `--repo` alone, any workflow of the
+repository on any branch would pass. The release workflow checks the provenance file the same way
+before it publishes a release. Check it with the [GitHub CLI](https://cli.github.com/), in the
+folder with the downloaded archive:
+
+```bash
+V=X.Y.Z
+sha256sum -c SHA256SUMS                                # lumen-panel-X.Y.Z.tar.gz: OK
+# Provenance stored on GitHub (needs `gh auth login`):
+gh attestation verify "lumen-panel-$V.tar.gz" --repo luminare-dev/lumen-panel \
+  --signer-workflow luminare-dev/lumen-panel/.github/workflows/reusable-release.yml --source-ref refs/heads/main
+# Or the provenance file of the release (no login, no GitHub API; see below for what it cannot check):
+curl -fsSLO "https://github.com/luminare-dev/lumen-panel/releases/download/v$V/lumen-panel-$V.tar.gz.intoto.jsonl"
+gh attestation verify "lumen-panel-$V.tar.gz" --repo luminare-dev/lumen-panel \
+  --signer-workflow luminare-dev/lumen-panel/.github/workflows/reusable-release.yml --source-ref refs/heads/main \
+  --bundle "lumen-panel-$V.tar.gz.intoto.jsonl"
+```
+
+Each command exits with a non-zero status when the check fails; stop then. The `--bundle` form
+compares `--repo` only with the repository name recorded in the certificate when the release was
+signed: it cannot tell whether the repository has been renamed since or whether another repository
+now has that name. The first form fetches the provenance from GitHub and also confirms that it
+belongs to the repository that has the name today. The `--bundle` form still downloads Sigstore's
+trusted root. On a machine without internet access, run
+`gh attestation trusted-root > trusted_root.jsonl` on a connected machine, copy the file over and
+add `--custom-trusted-root trusted_root.jsonl`.
 
 ## Get the built assets
 

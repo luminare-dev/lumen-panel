@@ -320,11 +320,11 @@ Fixes go into the latest minor release only. See the
 |---|---|---|
 | Contrast, text pairs | 70 pairs (52 in every mode, 18 only in Lumen Dark: selected text, editor syntax and selections, the rich text editor's sheet and dialogs, chart labels), lowest 4.55:1 (light), 4.51:1 (dark and Lumen Dark), minimum 4.5:1; plus one transient pair at 3:1 (an error mark inside a code selection, 3.57:1) | `python3 scripts/contrast.py`, WCAG 2.x formula, 2026-10-21; full table in [docs/contrast.md](docs/contrast.md) |
 | Contrast, UI parts | 22 pairs (control borders, focus rings, progress fills, close-button crosses, the editor cursor, the active toolbar button, inline-coloured icons), lowest 3.17:1 (light) and 3.08:1 (dark and Lumen Dark), minimum 3:1 | same |
-| Generator and repository tests | 220 Python tests pass, 1 skipped (a template-only test), with gitleaks and markdownlint-cli2 on the path | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only), including the audits of its default and editor stylesheets |
-| Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (12 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; not installed yet. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash), and its patch-set hash is the installed build's: `check-update` reports the installed Lumen up to date with the assets it was installed from | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), KeyHelp 26.1.1, 2026-10-21 |
-| Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library); 2 more for Lumen Dark added since, not yet run | `npm test` in CI (Node.js 22), 2026-10-21 |
+| Generator and repository tests | 226 Python tests pass, 1 skipped (a template-only test), with gitleaks and markdownlint-cli2 on the path | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only), including the audits of its default and editor stylesheets |
+| Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (12 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; installed next to Lumen on 2026-10-21 from the CI assets. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash), and its patch-set hash is the installed build's: `check-update` reports the installed Lumen up to date with the assets it was installed from | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), then `install --variant lumen-dark` on the panel, KeyHelp 26.1.1, 2026-10-21 |
+| Command palette tests | 52 tests pass (Vitest, fast-check property tests, jsdom, Testing Library) | `npm test` in CI (Node.js 22), 2026-10-21 |
 | Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
-| Stylesheet size | about 46 KB per file, minified (Lumen's four files); Lumen Dark's two files are not measured yet | `node scripts/build-css.mjs` in CI, 2026-10-21 |
+| Stylesheet size | about 46 KB per file, minified (Lumen's four files); about 65 KB for each of Lumen Dark's two files | `node scripts/build-css.mjs` in CI, 2026-10-21 |
 
 ## Documentation and links
 
@@ -336,7 +336,8 @@ Fixes go into the latest minor release only. See the
   [Official KeyHelp resources](docs/keyhelp-resources.md)
 - [Changelog](CHANGELOG.md) (written by release-please) and
   [releases](https://github.com/luminare-dev/lumen-panel/releases) (each release has
-  `SHA256SUMS`, and a build provenance attestation while the repository is public)
+  `SHA256SUMS` and, while the repository is public, signed SLSA build provenance as
+  `<archive>.intoto.jsonl`; [how to verify a release](docs/install.md#verify-a-release))
 - [Contributing](https://github.com/luminare-dev/.github/blob/main/CONTRIBUTING.md) ·
   [Code of conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md) ·
   [Security](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) ·

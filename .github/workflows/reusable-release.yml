@@ -1,8 +1,8 @@
 # Reusable release: release-please keeps a release pull request open; merging it creates a draft
 # GitHub release and the vX.Y.Z tag. The same run then builds the source archive, writes
-# SHA256SUMS, attests the archive (SLSA build provenance), attaches both files and publishes the
-# release. Everything happens in one run because a tag or release created with GITHUB_TOKEN
-# does not trigger other workflows.
+# SHA256SUMS, attests the archive (SLSA build provenance), attaches the archive, SHA256SUMS and the
+# attestation (<archive>.intoto.jsonl) and publishes the release. Everything happens in one run
+# because a tag or release created with GITHUB_TOKEN does not trigger other workflows.
 #
 # The release is created as a draft (release-please-config.json: draft + force-tag-creation) and
 # published only after every file is attached, so it also works with immutable releases turned on.
@@ -104,10 +104,37 @@ jobs:
         run: cd dist && sha256sum -c SHA256SUMS
 
       - name: Attest build provenance
+        id: attest
         if: ${{ !github.event.repository.private }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: dist/*.tar.gz
+
+      # The attestation as a release file, so it can be checked without the GitHub API:
+      # <archive>.intoto.jsonl is the Sigstore bundle actions/attest wrote (one JSON line: signing
+      # certificate, transparency-log entry, DSSE envelope with the SLSA v1 provenance statement),
+      # the format and name slsa-github-generator v2.1+ uses. Checked here with the command from
+      # docs/install.md while the release is still a draft. Skipped with the attest step.
+      # The certificate of a reusable workflow names that workflow (job_workflow_ref), so
+      # --signer-workflow is this file; --source-ref requires a run started from the default branch.
+      - name: Add the provenance file and verify it
+        if: ${{ steps.attest.outcome == 'success' }}
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          archives=(dist/*.tar.gz)
+          if [ "${#archives[@]}" -ne 1 ]; then
+            echo "::error::expected one archive in dist/, found ${#archives[@]}"
+            exit 1
+          fi
+          cp "$BUNDLE" "${archives[0]}.intoto.jsonl"
+          gh attestation verify "${archives[0]}" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/reusable-release.yml" \
+            --source-ref "refs/heads/$DEFAULT_BRANCH" --bundle "${archives[0]}.intoto.jsonl"
 
       - name: Attach the files and publish the release
         env:
