@@ -310,7 +310,7 @@ Fixes go into the latest minor release only. See the
 | Contrast, UI parts | 17 pairs (control borders, focus rings, progress fills, close-button crosses, the editor cursor), lowest 3.17:1 (light) and 3.08:1 (dark and Lumen Dark), minimum 3:1 | same |
 | Generator and repository tests | 211 Python tests pass, 4 skipped (gitleaks and markdownlint-cli2 not installed, one template-only test) | `LUMEN_BRAND_KIT=<kit> python3 -m unittest discover -s tests`, 2026-10-21, with the KeyHelp 26.1.1 install present (read-only) |
 | Generator against the live panel | Lumen: build and verify pass (215 templates, 211 byte for byte equal to the default theme, 4 patched files reproduce exactly), installed and selected. Lumen Dark: build and verify pass (12 patches, the Pro boundary check included), its patched templates load only `style.css` and `style-rtl.css` of the default theme; not installed yet. Lumen's patched templates, settings and readme came out byte for byte as before Lumen Dark (apart from the asset hash) | `python3 -m lumen_panel build --variant <theme>` and `verify --keyhelp` into a scratch folder with placeholder assets (read-only), KeyHelp 26.1.1, 2026-10-21 |
-| Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library) | `npm test` in CI (Node.js 22), 2026-10-21 |
+| Command palette tests | 41 tests pass (Vitest, jsdom, Testing Library); 2 more for Lumen Dark added since, not yet run | `npm test` in CI (Node.js 22), 2026-10-21 |
 | Command palette size | 71.8 KB after gzip (CI, 2026-10-21); the build fails above 80 KB | `node scripts/check-island.mjs` |
 | Stylesheet size | about 46 KB per file, minified (Lumen's four files); Lumen Dark's two files are not measured yet | `node scripts/build-css.mjs` in CI, 2026-10-21 |
 
