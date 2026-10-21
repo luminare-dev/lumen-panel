@@ -5,8 +5,10 @@ applies the patch set to a copy of its templates and adds the Lumen assets. Noth
 downloaded or shipped with this repository.
 
 Status of testing (2026-10-21): `build` and `verify` ran against KeyHelp 26.1.1 on Ubuntu 24.04
-(Python 3.12) with placeholder assets; `install`, `rollback`, `sync` and `uninstall` are covered
-by the test suite on a fake panel tree. A first install on a live panel is still to come.
+(Python 3.12) with placeholder assets; `check-update` ran there inside the sandbox of the
+optional sync unit; `install`, `rollback`, `sync` and `uninstall` are covered by the test suite on
+a fake panel tree. The asset build (`npm run build`) and the command palette's unit tests have not
+run yet, and a first install on a live panel is still to come.
 
 ## Requirements
 

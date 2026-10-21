@@ -18,14 +18,16 @@ and enhances it with jQuery; replacing that would mean rewriting a proprietary a
 ## Decision
 
 Chosen option 3. The visual design is one stylesheet over the panel's markup. React renders the
-gallery (our own panel-like markup, built with Vite) and the command palette (Ctrl+K), which is
-one deferred IIFE file. The palette renders into a shadow root, reads the panel's own navigation
-from the page, makes no network request and stores nothing.
+gallery (our own panel-like markup, built with Vite) and the command palette (Ctrl+K, and a small
+search button in the header), which is one deferred IIFE file written in TypeScript. The palette
+renders into shadow roots, reads the panel's own navigation from the page, makes no network
+request and stores nothing ([ADR 0010](0010-the-command-palette-stores-nothing.md)).
 
 ## Consequences
 
 - Good: panel behaviour, permissions and forms stay KeyHelp's; the palette cannot break the
   panel's styles and the panel's styles cannot break it.
 - Good: the gallery shows every component in light, dark, LTR and RTL without a panel.
-- Bad: the palette script bundles React, a fixed cost of a few hundred kilobytes before
-  compression; browsers load it once per build thanks to the `?v=` cache key.
+- Bad: the palette script bundles React and React DOM, which make up most of the file (the
+  build fails above 70 KB after gzip, `scripts/check-island.mjs`); browsers load it once per
+  build thanks to the `?v=` cache key.

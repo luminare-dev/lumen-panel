@@ -8,15 +8,17 @@
 
 ## Bundled into the built files (not in the repository)
 
-`npm run build` writes these into `dist/`; their licence notices travel with the built files.
+`npm run build` writes these into `dist/assets/` (the theme's files) and `gallery/dist/` (the
+static gallery); their licence notices travel with the built files.
 
 | Component | Version | Licence | Built file |
 |---|---|---|---|
-| React, React DOM, scheduler | see `package-lock.json` | MIT, Copyright (c) Meta Platforms, Inc. and affiliates | `dist/assets/lumen-island.js`, `dist/gallery/` |
-| Bulma | 0.9.4 | MIT, Copyright (c) 2023 Jeremy Thomas | `dist/gallery/` only (the gallery's base stylesheet) |
+| React, React DOM, scheduler | see `package-lock.json` | MIT, Copyright (c) Meta Platforms, Inc. and affiliates | `dist/assets/lumen-island.js`, `gallery/dist/` |
+| Bulma | 0.9.4 | MIT, Copyright (c) 2023 Jeremy Thomas | `gallery/dist/` only (the gallery's base stylesheet) |
 
-Build tools (Vite, Rolldown, lightningcss and their dependencies) are used to build, not
-distributed; `package-lock.json` lists them with their licences.
+Build and test tools (Vite, Rolldown, lightningcss, TypeScript, Vitest, jsdom, Testing Library
+and their dependencies) are used to build and test, not distributed; `package-lock.json` lists
+them with their licences.
 
 ## Not included
 
