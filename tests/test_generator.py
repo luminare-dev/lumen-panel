@@ -10,6 +10,7 @@ import hashlib
 import io
 import json
 import os
+import shlex
 import shutil
 import sys
 import tempfile
@@ -25,7 +26,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 import fakekeyhelp as fk  # noqa: E402
 from lumen_panel import __version__, cli  # noqa: E402
 from lumen_panel import install as inst  # noqa: E402
-from lumen_panel.build import BuildError, SourceChangedError, build  # noqa: E402
+from lumen_panel.build import REPO_ROOT, BuildError, SourceChangedError, build  # noqa: E402
 from lumen_panel.keyhelp import KeyHelpError, tree_sha256  # noqa: E402
 from lumen_panel.patches import Patch, PatchError, apply_patches, load_patches, marker  # noqa: E402
 from lumen_panel.twigcache import find_theme_entries  # noqa: E402
@@ -334,6 +335,30 @@ class UninstallTest(Env):
         self.assertFalse(self.lumen.exists())
         self.assertTrue((self.tmp / "backups" / later / "lumen" / "_settings.json").is_file())
         self.assertTrue(self.bulma.is_dir())
+
+    def test_undo_commands_change_to_the_generator_folder(self):
+        """ROLLBACK.txt is read from anywhere (often /root), but `python3 -m lumen_panel` runs only
+        from the generator folder: every undo command changes there first."""
+        cd = f"cd {shlex.quote(str(REPO_ROOT / 'generator'))} && python3 -m lumen_panel"
+        self.assertTrue((REPO_ROOT / "generator" / "lumen_panel" / "__main__.py").is_file())
+        backups = self.tmp / "backups"
+        texts: dict[str, str] = {}
+        runs = (("first install", "1Z", inst.install, {}), ("reinstall", "2Z", inst.install, {}),
+                ("uninstall", "3Z", inst.uninstall, {"confirmed": True}))
+        for name, suffix, fn, kwargs in runs:
+            ts = inst.timestamp()[:-1] + suffix
+            with mock.patch.object(inst, "timestamp", return_value=ts):
+                code, out = lines(fn, self.kh, options=self.options, **kwargs)
+            self.assertEqual(code, 0, out)
+            texts[name] = (backups / ts / "ROLLBACK.txt").read_text(encoding="utf-8")
+            self.assertIn(texts[name].strip(), out, f"{name}: the undo text is printed as well")
+        self.assertIn(f"2. {cd} uninstall --keyhelp {self.kh} --yes", texts["first install"])
+        for name in ("reinstall", "uninstall"):
+            self.assertIn(f"{cd} rollback --keyhelp {self.kh} --from {backups}/", texts[name])
+        for name, text in texts.items():
+            for line in text.splitlines():
+                if "python3 -m lumen_panel" in line:
+                    self.assertIn(cd, line, f"{name}: {line}")
 
     def test_detect_active_reads_the_login_page(self):
         class Resp(io.BytesIO):

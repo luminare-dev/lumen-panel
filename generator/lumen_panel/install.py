@@ -27,6 +27,7 @@ import json
 import os
 import pwd
 import grp
+import shlex
 import shutil
 import ssl
 import sys
@@ -39,8 +40,8 @@ from pathlib import Path
 from typing import Callable, Iterator
 
 from . import THEME_DIR_NAME, __version__
-from .build import (DEFAULT_ASSETS, DEFAULT_PATCHES, DEFAULT_SCREENSHOT, MANIFEST_NAME, BuildError, asset_hash,
-                    build)
+from .build import (DEFAULT_ASSETS, DEFAULT_PATCHES, DEFAULT_SCREENSHOT, MANIFEST_NAME, REPO_ROOT, BuildError,
+                    asset_hash, build)
 from .keyhelp import KeyHelpTree, tree_sha256
 from .patches import patch_set_sha256
 from .twigcache import find_theme_entries
@@ -306,8 +307,14 @@ def hold_text(held: dict) -> str:
 # --------------------------------------------------------------------------------------------
 # commands
 # --------------------------------------------------------------------------------------------
+def undo_command() -> str:
+    """How an undo line in ROLLBACK.txt starts: `python3 -m lumen_panel` only runs from the
+    generator folder, and ROLLBACK.txt is usually read from somewhere else."""
+    return f"cd {shlex.quote(str(REPO_ROOT / 'generator'))} && python3 -m lumen_panel"
+
+
 def _rollback_text(tree: KeyHelpTree, backup: Path, parking: Path | None) -> str:
-    me = "python3 -m lumen_panel"
+    me = undo_command()
     lines = ["Undo this change:"]
     if parking is not None:
         lines.append(f"  {me} rollback --keyhelp {tree.root} --from {backup}")
@@ -651,7 +658,7 @@ def uninstall(keyhelp_root: Path, *, options: Options = Options(), panel_url: st
         if not tree.lumen_theme.exists():
             return EXIT_OK
         text = ("Undo this change:\n"
-                f"  python3 -m lumen_panel rollback --keyhelp {tree.root} --from {backup}")
+                f"  {undo_command()} rollback --keyhelp {tree.root} --from {backup}")
         (backup / "ROLLBACK.txt").write_text(text + "\n", encoding="utf-8")
         _move(tree.lumen_theme, backup / "lumen")
         moved = move_cache_entries(tree, backup / "twig-cache")
