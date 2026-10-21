@@ -7,8 +7,9 @@ once. The message names each failing patch, for example
 `10-base-stylesheet.json [base-stylesheet]: anchor not found in layout/base.twig`.
 
 **Fix:** nothing was changed on the panel. Update the anchor in the named patch file to the new
-template text (it must occur exactly once), run `python3 -m unittest discover -s tests`, which
-also checks every anchor against the local install, and install again.
+template text (it must occur exactly once; Lumen Dark's own patches are in `patches/lumen-dark/`),
+run `python3 -m unittest discover -s tests`, which also checks every anchor of both themes against
+the local install, and install again.
 
 ## "assets incomplete: ... missing (run 'npm run build')"
 
@@ -23,8 +24,9 @@ memory.
 ## "files the theme does not use: ..."
 
 **Cause:** `dist/assets/` holds a file the theme does not load (an old bundle, a source map).
-Everything below `theme/lumen/assets/` would be downloadable from the panel, so the build only
-takes `lumen*.css`, `lumen-island.js`, `fonts/*`, `brand/*.svg` and the files the patches list.
+Everything below `theme/lumen/assets/` and `theme/lumen-dark/assets/` would be downloadable from
+the panel, so the build only takes the themes' stylesheets (`lumen*.css`), `lumen-island.js`,
+`fonts/*`, `brand/*.svg` and the files the patches list.
 
 **Fix:** delete the named files, or rebuild: `npm run build:css` empties `dist/assets/` first.
 
@@ -35,16 +37,40 @@ takes `lumen*.css`, `lumen-island.js`, `fonts/*`, `brand/*.svg` and the files th
 **Fix:** nothing was installed; run the command again a few minutes later. See the
 [runbook](runbook.md#exit-code-75-busy-or-the-default-theme-changed-during-the-build).
 
-## Lumen is not listed under Configuration → Appearance → Theme
+## Lumen or Lumen Dark is not listed under Configuration → Appearance → Theme
 
-**Cause:** `theme/lumen/_settings.json` is missing or not readable by the panel user.
+**Cause:** `theme/lumen/_settings.json` (or `theme/lumen-dark/_settings.json`) is missing or not
+readable by the panel user, or that theme was never installed (`install --variant lumen-dark`
+installs Lumen Dark; a plain `install` installs Lumen only).
 
 **Fix:** check the folder and its owner, then verify it:
 
 ```bash
-ls -l /home/keyhelp/www/keyhelp/theme/lumen/_settings.json
-cd generator && sudo python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen --keyhelp /home/keyhelp/www/keyhelp
+ls -l /home/keyhelp/www/keyhelp/theme/lumen/_settings.json /home/keyhelp/www/keyhelp/theme/lumen-dark/_settings.json
+cd /opt/lumen-panel/generator
+sudo python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen --keyhelp /home/keyhelp/www/keyhelp
+sudo python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen-dark --keyhelp /home/keyhelp/www/keyhelp
 ```
+
+## Lumen Dark has no dark-mode switch and no "Default design mode"
+
+**Cause:** none; this is how it is meant to be. Lumen Dark is always dark by its own stylesheet and
+declares no dark mode, so the panel shows neither the switch in the user menu nor the design mode
+on the Theme page for it. It does not use the dark mode of KeyHelp Pro
+([ADR 0011](adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)).
+
+**Fix:** for a light panel, select **Lumen** (or the default theme) instead.
+
+## Parts of a page stay light in Lumen Dark
+
+**Cause:** a part that no stylesheet can reach: the panel's images made for light backgrounds
+(shown on a small light plate on purpose), the doughnut charts on the dashboards, or the embedded
+Rspamd interface. Or White Label CSS that sets light colours (it loads after Lumen Dark on
+purpose), or a browser cache with an older stylesheet.
+
+**Fix:** reload without the cache (Ctrl+Shift+R) and review **Additional CSS** on the White Label
+page. Anything else that stays light is a missing rule: open an issue with the page and the
+element (the developer tools show its classes).
 
 ## The theme is selected but pages still look like the default theme
 
@@ -62,7 +88,8 @@ language entry).
 editors (file manager, template editors). Some browser extensions take Ctrl+K first.
 
 **Fix:** click into the page outside an editor and press Ctrl+K again (Cmd+K on a Mac). Check that
-`/theme/lumen/assets/lumen-island.js` loads (browser developer tools, Network tab).
+`/theme/lumen/assets/lumen-island.js` (Lumen Dark: `/theme/lumen-dark/assets/lumen-island.js`)
+loads (browser developer tools, Network tab).
 
 ## The asset build stops with an out-of-memory error
 
@@ -72,15 +99,17 @@ editors (file manager, template editors). Some browser extensions take Ctrl+K fi
 to the server, or run the build with a memory limit when enough memory is free
 ([Get the built assets](install.md#get-the-built-assets)).
 
-## The panel shows errors after selecting Lumen, and the Theme page does not load
+## The panel shows errors after selecting Lumen or Lumen Dark, and the Theme page does not load
 
 **Cause:** a template of the build fails with this panel version.
 
-**Fix:** move the theme folder out of the panel (the command does not ask the panel first):
+**Fix:** move the selected theme's folder out of the panel (the command does not ask the panel
+first):
 
 ```bash
 cd /opt/lumen-panel/generator
-sudo python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes
+sudo python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes                       # Lumen
+sudo python3 -m lumen_panel uninstall --variant lumen-dark --keyhelp /home/keyhelp/www/keyhelp --yes  # Lumen Dark
 ```
 
 Keyweb's fix for a theme that breaks the panel has two steps: remove the theme's folder, and

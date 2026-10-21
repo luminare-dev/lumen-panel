@@ -12,7 +12,7 @@ Keyweb AG.
 
 | Resource | Link | Status on 2026-10-21 | What it says, and where we use it |
 |---|---|---|---|
-| Product page | <https://www.keyweb.de/en/keyhelp/keyhelp/> | 200. <https://www.keyhelp.de/> and <https://www.keyhelp.de/documentation/> redirect here (302). | "KeyHelp® – the control panel for your server hosting". Lists dark mode among the additional features of KeyHelp Pro (used in [install.md](install.md#activate-lumen-in-the-panel)). Links the forum and the API documentation. |
+| Product page | <https://www.keyweb.de/en/keyhelp/keyhelp/> | 200. <https://www.keyhelp.de/> and <https://www.keyhelp.de/documentation/> redirect here (302). | "KeyHelp® – the control panel for your server hosting". Lists dark mode among the additional features of KeyHelp Pro (used in [install.md](install.md#activate-lumen-or-lumen-dark-in-the-panel) and [ADR 0011](adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)). Links the forum and the API documentation. |
 | Install KeyHelp | <https://www.keyweb.de/en/keyhelp/keyhelp/#install> | 200 (the section `#install` of the product page; the older <https://www.keyweb.de/en/keyhelp/install> redirects here, 301) | Requirements: "Operating system: Ubuntu LTS or Debian", "Memory: at least 2 GB RAM / recommended from 4 GB RAM", a clean system (minimal image), "The installation must be performed as root user."; then the installer command. lumen-panel assumes a panel installed this way. |
 | Overview of all functions | <https://www.keyweb.de/en/keyhelp/keyhelp/overview-of-all-functions> | 200 | "With the white-label function, you can tailor the server hosting tool to your design ideas: Use your own logo and adapt styles and functions to your own wishes and needs. In addition, you can also develop your own themes." The two routes of [install.md](install.md) are these two options. |
 | Knowledge base (manuals) | <https://kb.keyhelp.de/>, in English <https://kb.keyhelp.de/index.php?ln=en> | 200 | The user and administrator manual. Keyweb's documentation page <https://doc.keyhelp.de/switch/?lang=en> calls it the "Online Documentation", marked up to date, and adds "This manual is not yet complete."; its PDF manual covers versions up to 14.7.2. Administrator area: <https://kb.keyhelp.de/category/administrator-area/78/>. |
@@ -57,7 +57,8 @@ the server (quoted briefly; the templates themselves are described, never copied
 
 - **Configuration → Appearance → Theme:** "Change the theme for all accounts on this server.", a
   note that the white label settings may need an update to work with the selected theme, and per
-  theme its Description, Version, Author, Website and "Default design mode" (Default, Dark mode).
+  theme its Description, Version, Author, Website and, for a theme that declares a dark mode,
+  "Default design mode" (Default, Dark mode).
 - **Configuration → Appearance → White Label:** the "All languages" settings "apply to all
   accounts, regardless of the language used" and "can be overwritten by the language-specific
   settings"; "Additional CSS" ("You can define your own CSS styles and override the current
