@@ -1,9 +1,9 @@
 """The preview image KeyHelp shows under Configuration -> Appearance -> Theme (``_screenshot.png``).
 
 With PyMuPDF available (for example the brand venv), a mock of the panel is drawn from the
-design tokens and the Luminare lockup. Without it, the pre-rendered image shipped in
-``assets/brand/theme-screenshot.png`` is copied. ``scripts/render_screenshot.py`` refreshes
-that file.
+design tokens and the Luminare lockup: light for Lumen, the night colours for Lumen Dark.
+Without it, the pre-rendered image of the variant is copied (``assets/brand/theme-screenshot.png``
+or ``assets/brand/theme-screenshot-dark.png``). ``scripts/render_screenshot.py`` refreshes both.
 """
 
 from __future__ import annotations
@@ -15,6 +15,10 @@ WIDTH, HEIGHT = 500, 250   # the default theme's preview size (points; rendered 
 
 LIGHT = {"bg": "#F3F6FB", "surface": "#FFFFFF", "border": "#E3E8F1", "text": "#0A1224",
          "muted": "#B7C1D3", "primary": "#1F47C4", "tint": "#E9EDF9", "success": "#028844"}
+# Lumen Dark: the dark token set (src/styles/tokens.css), always on.
+NIGHT = {"bg": "#0A1224", "surface": "#10182B", "border": "#303A4F", "text": "#F3F6FB",
+         "muted": "#39445C", "primary": "#5BDFFF", "tint": "#142B3E", "success": "#58DD70"}
+PALETTES = {"light": LIGHT, "night": NIGHT}
 
 
 def _rgb(hex_colour: str) -> tuple[float, float, float]:
@@ -22,10 +26,10 @@ def _rgb(hex_colour: str) -> tuple[float, float, float]:
     return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))  # type: ignore[return-value]
 
 
-def render(dest: Path, lockup_svg: Path, scale: float = 2.0) -> None:
+def render(dest: Path, lockup_svg: Path, scale: float = 2.0, palette: str = "light") -> None:
     import pymupdf  # optional dependency, only for this function
 
-    c = {k: _rgb(v) for k, v in LIGHT.items()}
+    c = {k: _rgb(v) for k, v in PALETTES[palette].items()}
     doc = pymupdf.open()
     page = doc.new_page(width=WIDTH, height=HEIGHT)
 
@@ -76,11 +80,11 @@ def render(dest: Path, lockup_svg: Path, scale: float = 2.0) -> None:
     pix.save(str(dest))
 
 
-def write_screenshot(dest: Path, *, lockup_svg: Path | None, fallback: Path) -> str:
+def write_screenshot(dest: Path, *, lockup_svg: Path | None, fallback: Path, palette: str = "light") -> str:
     """Render the preview if PyMuPDF is importable, otherwise copy the pre-rendered fallback."""
     if lockup_svg is not None and lockup_svg.is_file():
         try:
-            render(dest, lockup_svg)
+            render(dest, lockup_svg, palette=palette)
             return "rendered"
         except ImportError:
             pass

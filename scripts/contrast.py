@@ -4,7 +4,11 @@
 Reads src/styles/tokens.css (the light :root block and the dark-mode block) and
 src/styles/contrast-pairs.json, then:
   * recomputes every derived colour written as "mix(a NN%, b)" and checks its hex;
-  * computes the WCAG 2.x contrast ratio of every pair in light and dark mode;
+  * computes the WCAG 2.x contrast ratio of every pair in each of its modes: light (Lumen),
+    dark (Lumen in the panel's dark mode) and night (Lumen Dark, which uses the dark token set
+    on top of the panel's light stylesheet). A pair applies to all three unless it lists its
+    "modes"; a pair Lumen Dark alone uses (the editors, the inverted chart labels) lists
+    ["night"]. A colour may be a token name or a literal "#RRGGBB" the stylesheet produces;
   * writes docs/contrast.md (or, with --check, fails when that file is out of date);
   * exits 1 when a pair is below its minimum (4.5:1 text, 3:1 UI parts) or a mix is wrong.
 
@@ -45,7 +49,12 @@ def declarations(block: str) -> dict[str, tuple[str, str | None]]:
     return {m.group(1): (m.group(2).strip(), m.group(3)) for m in DECL_RE.finditer(block)}
 
 
+MODES = ("light", "dark", "night")
+
+
 def resolve(name: str, decls: dict[str, tuple[str, str | None]], seen: tuple[str, ...] = ()) -> str | None:
+    if HEX_RE.match(name):
+        return name.upper()
     if name in seen or name not in decls:
         return None
     value = decls[name][0]
@@ -77,10 +86,21 @@ def mix(a: str, b: str, share: float) -> str:
                          for i in (0, 2, 4))
 
 
-def analyse(css: str, pairs: list[dict]) -> tuple[list[dict], list[str]]:
+def mode_declarations(css: str) -> dict[str, dict[str, tuple[str, str | None]]]:
+    """The token values of each mode. Lumen Dark (night) puts the dark block on :root."""
     light_block, dark_block = blocks(css)
     light = declarations(light_block)
     dark = {**light, **declarations(dark_block)}
+    return {"light": light, "dark": dark, "night": dark}
+
+
+def pair_modes(pair: dict) -> tuple[str, ...]:
+    return tuple(m for m in MODES if m in pair.get("modes", MODES))
+
+
+def analyse(css: str, pairs: list[dict]) -> tuple[list[dict], list[str]]:
+    modes = mode_declarations(css)
+    light, dark = modes["light"], modes["dark"]
     problems: list[str] = []
     for mode, decls in (("light", light), ("dark", dark)):
         for name, (value, comment) in decls.items():
@@ -99,19 +119,36 @@ def analyse(css: str, pairs: list[dict]) -> tuple[list[dict], list[str]]:
                 problems.append(f"{mode} --lm-{name}: {value} is not {comment} = {want}")
     rows: list[dict] = []
     for pair in pairs:
-        row = {"pair": pair, "light": None, "dark": None}
-        for mode, decls in (("light", light), ("dark", dark)):
+        row: dict = {"pair": pair, **{m: None for m in MODES}}
+        unknown = set(pair.get("modes", MODES)) - set(MODES)
+        if unknown or not pair_modes(pair):
+            problems.append(f"{name(pair['fg'])} on {name(pair['bg'])}: modes must be some of {', '.join(MODES)}")
+        for mode in pair_modes(pair):
+            decls = modes[mode]
             fg, bg = resolve(pair["fg"], decls), resolve(pair["bg"], decls)
             if not fg or not bg:
-                problems.append(f"{mode}: cannot resolve --lm-{pair['fg']} or --lm-{pair['bg']}")
+                problems.append(f"{mode}: cannot resolve {name(pair['fg'])} or {name(pair['bg'])}")
                 continue
             r = ratio(fg, bg)
             row[mode] = (r, fg, bg)
             if r < pair["min"]:
-                problems.append(f"{mode}: --lm-{pair['fg']} on --lm-{pair['bg']} is {r:.2f}:1, "
+                problems.append(f"{mode}: {name(pair['fg'])} on {name(pair['bg'])} is {r:.2f}:1, "
                                 f"needs {pair['min']}:1 ({pair['use']})")
         rows.append(row)
     return rows, problems
+
+
+def name(colour: str) -> str:
+    """How a pair's colour is written: --lm-<token>, or the literal hex."""
+    return colour if HEX_RE.match(colour) else f"--lm-{colour}"
+
+
+def cell(row: dict, mode: str) -> str:
+    if row[mode] is None:
+        return "n/a"
+    r, fg, bg = row[mode]
+    mark = "pass" if r >= row["pair"]["min"] else "**FAIL**"
+    return f"{int(r * 100) / 100:.2f} {mark} (`{fg}` on `{bg}`)"
 
 
 def render(rows: list[dict]) -> str:
@@ -124,20 +161,36 @@ def render(rows: list[dict]) -> str:
         "fills and other indicators need 3:1 (SC 1.4.11). Ratios use the WCAG 2.x relative luminance",
         "formula and are rounded down to two decimals.",
         "",
-        "| Foreground | Background | Used for | Min | Light | Dark |",
+        "Lumen Dark (`theme/lumen-dark`) uses the dark token set on top of the panel's light",
+        "stylesheet, so the dark column holds for it as well; every pair is checked in it again. The",
+        "second table lists the pairs only Lumen Dark draws: selected text, the code editor's syntax",
+        "colours on the editor, its highlighted line and its selection, the rich text editor's light",
+        "editing sheet and toolbar, focus rings, inline-coloured icons and the monitoring charts'",
+        "labels after their inversion. One text pair there has a 3:1 minimum: an error mark inside a",
+        "code selection, a state that lasts only while the text is selected.",
+        "",
+        "| Foreground | Background | Used for | Min | Light | Dark and Lumen Dark |",
         "|---|---|---|---|---|---|",
     ]
-    for row in rows:
+    night_only = [row for row in rows if pair_modes(row["pair"]) == ("night",)]
+    shared = [row for row in rows if row not in night_only]
+    for row in shared:
         p = row["pair"]
-        cells = []
-        for mode in ("light", "dark"):
-            if row[mode] is None:
-                cells.append("n/a")
-                continue
-            r, fg, bg = row[mode]
-            mark = "pass" if r >= p["min"] else "**FAIL**"
-            cells.append(f"{int(r * 100) / 100:.2f} {mark} (`{fg}` on `{bg}`)")
-        out.append(f"| `--lm-{p['fg']}` | `--lm-{p['bg']}` | {p['use']} | {p['min']} | {cells[0]} | {cells[1]} |")
+        dark = cell(row, "dark")
+        if row["night"] is not None and row["dark"] is not None and row["night"] != row["dark"]:
+            dark += f"; Lumen Dark {cell(row, 'night')}"
+        out.append(f"| `{name(p['fg'])}` | `{name(p['bg'])}` | {p['use']} | {p['min']} | {cell(row, 'light')} | {dark} |")
+    if night_only:
+        out += [
+            "",
+            "## Lumen Dark only",
+            "",
+            "| Foreground | Background | Used for | Min | Lumen Dark |",
+            "|---|---|---|---|---|",
+        ]
+        for row in night_only:
+            p = row["pair"]
+            out.append(f"| `{name(p['fg'])}` | `{name(p['bg'])}` | {p['use']} | {p['min']} | {cell(row, 'night')} |")
     out.append("")
     return "\n".join(out)
 
@@ -171,8 +224,10 @@ def main(argv: list[str] | None = None) -> int:
         DOC.write_text(text, encoding="utf-8")
     for prob in problems:
         print(f"error: {prob}")
-    lowest = min((row[m][0] for row in rows for m in ("light", "dark") if row[m]), default=0)
-    print(f"{len(rows)} pairs x 2 modes, lowest ratio {int(lowest * 100) / 100:.2f}:1, {len(problems)} problem(s)")
+    lowest = min((row[m][0] for row in rows for m in MODES if row[m]), default=0)
+    checks = sum(1 for row in rows for m in MODES if row[m])
+    print(f"{len(rows)} pairs, {checks} checks in light, dark and Lumen Dark, lowest ratio "
+          f"{int(lowest * 100) / 100:.2f}:1, {len(problems)} problem(s)")
     return 1 if problems else 0
 
 

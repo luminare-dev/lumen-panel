@@ -1,0 +1,8 @@
+{
+  "id": "night-default-stylesheet",
+  "file": "layout/base.twig",
+  "description": "Lumen Dark is drawn on top of the default theme's standard (light) stylesheet: load style.css, or style-rtl.css for right-to-left pages, whatever the panel's dark-mode setting says. The default theme's dark stylesheets (part of KeyHelp Pro) are never loaded.",
+  "mode": "replace",
+  "anchor": "<link rel=\"stylesheet\" href=\"/theme/bulma/assets/css/style{{ _app.theme.is_dark_mode ? '-dark' }}{{ _app.text_direction == 'rtl' ? '-rtl' }}.css?{{ _globals.cache_control }}\">",
+  "text": "<link rel=\"stylesheet\" href=\"/theme/bulma/assets/css/style{{ _app.text_direction == 'rtl' ? '-rtl' }}.css?{{ _globals.cache_control }}\">"
+}

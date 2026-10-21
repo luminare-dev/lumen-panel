@@ -1,0 +1,338 @@
+/*
+ * Lumen Dark: the code editor (CodeMirror, file manager and template editors) and the rich text
+ * editor (Trumbowyg, e-mail templates). The panel gives both their light look in Lumen Dark, and
+ * their own stylesheets load after Lumen's, in the page's CSS block, so every rule here starts
+ * with .lumen-night (the hook class of the Lumen Dark templates) to win over them. Syntax colours
+ * use the dark tokens; each passes 4.5:1 on the editor and on its highlighted line
+ * (docs/contrast.md). Trumbowyg's editing area stays a light sheet of paper: its colour palette
+ * offers light highlights and dark text colours as inline styles, and the e-mails it writes are
+ * read on white.
+ */
+
+/* CodeMirror: the editor, its gutter and cursor */
+.lumen-night .CodeMirror {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border-control) !important;
+  box-shadow: none !important;
+  color: var(--lm-text);
+}
+
+/* The focus ring of the inputs (the base and Lumen leave the editor without one). */
+.lumen-night .CodeMirror-focused {
+  border-color: var(--lm-focus) !important;
+  box-shadow: 0 0 0 1px var(--lm-focus) !important;
+}
+
+.lumen-night .CodeMirror-gutters {
+  background-color: var(--lm-surface);
+  border-color: var(--lm-border);
+}
+
+.lumen-night .CodeMirror-gutter-filler,
+.lumen-night .CodeMirror-scrollbar-filler {
+  background-color: var(--lm-surface);
+}
+
+.lumen-night .CodeMirror-linenumber,
+.lumen-night .CodeMirror-guttermarker-subtle {
+  color: var(--lm-text-muted);
+}
+
+.lumen-night .CodeMirror-guttermarker {
+  color: var(--lm-text);
+}
+
+.lumen-night .CodeMirror-cursor {
+  border-color: var(--lm-text-strong);
+}
+
+.lumen-night .cm-fat-cursor .CodeMirror-cursor {
+  background-color: var(--lm-focus);
+}
+
+.lumen-night .CodeMirror-activeline-background {
+  background-color: var(--lm-surface-hover);
+}
+
+/* Selections in Abyss: 1.58:1 against the editor, so they show; the syntax colours stay readable. */
+.lumen-night .CodeMirror-selected,
+.lumen-night .CodeMirror-focused .CodeMirror-selected {
+  background-color: var(--lm-abyss);
+}
+
+.lumen-night .CodeMirror-line::selection,
+.lumen-night .CodeMirror-line > span::selection,
+.lumen-night .CodeMirror-line > span > span::selection {
+  background-color: var(--lm-abyss);
+}
+
+.lumen-night .cm-searching {
+  background-color: var(--lm-primary-tint);
+  outline: 1px solid var(--lm-warning);
+}
+
+.lumen-night .CodeMirror-matchingtag {
+  background-color: var(--lm-primary-tint);
+}
+
+/* CodeMirror: syntax colours of its default theme */
+.lumen-night .cm-s-default .cm-keyword,
+.lumen-night .cm-s-default .cm-tag,
+.lumen-night .cm-s-default .cm-link,
+.lumen-night .cm-s-default .cm-header {
+  color: var(--lm-link);
+}
+
+.lumen-night .cm-s-default .cm-atom,
+.lumen-night .cm-s-default .cm-number,
+.lumen-night .cm-s-default .cm-quote,
+.lumen-night .cm-positive {
+  color: var(--lm-success-text);
+}
+
+.lumen-night .cm-s-default .cm-def,
+.lumen-night .cm-s-default .cm-variable-2,
+.lumen-night .cm-s-default .cm-variable-3,
+.lumen-night .cm-s-default .cm-type,
+.lumen-night .cm-s-default .cm-builtin {
+  color: var(--lm-mint);
+}
+
+.lumen-night .cm-s-default .cm-string,
+.lumen-night .cm-s-default .cm-string-2,
+.lumen-night .cm-s-default .cm-attribute {
+  color: var(--lm-warning-text);
+}
+
+.lumen-night .cm-s-default .cm-comment,
+.lumen-night .cm-s-default .cm-meta,
+.lumen-night .cm-s-default .cm-qualifier,
+.lumen-night .cm-s-default .cm-hr {
+  color: var(--lm-text-muted);
+}
+
+.lumen-night .cm-s-default .cm-bracket {
+  color: var(--lm-text-2);
+}
+
+.lumen-night .cm-s-default .cm-error,
+.lumen-night .cm-invalidchar,
+.lumen-night .cm-negative {
+  color: var(--lm-danger-text);
+}
+
+.lumen-night div.CodeMirror span.CodeMirror-matchingbracket {
+  color: var(--lm-success-text);
+}
+
+.lumen-night div.CodeMirror span.CodeMirror-nonmatchingbracket {
+  color: var(--lm-danger-text);
+}
+
+/* CodeMirror add-ons: scrollbars and the search dialog */
+.lumen-night .CodeMirror-simplescroll-horizontal,
+.lumen-night .CodeMirror-simplescroll-vertical {
+  background-color: var(--lm-surface);
+}
+
+.lumen-night .CodeMirror-simplescroll-horizontal div,
+.lumen-night .CodeMirror-simplescroll-vertical div,
+.lumen-night .CodeMirror-overlayscroll-horizontal div,
+.lumen-night .CodeMirror-overlayscroll-vertical div {
+  background-color: var(--lm-border-control);
+}
+
+.lumen-night .CodeMirror-dialog {
+  background-color: var(--lm-surface-raised);
+  color: var(--lm-text);
+}
+
+.lumen-night .CodeMirror-dialog-top,
+.lumen-night .CodeMirror-dialog-bottom {
+  border-color: var(--lm-border);
+}
+
+.lumen-night .CodeMirror-simplescroll-horizontal div,
+.lumen-night .CodeMirror-simplescroll-vertical div {
+  border-color: var(--lm-border-control);
+}
+
+/* Trumbowyg: frame, toolbar, editing area, menus and dialogs */
+.lumen-night .trumbowyg-box,
+.lumen-night .trumbowyg-editor-box {
+  border-color: var(--lm-border-control) !important;
+}
+
+.lumen-night .trumbowyg-box svg,
+.lumen-night .trumbowyg-modal svg {
+  color: var(--lm-text-2);
+  fill: var(--lm-text-2);
+}
+
+.lumen-night .trumbowyg-button-pane {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border);
+}
+
+.lumen-night .trumbowyg-button-pane::before,
+.lumen-night .trumbowyg-button-pane::after,
+.lumen-night .trumbowyg-button-pane .trumbowyg-button-group::after,
+.lumen-night .trumbowyg-button-pane.trumbowyg-disable .trumbowyg-button-group::before,
+.lumen-night .trumbowyg-disabled .trumbowyg-button-pane .trumbowyg-button-group::before {
+  background-color: var(--lm-border);
+}
+
+.lumen-night .trumbowyg-button-pane button:not(.trumbowyg-disable):focus,
+.lumen-night .trumbowyg-button-pane button:not(.trumbowyg-disable):hover {
+  background-color: var(--lm-surface-hover);
+}
+
+/* A format that is on (bold, a list): the primary tint with a bar, unlike a hovered button. */
+.lumen-night .trumbowyg-button-pane button.trumbowyg-active {
+  background-color: var(--lm-primary-tint);
+  box-shadow: inset 0 -2px 0 var(--lm-primary);
+}
+
+/* The vendor takes the outline away; the ring sits inside, the pane clips what is outside. */
+.lumen-night .trumbowyg-button-pane button:not(.trumbowyg-disable):focus-visible,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-submit:focus-visible,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-reset:focus-visible {
+  outline: var(--lm-ring) solid var(--lm-focus);
+  outline-offset: calc(var(--lm-ring) * -1);
+}
+
+/* The exit icon of the full-screen mode (the vendor draws it #222). */
+.lumen-night .trumbowyg-fullscreen .trumbowyg-button-group .trumbowyg-fullscreen-button svg {
+  color: var(--lm-text-2);
+}
+
+.lumen-night .trumbowyg-button-pane .trumbowyg-open-dropdown::after {
+  border-top-color: var(--lm-text-2);
+}
+
+.lumen-night .trumbowyg-box.trumbowyg-fullscreen {
+  background-color: var(--lm-surface);
+  color: var(--lm-text);
+}
+
+/*
+ * The editing area is a light sheet: text coloured or highlighted with the editor's palette (inline
+ * styles no stylesheet can change) stays readable, and the message looks as it will on white.
+ */
+.lumen-night .trumbowyg-editor-box {
+  background-color: var(--lm-white);
+  color: var(--lm-night);
+  color-scheme: light;
+}
+
+.lumen-night .trumbowyg-editor-box a {
+  color: var(--lm-royal);
+}
+
+.lumen-night .trumbowyg-editor-box a:hover {
+  color: var(--lm-abyss);
+}
+
+/* Elements Lumen colours for the dark page take the paper's text colour (pasted mail included). */
+.lumen-night .trumbowyg-editor-box strong,
+.lumen-night .trumbowyg-editor-box b,
+.lumen-night .trumbowyg-editor-box sup,
+.lumen-night .trumbowyg-editor-box th {
+  color: inherit;
+}
+
+.lumen-night .trumbowyg-editor-box code {
+  background-color: var(--lm-mist);
+  border-color: var(--lm-slate-100);
+  color: var(--lm-night);
+}
+
+.lumen-night .trumbowyg-editor-box hr {
+  background-color: var(--lm-slate-100);
+}
+
+.lumen-night .trumbowyg-editor-box[contenteditable="true"]:empty:not(:focus)::before {
+  color: var(--lm-slate-500);
+}
+
+.lumen-night .trumbowyg-textarea {
+  background-color: var(--lm-surface);
+  color: var(--lm-text);
+}
+
+.lumen-night .trumbowyg-dropdown,
+.lumen-night .trumbowyg-dropdown button {
+  background-color: var(--lm-surface-raised);
+  border-color: var(--lm-border);
+  color: var(--lm-text);
+}
+
+.lumen-night .trumbowyg-dropdown button:focus,
+.lumen-night .trumbowyg-dropdown button:hover {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+.lumen-night .trumbowyg-overlay {
+  background-color: var(--lm-overlay);
+}
+
+.lumen-night .trumbowyg-modal-box {
+  background-color: var(--lm-surface-raised);
+  color: var(--lm-text);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-title {
+  border-color: var(--lm-border);
+  color: var(--lm-text-strong);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-row {
+  border-color: var(--lm-border-control);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-infos {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-infos label {
+  color: var(--lm-text-2);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-infos .trumbowyg-msg-error {
+  color: var(--lm-danger-text);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-html input,
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-html select,
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-html textarea,
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-html input:focus,
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-html select:focus,
+.lumen-night .trumbowyg-modal-box .trumbowyg-input-html textarea:focus {
+  background-color: var(--lm-surface);
+  color: var(--lm-text);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-submit,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-submit:focus,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-submit:hover {
+  background-color: var(--lm-primary);
+  color: var(--lm-on-primary);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-reset,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-reset:focus,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-reset:hover,
+.lumen-night .trumbowyg-modal-box .trumbowyg-modal-button.trumbowyg-modal-reset:active {
+  background-color: var(--lm-surface-sunken);
+  color: var(--lm-text);
+}
+
+.lumen-night .trumbowyg-modal-box .error {
+  color: var(--lm-danger-text);
+}
+
+.lumen-night .trumbowyg-modal-box .trumbowyg-progress .trumbowyg-progress-bar {
+  background-color: var(--lm-success);
+}

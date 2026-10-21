@@ -1,0 +1,136 @@
+/* Lumen Dark: form states the light base paints light. */
+
+/* The panel greys out disabled and read-only fields with !important; these replace them. */
+input[readonly] {
+  background-color: var(--lm-surface-sunken) !important;
+  border-color: var(--lm-border) !important;
+  box-shadow: none !important;
+  color: var(--lm-text-2) !important;
+}
+
+input[disabled],
+textarea[disabled],
+select[disabled] {
+  background-color: var(--lm-surface-sunken) !important;
+  border-color: var(--lm-border) !important;
+  box-shadow: none !important;
+  color: var(--lm-text-muted) !important;
+}
+
+.select select[disabled]:hover,
+fieldset[disabled] .select select:hover {
+  border-color: var(--lm-border);
+}
+
+[disabled].radio,
+[disabled].checkbox,
+fieldset[disabled] .radio,
+fieldset[disabled] .checkbox,
+.radio input[disabled],
+.checkbox input[disabled] {
+  color: var(--lm-text-muted);
+}
+
+/* Icons inside inputs (search fields). */
+.control.has-icons-left .icon,
+.control.has-icons-right .icon {
+  color: var(--lm-text-muted);
+}
+
+.control.has-icons-left .input:focus ~ .icon,
+.control.has-icons-left .select:focus ~ .icon,
+.control.has-icons-right .input:focus ~ .icon,
+.control.has-icons-right .select:focus ~ .icon {
+  color: var(--lm-text-2);
+}
+
+/* File inputs: the pressed button and the name field's hover border. */
+.file-label:active .file-cta {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+.file-label:hover .file-name,
+.file-label:active .file-name {
+  border-color: var(--lm-text-2);
+}
+
+/* Help lines in a colour (validation messages). */
+.help.is-dark,
+.help.is-black {
+  color: var(--lm-text-2);
+}
+
+.help.is-primary,
+.help.is-link {
+  color: var(--lm-link);
+}
+
+.help.is-info {
+  color: var(--lm-info-text);
+}
+
+.help.is-success {
+  color: var(--lm-success-text);
+}
+
+.help.is-warning {
+  color: var(--lm-warning-text);
+}
+
+.help.is-danger {
+  color: var(--lm-danger-text);
+}
+
+/* Loading spinners in fields, selects and the panel's own loaders. */
+.control.is-loading::after,
+.select.is-loading::after,
+.loader,
+.is-loading::after {
+  border-color: transparent transparent var(--lm-text-2) var(--lm-text-2);
+}
+
+/* Warning states use the warning token, like Lumen's danger and success states. */
+.is-warning.input,
+.is-warning.textarea,
+.select.is-warning select,
+.select.is-warning:not(:hover)::after {
+  border-color: var(--lm-warning);
+}
+
+/* The arrow of a grey or primary select: the base draws it dark grey, lost on a dark card. */
+.select.is-dark:not(:hover)::after {
+  border-color: var(--lm-text-2);
+}
+
+.select.is-primary:not(:hover)::after {
+  border-color: var(--lm-primary);
+}
+
+/* A focused read-only field shows the focus ring (the rule above takes the base's away). */
+input[readonly]:focus {
+  border-color: var(--lm-focus) !important;
+  box-shadow: 0 0 0 1px var(--lm-focus) !important;
+}
+
+/*
+ * Fields the browser fills in (saved logins, passwords): the base paints them light blue with an
+ * inset shadow and leaves the text colour to the browser, which is light here. The same
+ * selectors, later, paint them with the primary tint and the text colour.
+ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+select:-webkit-autofill,
+select:-webkit-autofill:hover {
+  -webkit-text-fill-color: var(--lm-text);
+  box-shadow: 0 0 0 100px var(--lm-primary-tint) inset;
+  caret-color: var(--lm-text);
+}
+
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1px var(--lm-focus), 0 0 0 100px var(--lm-primary-tint) inset;
+}

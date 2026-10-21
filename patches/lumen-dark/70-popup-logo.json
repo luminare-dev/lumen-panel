@@ -1,0 +1,11 @@
+{
+  "id": "popup-logo",
+  "file": "layout/popup.twig",
+  "description": "The same header logo for dark backgrounds in popup windows (service details, whois).",
+  "mode": "replace",
+  "anchor": "<img src=\"theme/bulma/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">",
+  "text": "<img class=\"lumen-logo lumen-logo--header\" src=\"/theme/@@LUMEN_THEME_DIR@@/assets/brand/luminare-lockup-compact-dark.svg?v=@@LUMEN_ASSET_HASH@@\" width=\"127\" height=\"42\" alt=\"Luminare Development\">",
+  "assets": [
+    "brand/luminare-lockup-compact-dark.svg"
+  ]
+}

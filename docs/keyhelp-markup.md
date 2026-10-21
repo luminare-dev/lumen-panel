@@ -17,7 +17,13 @@ describes the markup in our own words; it does not reproduce the templates.
 - `<body>` carries `dark-mode` or `default-mode`; `<html>` carries `lang` and `dir`. A
   `color-scheme` meta tag follows the mode.
 - Dark mode is a per-user toggle in the user menu (it reloads the page); a theme declares
-  support with `has_dark_mode` in `_settings.json`.
+  support with `has_dark_mode` in `_settings.json`. Keyweb lists dark mode among the features of
+  KeyHelp Pro. Lumen declares it, as the default theme does on every edition, and follows the
+  toggle where the panel offers it; Lumen Dark declares no dark mode, pins the standard
+  stylesheet (`style.css` or `style-rtl.css`), sets the colour scheme to dark (and the
+  `theme-color` of the default favicon tags to the Night background) and adds a `lumen-night`
+  class to `<html>` and `<body>` next to the panel's own body class
+  ([ADR 0011](adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)).
 - All script and image paths in the templates point at `/theme/bulma/` (or `theme/bulma/`), so a
   copied template set keeps using the default theme's current assets.
 - Content Security Policy of the panel: `default-src 'self' 'unsafe-inline' 'unsafe-eval'`,
@@ -88,11 +94,33 @@ the compiled Lumen templates (see `generator/lumen_panel/twigcache.py`).
 ## What CSS cannot restyle
 
 - **Charts.** The dashboards draw with Chart.js on `<canvas>`; the colours (blue, green, red
-  series, dark segment borders) are set in the panel's JavaScript, so a stylesheet cannot change
-  them. They keep the default theme's colours on Lumen's surfaces.
+  series, segment borders) are set in the panel's JavaScript and chosen by its dark-mode switch,
+  so a stylesheet cannot change them. In Lumen they keep the default theme's colours. In Lumen
+  Dark the panel draws them for a light page: the doughnut charts (no text, an HTML legend in the
+  panel's colours next to them) stay as drawn; the monitoring charts (`canvas.app-chart` with
+  `data-chart-datasets`, the only ones with axis labels and a legend) are shown inverted with the
+  hue turned back by a CSS filter, so their grey labels become `#999999` (6.20:1 on the card).
+  Light series (orange, yellow, grey) come out darker, about as faint on the card as they are on
+  white in the default theme; tooltips appear light. The doughnuts keep their white segment
+  borders, which show as white rings on the dark card.
 - **Editors.** CodeMirror (file manager, template editors) uses its own theme, and Trumbowyg
-  (rich text) its own neutral greys; both stay as the default theme sets them, also in dark mode.
+  (rich text) its own neutral greys; the panel picks CodeMirror's theme and wraps Trumbowyg with
+  its dark-mode switch. In Lumen both stay as the default theme sets them, also in dark mode. In
+  Lumen Dark, where the panel picks their light look, `night/editors.css` restyles both with the
+  dark tokens; their stylesheets load after Lumen's, so those rules carry the `lumen-night` class.
+  Trumbowyg's editing area stays a light sheet (Night text on white): its toolbar colours text and
+  highlights with inline styles chosen for white, and the e-mails it writes are read on white. The
+  toolbar, menus, dialogs and the HTML source view are dark.
+- **Images for light backgrounds.** The vendor logo on the admin dashboard (`.svg-vendor-logo`)
+  and the KeyDisc mark on the backup pages (`.svg-keydisc`) are chosen by the dark-mode switch.
+  Lumen Dark leaves the files alone and shows them on a small light plate, like the application
+  logos of the app catalogue. Logos uploaded under White Label are shown as they are: one made for
+  light backgrounds sits on the dark header and login box in Lumen Dark.
+- **Embedded pages.** The Rspamd web interface is an `<iframe>` whose theme the panel sets from
+  its dark-mode switch; it stays light in Lumen Dark.
 - **Rules with `!important`.** Where the default theme marks a colour `!important` (Select2's
-  selected option and shown value, `pre` backgrounds), Lumen either overrides it with
-  `!important` of its own (Select2, see `select2.css`) or works with it (`pre` stays transparent
-  and gets a border).
+  selected option and shown value, `pre` backgrounds, the spinners of buttons), Lumen either
+  overrides it with `!important` of its own (Select2, see `select2.css`; the spinners) or works
+  with it (`pre` stays transparent and gets a border). Select2 4.1 marks the highlighted option
+  with `aria-selected="true"` and takes it off the selected one while another option is
+  highlighted, so the selected option's own rule needs `!important` as well.

@@ -1,4 +1,4 @@
-# lumen-panel-sync.service: rebuild the Lumen theme when the panel's default theme changed.
+# lumen-panel-sync.service: rebuild the Lumen themes when the panel's default theme changed.
 #
 # An optional example unit; lumen-panel never installs it. Copy it, the .path and the .timer to
 # /etc/systemd/system/, adapt the paths below, then enable the .path and the .timer (docs/update.md).
@@ -7,12 +7,16 @@
 #                                not writable by group or others: the generator runs as root)
 #   /home/keyhelp/www/keyhelp    the panel installation
 #
-# "sync" exits 0 when the theme is current, Lumen is not installed or a hold is set; 1 when a
-# rebuild was due and failed (the previous build stays active), and the unit then shows as failed;
-# 75 when another run holds the lock or the default theme changed during the copy (a panel update
-# was still running): the unit starts again 10 minutes later.
+# "sync --variant all" syncs every installed theme, Lumen (theme/lumen) and Lumen Dark
+# (theme/lumen-dark), one after the other; a theme that is not installed is skipped. It exits 0
+# when every installed theme is current, rebuilt or held; 75 when another run holds a theme's lock
+# or the default theme changed during the copy (a panel update was still running): the unit starts
+# again 10 minutes later; 1 when a rebuild was due and failed (that theme's previous build stays
+# active; the other theme is still synced), and the unit then shows as failed. 75 wins over 1 and
+# 2, so a busy or still-updating theme is retried even when the other one failed; that failure
+# shows on the last retry, when nothing is busy any more.
 [Unit]
-Description=lumen-panel: rebuild the Lumen theme after a panel update
+Description=lumen-panel: rebuild the Lumen themes after a panel update
 Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md
 # An Assert, not a Condition: a missing build marks the unit as failed (systemctl --failed)
 # instead of skipping it silently.
@@ -28,7 +32,7 @@ Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=PYTHONUNBUFFERED=1
 # Started by the .path unit while a panel update may still be writing: give it time to finish.
 ExecStartPre=/bin/sleep 120
-ExecStart=/usr/bin/python3 -m lumen_panel sync --keyhelp /home/keyhelp/www/keyhelp
+ExecStart=/usr/bin/python3 -m lumen_panel sync --variant all --keyhelp /home/keyhelp/www/keyhelp
 TimeoutStartSec=15min
 # Only exit code 75 is retried (Type=oneshot does not allow RestartForceExitStatus=); a failed
 # patch (1) or an input error (2) waits for a person.
@@ -36,7 +40,7 @@ Restart=on-failure
 RestartPreventExitStatus=1 2 3 4 5 10
 RestartSec=10min
 
-# Low priority and a hard memory limit: the sync copies about 200 small files.
+# Low priority and a hard memory limit: each theme's sync copies about 200 small files.
 Nice=19
 IOSchedulingClass=idle
 MemoryMax=200M

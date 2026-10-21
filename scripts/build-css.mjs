@@ -1,14 +1,20 @@
-// Build the four stylesheets the patched base template loads, plus the fonts and logo files:
+// Build the stylesheets the patched base templates load, plus the fonts and logo files:
 //
-//   dist/assets/lumen.css           light (dark mode applies under body.dark-mode)
-//   dist/assets/lumen-dark.css      + dark tokens on :root
-//   dist/assets/lumen-rtl.css       + right-to-left additions
-//   dist/assets/lumen-dark-rtl.css  + both
-//   dist/assets/fonts/              Sora variable font and its OFL
-//   dist/assets/brand/              Luminare logo files (not licensed, see NOTICE)
+//   Lumen (theme/lumen), four files picked by the panel's dark mode and text direction:
+//   dist/assets/lumen.css            light (dark mode applies under body.dark-mode)
+//   dist/assets/lumen-dark.css       + dark tokens on :root
+//   dist/assets/lumen-rtl.css        + right-to-left additions
+//   dist/assets/lumen-dark-rtl.css   + both
+//
+//   Lumen Dark (theme/lumen-dark), always dark, on top of the panel's light stylesheet:
+//   dist/assets/lumen-night.css      + dark tokens on :root + night.css
+//   dist/assets/lumen-night-rtl.css  + right-to-left additions
+//
+//   dist/assets/fonts/               Sora variable font and its OFL
+//   dist/assets/brand/               Luminare logo files (not licensed, see NOTICE)
 //
 // The dark :root block is not written by hand: it is the dark-mode block of tokens.css, so the
-// two can never drift apart. Run: node scripts/build-css.mjs
+// dark mode of Lumen and Lumen Dark can never drift apart. Run: node scripts/build-css.mjs
 
 import { bundle, transform } from "lightningcss";
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
@@ -26,13 +32,13 @@ const targets = { chrome: 111 << 16, edge: 111 << 16, firefox: 121 << 16, safari
 
 const DARK_SELECTOR = ":root:has(> body.dark-mode),\nbody.dark-mode {";
 
-function darkRootBlock() {
+function darkRootBlock(comment) {
   const css = readFileSync(join(styles, "tokens.css"), "utf8");
   const start = css.indexOf(DARK_SELECTOR);
   if (start < 0) throw new Error("tokens.css: dark-mode block not found");
   const bodyStart = start + DARK_SELECTOR.length;
   const end = css.indexOf("}", bodyStart);
-  return `\n/* -dark build: dark tokens on :root too */\n:root {${css.slice(bodyStart, end)}}\n`;
+  return `\n/* ${comment} */\n:root {${css.slice(bodyStart, end)}}\n`;
 }
 
 function bundled(file) {
@@ -53,12 +59,16 @@ const banner =
 
 const base = bundled("index.css");
 const rtl = bundled("rtl.css");
-const dark = darkRootBlock();
+const dark = darkRootBlock("-dark build: dark tokens on :root too");
+const nightTokens = darkRootBlock("Lumen Dark: always dark, the dark tokens on :root");
+const night = bundled("night.css");
 const variants = {
   "lumen.css": base,
   "lumen-dark.css": base + dark,
   "lumen-rtl.css": base + rtl,
   "lumen-dark-rtl.css": base + dark + rtl,
+  "lumen-night.css": base + nightTokens + night,
+  "lumen-night-rtl.css": base + nightTokens + night + rtl,
 };
 
 // Start from an empty folder: every file in dist/assets ends up below the panel's public web root,

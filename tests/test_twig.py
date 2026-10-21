@@ -59,6 +59,14 @@ class AssetReferenceTest(unittest.TestCase):
             "assets/lumen-dark.css", "assets/lumen-island.js", "assets/lumen-rtl.css", "assets/lumen.css",
         ])
 
+    def test_the_theme_folder_is_matched_exactly(self):
+        src = ('<link href="/theme/lumen-dark/assets/lumen-night{{ dir == \'rtl\' ? \'-rtl\' }}.css?v=1">'
+               '<script src="/theme/lumen/assets/lumen-island.js?v=x"></script>')
+        self.assertEqual(asset_references(src, "lumen-dark"), ["assets/lumen-night-rtl.css", "assets/lumen-night.css"])
+        self.assertEqual(asset_references(src, "lumen"), ["assets/lumen-island.js"],
+                         "theme/lumen/ never matches theme/lumen-dark/")
+        self.assertEqual(asset_references(src), ["assets/lumen-island.js"])
+
     def test_unknown_expressions_are_flagged(self):
         refs = asset_references('<img src="/theme/lumen/assets/{{ file }}">')
         self.assertTrue(refs and refs[0].startswith("<dynamic>"), refs)
