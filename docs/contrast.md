@@ -6,7 +6,12 @@ minimum. Text needs 4.5:1 (WCAG 2.2 SC 1.4.3, level AA); control borders, focus 
 fills and other indicators need 3:1 (SC 1.4.11). Ratios use the WCAG 2.x relative luminance
 formula and are rounded down to two decimals.
 
-| Foreground | Background | Used for | Min | Light | Dark |
+Lumen Dark (`theme/lumen-dark`) uses the dark token set on top of the panel's light
+stylesheet, so the dark column holds for it as well; every pair is checked in it again. The
+second table lists the pairs only Lumen Dark draws: the code editor's syntax colours on the
+editor and its highlighted line, and the monitoring charts' labels after their inversion.
+
+| Foreground | Background | Used for | Min | Light | Dark and Lumen Dark |
 |---|---|---|---|---|---|
 | `--lm-text` | `--lm-bg` | page text, page title | 4.5 | 17.23 pass (`#0A1224` on `#F3F6FB`) | 17.23 pass (`#F3F6FB` on `#0A1224`) |
 | `--lm-text` | `--lm-surface` | text in cards, header, sidebar, tables, inputs | 4.5 | 18.66 pass (`#0A1224` on `#FFFFFF`) | 16.32 pass (`#F3F6FB` on `#10182B`) |
@@ -26,6 +31,7 @@ formula and are rounded down to two decimals.
 | `--lm-link` | `--lm-surface` | links in cards and tables | 4.5 | 7.61 pass (`#1F47C4` on `#FFFFFF`) | 11.32 pass (`#5BDFFF` on `#10182B`) |
 | `--lm-link` | `--lm-surface-sunken` | links on striped rows | 4.5 | 7.03 pass (`#1F47C4` on `#F3F6FB`) | 11.65 pass (`#5BDFFF` on `#0D1527`) |
 | `--lm-link-hover` | `--lm-surface` | hovered links | 4.5 | 11.52 pass (`#15308A` on `#FFFFFF`) | 12.21 pass (`#7CE5FF` on `#10182B`) |
+| `--lm-link-hover` | `--lm-surface-hover` | hovered and pressed text buttons | 4.5 | 10.48 pass (`#15308A` on `#F2F4FB`) | 11.12 pass (`#7CE5FF` on `#102236`) |
 | `--lm-on-primary` | `--lm-primary` | primary button, current page, checkbox tick and radio dot | 4.5 | 7.61 pass (`#FFFFFF` on `#1F47C4`) | 11.95 pass (`#0A1224` on `#5BDFFF`) |
 | `--lm-on-primary` | `--lm-primary-hover` | hovered primary button | 4.5 | 5.31 pass (`#FFFFFF` on `#2D63DE`) | 12.89 pass (`#0A1224` on `#7CE5FF`) |
 | `--lm-on-primary` | `--lm-primary-active` | pressed primary button, selected option | 4.5 | 11.52 pass (`#FFFFFF` on `#15308A`) | 5.59 pass (`#0A1224` on `#2B8FF0`) |
@@ -75,3 +81,14 @@ formula and are rounded down to two decimals.
 | `--lm-border-control` | `--lm-primary-tint` | checkbox and input borders on selected rows | 3.0 | 3.17 pass (`#79859C` on `#E9EDF9`) | 3.08 pass (`#67748C` on `#142B3E`) |
 | `--lm-white` | `--lm-border-control` | the cross of close buttons (.delete) | 3.0 | 3.71 pass (`#FFFFFF` on `#79859C`) | 4.71 pass (`#FFFFFF` on `#67748C`) |
 | `--lm-white` | `--lm-slate-700` | the cross of a hovered or focused close button | 3.0 | 9.74 pass (`#FFFFFF` on `#39445C`) | 9.74 pass (`#FFFFFF` on `#39445C`) |
+
+## Lumen Dark only
+
+| Foreground | Background | Used for | Min | Lumen Dark |
+|---|---|---|---|---|
+| `--lm-link` | `--lm-surface-hover` | code editor: keywords, tags and links on the highlighted line | 4.5 | 10.30 pass (`#5BDFFF` on `#102236`) |
+| `--lm-mint` | `--lm-surface-sunken` | code editor: definitions, variables, types and built-ins | 4.5 | 12.57 pass (`#06F2C4` on `#0D1527`) |
+| `--lm-mint` | `--lm-surface-hover` | code editor: definitions and variables on the highlighted line | 4.5 | 11.12 pass (`#06F2C4` on `#102236`) |
+| `--lm-text-muted` | `--lm-surface-hover` | code editor: comments on the highlighted line | 4.5 | 6.63 pass (`#9CA7BB` on `#102236`) |
+| `--lm-text-strong` | `--lm-surface-sunken` | code editor: the text cursor | 3.0 | 18.20 pass (`#FFFFFF` on `#0D1527`) |
+| `#999999` | `--lm-surface` | monitoring charts: Chart.js labels (#666666) after the night inversion, on the card | 4.5 | 6.20 pass (`#999999` on `#10182B`) |

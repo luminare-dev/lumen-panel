@@ -1,0 +1,167 @@
+/* Lumen Dark: component states the light base paints light and Lumen leaves to the base. */
+
+.button.is-text.is-hovered,
+.button.is-text.is-focused,
+.button.is-text:active,
+.button.is-text.is-active {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-link-hover);
+}
+
+.button.is-ghost.is-hovered {
+  color: var(--lm-link-hover);
+}
+
+/* A hovered outlined button is filled with its colour; its spinner takes the text colour on it. */
+.button.is-link.is-outlined.is-loading:hover::after,
+.button.is-link.is-outlined.is-loading.is-hovered::after,
+.button.is-link.is-outlined.is-loading:focus::after,
+.button.is-link.is-outlined.is-loading.is-focused::after,
+.button.is-primary.is-outlined.is-loading:hover::after,
+.button.is-primary.is-outlined.is-loading.is-hovered::after,
+.button.is-primary.is-outlined.is-loading:focus::after,
+.button.is-primary.is-outlined.is-loading.is-focused::after {
+  border-color: transparent transparent var(--lm-on-primary) var(--lm-on-primary) !important;
+}
+
+.button.is-info.is-outlined.is-loading:hover::after,
+.button.is-info.is-outlined.is-loading.is-hovered::after,
+.button.is-info.is-outlined.is-loading:focus::after,
+.button.is-info.is-outlined.is-loading.is-focused::after {
+  border-color: transparent transparent var(--lm-on-info) var(--lm-on-info) !important;
+}
+
+.button.is-success.is-outlined.is-loading:hover::after,
+.button.is-success.is-outlined.is-loading.is-hovered::after,
+.button.is-success.is-outlined.is-loading:focus::after,
+.button.is-success.is-outlined.is-loading.is-focused::after {
+  border-color: transparent transparent var(--lm-on-success) var(--lm-on-success) !important;
+}
+
+.button.is-warning.is-outlined.is-loading::after {
+  border-color: transparent transparent var(--lm-warning) var(--lm-warning) !important;
+}
+
+.button.is-warning.is-outlined.is-loading:hover::after,
+.button.is-warning.is-outlined.is-loading.is-hovered::after,
+.button.is-warning.is-outlined.is-loading:focus::after,
+.button.is-warning.is-outlined.is-loading.is-focused::after {
+  border-color: transparent transparent var(--lm-on-warning) var(--lm-on-warning) !important;
+}
+
+.button.is-danger.is-outlined.is-loading:hover::after,
+.button.is-danger.is-outlined.is-loading.is-hovered::after,
+.button.is-danger.is-outlined.is-loading:focus::after,
+.button.is-danger.is-outlined.is-loading.is-focused::after {
+  border-color: transparent transparent var(--lm-on-danger) var(--lm-on-danger) !important;
+}
+
+.button.is-dark.is-outlined.is-loading:hover::after,
+.button.is-dark.is-outlined.is-loading.is-hovered::after,
+.button.is-dark.is-outlined.is-loading:focus::after,
+.button.is-dark.is-outlined.is-loading.is-focused::after {
+  border-color: transparent transparent var(--lm-surface) var(--lm-surface) !important;
+}
+
+.button.is-white,
+.button.is-light {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border-control);
+  color: var(--lm-text);
+}
+
+.button.is-white:hover,
+.button.is-white.is-hovered,
+.button.is-light:hover,
+.button.is-light.is-hovered,
+.button.is-white:active,
+.button.is-white.is-active,
+.button.is-light:active,
+.button.is-light.is-active {
+  background-color: var(--lm-surface-hover);
+  border-color: var(--lm-text-2);
+  color: var(--lm-text-strong);
+}
+
+.tag:not(body).is-delete:active {
+  background-color: var(--lm-border);
+}
+
+/* Light and white boxes become sunken surfaces; dark ones the grey of buttons and tags. */
+.notification.is-white,
+.notification.is-light,
+.message.is-white,
+.message.is-light,
+.message.is-black,
+.message.is-dark {
+  background-color: var(--lm-surface-sunken);
+  color: var(--lm-text);
+}
+
+.message.is-white .message-header,
+.message.is-light .message-header {
+  background-color: var(--lm-surface-raised);
+  color: var(--lm-text-strong);
+}
+
+.message.is-white .message-body,
+.message.is-light .message-body,
+.message.is-black .message-body,
+.message.is-dark .message-body {
+  border-color: var(--lm-border-control);
+  color: var(--lm-text);
+}
+
+.notification.is-dark,
+.notification.is-black {
+  background-color: var(--lm-text-2);
+  color: var(--lm-surface);
+}
+
+/* The moving bar of a progress meter without a value. */
+.progress:indeterminate {
+  background-color: var(--lm-surface-sunken);
+  background-image: linear-gradient(to right, var(--lm-primary) 30%, var(--lm-surface-sunken) 30%);
+}
+
+/* Bulma's panel and footer (not used by the panel's own pages today, light in the base). */
+.panel-heading {
+  background-color: var(--lm-surface-raised);
+  color: var(--lm-text-strong);
+}
+
+.panel-tabs a,
+.panel-tabs:not(:last-child),
+.panel-block:not(:last-child) {
+  border-color: var(--lm-border);
+}
+
+.panel-tabs a.is-active,
+.panel-list a {
+  color: var(--lm-text);
+}
+
+.panel-icon {
+  color: var(--lm-text-muted);
+}
+
+a.panel-block:hover,
+label.panel-block:hover {
+  background-color: var(--lm-surface-hover);
+}
+
+.footer {
+  background-color: var(--lm-bg);
+}
+
+/* Perfect Scrollbar outside the sidebar (Lumen colours the sidebar's own). */
+.ps__thumb-x,
+.ps__thumb-y,
+.ps__rail-x:hover > .ps__thumb-x,
+.ps__rail-x:focus > .ps__thumb-x,
+.ps__rail-x.ps--clicking .ps__thumb-x,
+.ps__rail-y:hover > .ps__thumb-y,
+.ps__rail-y:focus > .ps__thumb-y,
+.ps__rail-y.ps--clicking .ps__thumb-y {
+  background-color: var(--lm-border-control);
+}

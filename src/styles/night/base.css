@@ -1,0 +1,168 @@
+/* Lumen Dark: page, text helpers, code, separators and images made for light backgrounds. */
+
+/* Scrollbars of the page itself (Firefox, and Chrome and Edge 121 and later). */
+html {
+  scrollbar-color: var(--lm-border-control) var(--lm-bg);
+}
+
+/* Bare tables and the panel's summary rows set a dark grey text colour of their own. */
+table th,
+table tfoot.is-summary th {
+  color: var(--lm-text-strong);
+}
+
+.subtitle strong {
+  color: var(--lm-text-strong);
+}
+
+.content table td,
+.content table th {
+  border-color: var(--lm-border);
+}
+
+.content table th,
+.content table thead td,
+.content table thead th,
+.content table tfoot td,
+.content table tfoot th {
+  color: var(--lm-text-strong);
+}
+
+.content blockquote {
+  background-color: var(--lm-surface-sunken);
+  border-color: var(--lm-border);
+  color: var(--lm-text);
+}
+
+/* The panel frames inline code with a light hairline. */
+code {
+  border-color: var(--lm-border);
+}
+
+.notification code,
+.notification pre,
+.message-body code,
+.message-body pre {
+  background-color: var(--lm-surface-sunken);
+  color: var(--lm-text);
+}
+
+.number {
+  background-color: var(--lm-surface-sunken);
+  color: var(--lm-text);
+}
+
+/* The labelled separator ("or", section names) draws its lines with backgrounds. */
+.divider::before,
+.divider::after {
+  background-color: var(--lm-border);
+}
+
+.menu-list li ul {
+  border-color: var(--lm-border);
+}
+
+.menu-list a {
+  color: var(--lm-text-2);
+}
+
+.menu-list a:hover {
+  background-color: var(--lm-surface-hover);
+  color: var(--lm-text-strong);
+}
+
+.menu-label {
+  color: var(--lm-text-muted);
+}
+
+/* The debug panel (shown only when the panel's debug mode is on). */
+#debug-panel-content {
+  background-color: var(--lm-surface);
+  color: var(--lm-text);
+}
+
+/* Colour helpers the Lumen components do not map (Bulma marks them !important). */
+.has-text-grey-darker {
+  color: var(--lm-text-2) !important;
+}
+
+.has-text-link-dark,
+.has-text-primary-dark {
+  color: var(--lm-link) !important;
+}
+
+.has-text-info-dark {
+  color: var(--lm-info-text) !important;
+}
+
+.has-text-success-dark {
+  color: var(--lm-success-text) !important;
+}
+
+.has-text-warning-dark {
+  color: var(--lm-warning-text) !important;
+}
+
+.has-text-danger-dark {
+  color: var(--lm-danger-text) !important;
+}
+
+a.has-text-info:hover,
+a.has-text-info:focus {
+  color: var(--lm-info-text) !important;
+}
+
+a.has-text-danger:hover,
+a.has-text-danger:focus,
+a.has-text-danger-dark:hover,
+a.has-text-danger-dark:focus {
+  color: var(--lm-danger-text) !important;
+}
+
+a.has-text-dark:hover,
+a.has-text-dark:focus,
+a.has-text-black:hover,
+a.has-text-black:focus,
+a.has-text-link-dark:hover,
+a.has-text-link-dark:focus {
+  color: var(--lm-link-hover) !important;
+}
+
+.has-background-white {
+  background-color: var(--lm-surface) !important;
+}
+
+.has-background-grey-light,
+.has-background-grey-lighter {
+  background-color: var(--lm-border) !important;
+}
+
+.has-background-primary-light,
+.has-background-link-light,
+.has-background-info-light {
+  background-color: var(--lm-primary-tint) !important;
+}
+
+.has-background-success-light {
+  background-color: var(--lm-success-tint) !important;
+}
+
+.has-background-warning-light {
+  background-color: var(--lm-warning-tint) !important;
+}
+
+.has-background-danger-light {
+  background-color: var(--lm-danger-tint) !important;
+}
+
+/*
+ * Images the panel draws for light backgrounds (the vendor logo on the dashboard, the KeyDisc
+ * mark on the backup pages) keep them: they sit on a small light plate of their own, unchanged.
+ */
+.svg-vendor-logo,
+.svg-keydisc {
+  background-color: var(--lm-white);
+  border-radius: var(--lm-radius-s);
+  box-sizing: content-box;
+  padding: 2px;
+}

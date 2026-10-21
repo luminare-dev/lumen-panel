@@ -1,5 +1,5 @@
 {
-  "$comment": "Every text/background and UI/background token pair the stylesheets use, including the default theme's rules that Lumen overrides (checkboxes, Select2, status helpers, close buttons, footnote marks). scripts/contrast.py checks each pair in light and dark mode: text needs 4.5:1 (WCAG 2.2 SC 1.4.3), UI parts (control borders, focus rings, progress fills, indicators) need 3:1 (SC 1.4.11).",
+  "$comment": "Every text/background and UI/background token pair the stylesheets use, including the default theme's rules that Lumen overrides (checkboxes, Select2, status helpers, close buttons, footnote marks). scripts/contrast.py checks each pair in light mode, dark mode and Lumen Dark (the dark tokens on the panel's light stylesheet): text needs 4.5:1 (WCAG 2.2 SC 1.4.3), UI parts (control borders, focus rings, progress fills, indicators) need 3:1 (SC 1.4.11). A pair with \"modes\": [\"night\"] is drawn by Lumen Dark alone; a colour is a token name or a literal #RRGGBB.",
   "pairs": [
     {"fg": "text", "bg": "bg", "min": 4.5, "use": "page text, page title"},
     {"fg": "text", "bg": "surface", "min": 4.5, "use": "text in cards, header, sidebar, tables, inputs"},
@@ -19,6 +19,7 @@
     {"fg": "link", "bg": "surface", "min": 4.5, "use": "links in cards and tables"},
     {"fg": "link", "bg": "surface-sunken", "min": 4.5, "use": "links on striped rows"},
     {"fg": "link-hover", "bg": "surface", "min": 4.5, "use": "hovered links"},
+    {"fg": "link-hover", "bg": "surface-hover", "min": 4.5, "use": "hovered and pressed text buttons"},
     {"fg": "on-primary", "bg": "primary", "min": 4.5, "use": "primary button, current page, checkbox tick and radio dot"},
     {"fg": "on-primary", "bg": "primary-hover", "min": 4.5, "use": "hovered primary button"},
     {"fg": "on-primary", "bg": "primary-active", "min": 4.5, "use": "pressed primary button, selected option"},
@@ -67,6 +68,12 @@
     {"fg": "border-control", "bg": "surface-hover", "min": 3.0, "use": "checkbox and input borders on hovered rows"},
     {"fg": "border-control", "bg": "primary-tint", "min": 3.0, "use": "checkbox and input borders on selected rows"},
     {"fg": "white", "bg": "border-control", "min": 3.0, "use": "the cross of close buttons (.delete)"},
-    {"fg": "white", "bg": "slate-700", "min": 3.0, "use": "the cross of a hovered or focused close button"}
+    {"fg": "white", "bg": "slate-700", "min": 3.0, "use": "the cross of a hovered or focused close button"},
+    {"fg": "link", "bg": "surface-hover", "min": 4.5, "use": "code editor: keywords, tags and links on the highlighted line", "modes": ["night"]},
+    {"fg": "mint", "bg": "surface-sunken", "min": 4.5, "use": "code editor: definitions, variables, types and built-ins", "modes": ["night"]},
+    {"fg": "mint", "bg": "surface-hover", "min": 4.5, "use": "code editor: definitions and variables on the highlighted line", "modes": ["night"]},
+    {"fg": "text-muted", "bg": "surface-hover", "min": 4.5, "use": "code editor: comments on the highlighted line", "modes": ["night"]},
+    {"fg": "text-strong", "bg": "surface-sunken", "min": 3.0, "use": "code editor: the text cursor", "modes": ["night"]},
+    {"fg": "#999999", "bg": "surface", "min": 4.5, "use": "monitoring charts: Chart.js labels (#666666) after the night inversion, on the card", "modes": ["night"]}
   ]
 }

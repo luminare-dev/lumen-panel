@@ -1,0 +1,22 @@
+/*
+ * Lumen Dark (theme/lumen-dark): the additions that make the panel dark on top of the default
+ * theme's standard, light stylesheet (style.css or style-rtl.css).
+ *
+ * lumen-night.css = index.css (every Lumen component, driven by the --lm-* tokens) + the dark
+ * token set on :root (built from the dark block of tokens.css) + this file (+ rtl.css for
+ * lumen-night-rtl.css). The components already paint most of the panel from the tokens; this
+ * file covers what the light base still paints light and the Lumen components leave alone,
+ * because in Lumen's own dark mode the panel's dark stylesheet takes care of it. Nothing here
+ * loads, names or imitates the panel's dark stylesheets, its dark-mode switch or its 'dark/'
+ * images (docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md).
+ *
+ * Like the rest of Lumen, rules match the selector they replace and win by coming later, so
+ * White Label CSS still overrides them. Only the editors' own stylesheets load after Lumen (in the
+ * page's CSS block); their rules here are prefixed with .lumen-night, the class the Lumen Dark
+ * template patch puts on <html> and <body>.
+ */
+@import "night/base.css";
+@import "night/forms.css";
+@import "night/components.css";
+@import "night/editors.css";
+@import "night/charts.css";
