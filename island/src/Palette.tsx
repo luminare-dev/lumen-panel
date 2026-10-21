@@ -221,12 +221,13 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-keyshortcuts={apple ? "Meta+K" : "Control+K"}
+          aria-label={`${t.button}${t.buttonHidden}`}
           onClick={() => (openRef.current ? hide() : show(triggerRef.current))}
         >
           <SearchIcon />
-          <span className="trigger-label">
+          {/* The name comes from aria-label: it also exists when narrow screens hide this label. */}
+          <span className="trigger-label" aria-hidden="true">
             {t.button}
-            <span className="visually-hidden">{t.buttonHidden}</span>
           </span>
           <kbd aria-hidden="true">{apple ? "⌘ K" : "Ctrl K"}</kbd>
         </button>
@@ -302,18 +303,27 @@ export function Palette({ getEntries, navigate, triggerContainer = null, doc = d
                       part.hit ? <mark key={i}>{part.text}</mark> : <span key={i}>{part.text}</span>,
                     )}
                   </span>
+                  {/* Each extra is one hidden ", text" string: separators that end an element are
+                      trimmed by accessible-name computation, so they must not stand alone. The
+                      visible badge and group are hidden from assistive technology instead. */}
                   {entry.current && (
-                    <span className="badge">
-                      <span className="visually-hidden">, </span>
-                      {t.current}
-                    </span>
+                    <>
+                      <span className="badge" aria-hidden="true">
+                        {t.current}
+                      </span>
+                      <span className="visually-hidden">{`, ${t.current}`}</span>
+                    </>
                   )}
-                  {entry.newTab && <span className="visually-hidden">, {t.newTab}</span>}
+                  {entry.newTab && <span className="visually-hidden">{`, ${t.newTab}`}</span>}
                   {entry.group && (
-                    <span className="group" lang={entry.group === t.account ? t.code : pageLang}>
-                      <span className="visually-hidden">, </span>
-                      {entry.group}
-                    </span>
+                    <>
+                      <span className="group" aria-hidden="true">
+                        {entry.group}
+                      </span>
+                      <span className="visually-hidden" lang={entry.group === t.account ? t.code : pageLang}>
+                        {`, ${entry.group}`}
+                      </span>
+                    </>
                   )}
                 </li>
               ))}
