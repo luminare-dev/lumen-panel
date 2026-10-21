@@ -126,7 +126,7 @@ class ContribUnitsTest(unittest.TestCase):
     def test_service_runs_sync_sandboxed(self):
         svc = self.unit("lumen-panel-sync.service")["Service"]
         self.assertEqual(svc["Type"], "oneshot")
-        self.assertRegex(svc["ExecStart"], r"^/usr/bin/python3 -m lumen_panel sync --keyhelp \S+$")
+        self.assertRegex(svc["ExecStart"], r"^/usr/bin/python3 -m lumen_panel sync --variant all --keyhelp \S+$")
         self.assertTrue(svc["WorkingDirectory"].endswith("/generator"))
         self.assertEqual(svc["ProtectSystem"], "strict")
         writable = svc["ReadWritePaths"].split()
@@ -154,9 +154,11 @@ class ContribUnitsTest(unittest.TestCase):
 
     def test_sync_takes_the_options_the_unit_passes(self):
         p = parser()
-        args = p.parse_args(["sync", "--keyhelp", "/srv/panel"])
+        svc = self.unit("lumen-panel-sync.service")["Service"]
+        args = p.parse_args(svc["ExecStart"].split()[3:])
         self.assertEqual(args.command, "sync")
-        self.assertEqual(str(args.keyhelp), "/srv/panel")
+        self.assertEqual(args.variant, "all", "the unit keeps every installed theme current")
+        self.assertEqual(str(args.keyhelp), "/home/keyhelp/www/keyhelp")
 
     def test_timer_runs_daily_and_catches_up(self):
         timer = self.unit("lumen-panel-sync.timer")
