@@ -64,7 +64,7 @@ npm run dev                          # builds the assets and serves the gallery 
 python3 -m unittest discover -s tests
 ```
 
-## Docs
+## Documentation and links
 
 [Install](docs/install.md) · [After a KeyHelp update](docs/update.md) ·
 [Upgrading](docs/upgrade.md) · [Configuration](docs/configuration.md) ·
