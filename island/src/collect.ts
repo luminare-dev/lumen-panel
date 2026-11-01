@@ -2,7 +2,7 @@
 // entries are rebuilt from the DOM every time the palette opens, so they always match what the
 // signed-in user is allowed to see.
 //
-// Sources (markup of the panel's internal layout, see docs/keyhelp-markup.md):
+// Sources (markup of the panel's internal layout):
 //   #sidebar-navigation .app-menu-group   one group per sidebar section
 //     .menu-label                         the group name
 //     .menu-list a[href]                  its pages (a.is-active is the current page)
