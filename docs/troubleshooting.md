@@ -56,8 +56,7 @@ sudo python3 -m lumen_panel verify /home/keyhelp/www/keyhelp/theme/lumen-dark --
 
 **Cause:** none; this is how it is meant to be. Lumen Dark is always dark by its own stylesheet and
 declares no dark mode, so the panel shows neither the switch in the user menu nor the design mode
-on the Theme page for it. It does not use the dark mode of KeyHelp Pro
-([ADR 0011](adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md)).
+on the Theme page for it. It does not use the dark mode of KeyHelp Pro.
 
 **Fix:** for a light panel, select **Lumen** (or the default theme) instead.
 
@@ -112,13 +111,7 @@ sudo python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes 
 sudo python3 -m lumen_panel uninstall --variant lumen-dark --keyhelp /home/keyhelp/www/keyhelp --yes  # Lumen Dark
 ```
 
-Keyweb's fix for a theme that breaks the panel has two steps: remove the theme's folder, and
-set `default_theme` (table `settings`, category `general`) back to `bulma` in KeyHelp's database
-([community forum, Keyweb AG, 2021](https://community.keyhelp.de/viewtopic.php?t=10272)). The
-command above does the first step without deleting anything. Whether the panel falls back to the
-default theme without the second step has not been tested; if pages still fail, do the second
-step as Keyweb describes, with the theme that was active before (for example `lumen`) where its
-folder is still installed
+If pages still fail, set `default_theme` back in KeyHelp's database
 ([If the panel cannot show the Theme page](install.md#if-the-panel-cannot-show-the-theme-page)).
 Then open an issue with the KeyHelp version and the template the error names.
 

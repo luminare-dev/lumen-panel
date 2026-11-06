@@ -1,9 +1,5 @@
-# Caller: lint, tests and the full-history secret scan on every pull request and push to main,
-# plus the project's own asset build (stylesheets, command palette, gallery: type check, unit
-# tests, build, bundle check) and an end-to-end generator build of both themes, Lumen and Lumen
-# Dark, against the fake panel tree of the tests. The static gallery is kept as a build artifact
-# for 14 days, the built theme assets (both themes' stylesheets) for 30.
-# Required checks for the main ruleset: "ci / lint-test", "assets", "secrets / gitleaks".
+# Lint, tests, secret scan, the asset build and a generator build of both themes.
+# Required checks: "ci / lint-test", "assets", "secrets / gitleaks".
 name: ci
 
 on:

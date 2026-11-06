@@ -10,7 +10,7 @@ Lumen Dark is a dark design, not the panel's dark mode. Its _settings.json decla
 style-rtl.css) whatever the panel's dark-mode setting says, and nothing of it sets or imitates the
 dark-mode switch or loads the dark stylesheets or the 'dark/' images of KeyHelp Pro. The
 body.dark-mode hooks of the shared Lumen code stay inert in Lumen Dark, where the dark tokens are
-always on :root (docs/adr/0011-lumen-dark-is-a-design-not-the-pro-dark-mode.md).
+always on :root.
 
 Both variants are built the same way from one assets folder and one patch folder, and each keeps
 its own theme folder, staging and parking names in theme/, backup folder (with its own run lock

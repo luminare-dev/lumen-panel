@@ -19,7 +19,7 @@ Checks:
   6. _screenshot.png exists;
   7. for a variant without a dark mode (Lumen Dark): no template can load one of the default
      theme's dark stylesheets, and no patch text uses the panel's dark-mode switch, its dark
-     stylesheets or its 'dark/' images (the Pro boundary, docs/adr/0011).
+     stylesheets or its 'dark/' images (the Pro boundary).
 """
 
 from __future__ import annotations

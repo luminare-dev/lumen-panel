@@ -1,6 +1,5 @@
-# Reusable CI: wording and name checks, byline consistency, workflow policy, YAML and Markdown
-# lint, actionlint, zizmor and the repository's tests. Called by ci.yml and pr-title.yml.
-# Third-party actions are pinned by full commit SHA; downloaded tools are pinned by sha256.
+# Reusable CI: wording checks, workflow policy, YAML/Markdown lint, actionlint, zizmor and tests.
+# Actions are pinned by commit SHA, downloaded tools by sha256.
 name: reusable-ci
 
 on:
@@ -17,7 +16,7 @@ on:
       template-mode:
         description: >-
           "auto" (template mode only in a repository marked as a template), "true" or "false".
-          Template mode allows the placeholders listed in PLACEHOLDERS.md.
+          Template mode allows the template placeholders.
         type: string
         default: auto
       test-command:

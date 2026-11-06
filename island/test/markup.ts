@@ -1,5 +1,5 @@
 // Test pages written for this project. They carry only the ids and classes the island reads
-// (docs/keyhelp-markup.md); all names and addresses are examples.
+// (see src/collect.ts); all names and addresses are examples.
 
 export const INTERNAL_PAGE = `
   <header id="header">

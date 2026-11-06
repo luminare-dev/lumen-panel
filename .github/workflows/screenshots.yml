@@ -1,11 +1,5 @@
-# Screenshots of the design-system gallery for the README (docs/screenshots/).
-# Runs on pull requests that touch the styles or the gallery, and by hand. It builds the
-# stylesheets and the gallery, serves the gallery on 127.0.0.1 and captures each page with the
-# Google Chrome that the GitHub-hosted Ubuntu image ships (headless, no extra dependency).
-# The gallery reads its start state from the URL: ?mode=light|dark|night&dir=ltr|rtl#<page>
-# (night is the Lumen Dark theme).
-# The PNGs are uploaded as the artifact "screenshots"; a maintainer reviews them and commits
-# the ones the README uses.
+# Gallery screenshots for the README, uploaded as the "screenshots" artifact
+# (start state from the URL: ?mode=light|dark|night&dir=ltr|rtl#<page>).
 name: screenshots
 
 on:

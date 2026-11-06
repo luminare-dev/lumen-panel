@@ -1,22 +1,8 @@
 # Runbook
 
-Run every `python3 -m lumen_panel` command below as root from the generator folder
-(`cd /opt/lumen-panel/generator`); from any other folder it fails with "No module named
-lumen_panel". The commands in a `ROLLBACK.txt` change to that folder themselves. The commands are
-written for Lumen (`theme/lumen`, backups in `/root/backups/lumen-panel/`); for Lumen Dark add
-`--variant lumen-dark` (`theme/lumen-dark`, backups in `/root/backups/lumen-panel/lumen-dark/`).
-The two themes never share a folder, a lock or a hold, so a failure of one leaves the other as it
-is.
-
-## Automatic rebuild after panel updates (optional units)
-
-The example units [`contrib/lumen-panel-sync.service`](../contrib/lumen-panel-sync.service),
-[`contrib/lumen-panel-sync.path`](../contrib/lumen-panel-sync.path) and
-[`contrib/lumen-panel-sync.timer`](../contrib/lumen-panel-sync.timer) run
-`python3 -m lumen_panel sync --variant all` (every installed theme) when the default theme changes
-and once a day, in a sandbox with a 200 MB memory limit. Installing, checking and removing them:
-[Keeping the theme current](update.md#rebuild-automatically-optional-units). The sync needs no
-Node.js: it reuses the built `dist/assets/`.
+Run the commands as root from `/opt/lumen-panel/generator`. They are written for Lumen; add
+`--variant lumen-dark` for Lumen Dark (backups in `/root/backups/lumen-panel/lumen-dark/`). The
+optional units are described in [docs/update.md](update.md#rebuild-automatically-optional-units).
 
 ## Failure: lumen-panel-sync.service failed
 
