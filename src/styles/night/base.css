@@ -10,8 +10,8 @@ html {
 
 /* Selected text: the primary tint is too close to the cards and the page to show a selection. */
 ::selection {
-  background-color: var(--lm-royal);
-  color: var(--lm-white);
+  background-color: var(--lm-selection);
+  color: var(--lm-on-selection);
 }
 
 /* Bare tables and the panel's summary rows set a dark grey text colour of their own. */
@@ -189,5 +189,5 @@ a.has-text-link-dark:focus {
  * below 3:1 on the dark page; !important is the only way past an inline style.
  */
 [style*="color: #a02833"] {
-  color: var(--lm-ember-bright) !important;
+  color: var(--lm-danger) !important;
 }

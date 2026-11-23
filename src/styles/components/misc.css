@@ -210,7 +210,7 @@ sup {
 
 /*
  * Close buttons outside messages (modal headers, tags): the white cross needs 3:1 against its
- * disc. slate-700 for hover and focus in both modes, because text-2 is light in dark mode.
+ * disc. --lm-delete-hover (slate-700 in both modes, because text-2 is light in dark mode).
  */
 .delete {
   background-color: var(--lm-border-control);
@@ -218,7 +218,7 @@ sup {
 
 .delete:hover,
 .delete:focus-visible {
-  background-color: var(--lm-slate-700);
+  background-color: var(--lm-delete-hover);
 }
 
 ul.horizontal-separated-list li + li::before {

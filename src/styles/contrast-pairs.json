@@ -68,14 +68,14 @@
     {"fg": "border-control", "bg": "surface-hover", "min": 3.0, "use": "checkbox and input borders on hovered rows"},
     {"fg": "border-control", "bg": "primary-tint", "min": 3.0, "use": "checkbox and input borders on selected rows"},
     {"fg": "white", "bg": "border-control", "min": 3.0, "use": "the cross of close buttons (.delete)"},
-    {"fg": "white", "bg": "slate-700", "min": 3.0, "use": "the cross of a hovered or focused close button"},
+    {"fg": "white", "bg": "delete-hover", "min": 3.0, "use": "the cross of a hovered or focused close button"},
     {"fg": "link", "bg": "surface-hover", "min": 4.5, "use": "code editor: keywords, tags and links on the highlighted line", "modes": ["night"]},
     {"fg": "mint", "bg": "surface-sunken", "min": 4.5, "use": "code editor: definitions, variables, types and built-ins", "modes": ["night"]},
     {"fg": "mint", "bg": "surface-hover", "min": 4.5, "use": "code editor: definitions and variables on the highlighted line", "modes": ["night"]},
     {"fg": "text-muted", "bg": "surface-hover", "min": 4.5, "use": "code editor: comments on the highlighted line", "modes": ["night"]},
     {"fg": "text-strong", "bg": "surface-sunken", "min": 3.0, "use": "code editor: the text cursor", "modes": ["night"]},
     {"fg": "focus", "bg": "surface-sunken", "min": 3.0, "use": "focus ring of read-only fields and of the code editor", "modes": ["night"]},
-    {"fg": "white", "bg": "royal", "min": 4.5, "use": "selected text", "modes": ["night"]},
+    {"fg": "on-selection", "bg": "selection", "min": 4.5, "use": "selected text", "modes": ["night"]},
     {"fg": "text", "bg": "abyss", "min": 4.5, "use": "code editor: selected text", "modes": ["night"]},
     {"fg": "link", "bg": "abyss", "min": 4.5, "use": "code editor: keywords, tags and links in a selection", "modes": ["night"]},
     {"fg": "mint", "bg": "abyss", "min": 4.5, "use": "code editor: definitions and variables in a selection", "modes": ["night"]},
@@ -91,8 +91,8 @@
     {"fg": "primary", "bg": "primary-tint", "min": 3.0, "use": "rich text editor: the bar of a toolbar button that is on", "modes": ["night"]},
     {"fg": "focus", "bg": "primary-tint", "min": 3.0, "use": "rich text editor: focus ring of a toolbar button that is on", "modes": ["night"]},
     {"fg": "danger-text", "bg": "surface-raised", "min": 4.5, "use": "rich text editor: error text in its dialogs", "modes": ["night"]},
-    {"fg": "ember-bright", "bg": "bg", "min": 3.0, "use": "icons the templates colour dark red inline (footer, KeyDisc storage)", "modes": ["night"]},
-    {"fg": "ember-bright", "bg": "surface", "min": 3.0, "use": "icons the templates colour dark red inline, on a card", "modes": ["night"]},
+    {"fg": "danger", "bg": "bg", "min": 3.0, "use": "icons the templates colour dark red inline (footer, KeyDisc storage)", "modes": ["night"]},
+    {"fg": "danger", "bg": "surface", "min": 3.0, "use": "icons the templates colour dark red inline, on a card", "modes": ["night"]},
     {"fg": "#999999", "bg": "surface", "min": 4.5, "use": "monitoring charts: Chart.js labels (#666666) after the night inversion, on the card", "modes": ["night"]}
   ]
 }
