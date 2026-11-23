@@ -25,6 +25,8 @@ sys.path.insert(0, str(ROOT / "tests"))
 
 import fakekeyhelp as fk  # noqa: E402
 from lumen_panel import __version__, cli  # noqa: E402
+from lumen_panel import custom  # noqa: E402
+from lumen_panel.variants import LUMEN  # noqa: E402
 from lumen_panel import install as inst  # noqa: E402
 from lumen_panel.build import REPO_ROOT, BuildError, SourceChangedError, build  # noqa: E402
 from lumen_panel.keyhelp import KeyHelpError, tree_sha256  # noqa: E402
@@ -77,7 +79,8 @@ class PatchTest(Env):
         out = self.tmp / "t"
         shutil.copytree(self.bulma / "templates", out)
         patches = load_patches(fk.PATCHES)
-        apply_patches(out, patches, {"LUMEN_VERSION": "9.9.9", "LUMEN_ASSET_HASH": "abc", "LUMEN_THEME_DIR": "lumen"})
+        apply_patches(out, patches, {"LUMEN_VERSION": "9.9.9", "LUMEN_ASSET_HASH": "abc", "LUMEN_THEME_DIR": "lumen",
+                                     **custom.substitutions(LUMEN, None, "lumen", "abc")})
         for p in patches:
             text = (out / p.file).read_text(encoding="utf-8")
             self.assertEqual(text.count(p.marker), 1, p.id)
@@ -99,7 +102,8 @@ class PatchTest(Env):
         base.write_text(base.read_text(encoding="utf-8").replace("{% block page_css %}{% endblock %}", ""), encoding="utf-8")
         before = {p: p.read_bytes() for p in out.rglob("*.twig")}
         with self.assertRaises(PatchError) as ctx:
-            apply_patches(out, load_patches(fk.PATCHES), {"LUMEN_VERSION": "1", "LUMEN_ASSET_HASH": "x", "LUMEN_THEME_DIR": "lumen"})
+            apply_patches(out, load_patches(fk.PATCHES), {"LUMEN_VERSION": "1", "LUMEN_ASSET_HASH": "x", "LUMEN_THEME_DIR": "lumen",
+                                                           **custom.substitutions(LUMEN, None, "lumen", "x")})
         self.assertEqual(len(ctx.exception.failures), 1)
         self.assertIn("base-stylesheet", ctx.exception.failures[0])
         self.assertIn("not found", ctx.exception.failures[0])

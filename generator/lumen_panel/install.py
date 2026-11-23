@@ -47,7 +47,8 @@ from pathlib import Path
 from typing import Callable, Iterator
 
 from . import __version__
-from .build import DEFAULT_ASSETS, DEFAULT_PATCHES, MANIFEST_NAME, REPO_ROOT, BuildError, asset_hash, build
+from .build import (DEFAULT_ASSETS, DEFAULT_CUSTOM, DEFAULT_PATCHES, MANIFEST_NAME, REPO_ROOT, BuildError, asset_hash,
+                    build, load_custom)
 from .keyhelp import KeyHelpTree, tree_sha256
 from .patches import PatchError, patch_set_sha256
 from .twigcache import find_theme_entries
@@ -103,6 +104,7 @@ class Options:
     backup_root: Path = DEFAULT_BACKUP_ROOT
     owner: str = DEFAULT_OWNER          # "user:group", or "" to leave ownership as it is
     variant: Variant = DEFAULT_VARIANT
+    custom_dir: Path | None = DEFAULT_CUSTOM   # a customization (custom.py), used when it exists
 
     @property
     def backups(self) -> Path:
@@ -448,7 +450,8 @@ def _install(tree: KeyHelpTree, options: Options, ts: str, now: _dt.datetime | N
     staging = tree.theme_root / (v.staging_prefix + ts)
     try:
         result = build(tree.root, staging, variant=v, patches_dir=options.patches_dir,
-                       assets_dir=options.assets_dir, screenshot_fallback=options.screenshot_fallback, now=now)
+                       assets_dir=options.assets_dir, screenshot_fallback=options.screenshot_fallback, now=now,
+                       custom_dir=options.custom_dir)
     except BaseException:
         _park_failed(staging, backup, out)
         _remove_if_empty(backup)
@@ -471,7 +474,8 @@ def _dry_run(tree: KeyHelpTree, options: Options, ts: str, now: _dt.datetime | N
     ok = True
     with tempfile.TemporaryDirectory(prefix="lumen-dry-run-") as tmp:
         result = build(tree.root, Path(tmp) / v.dir_name, variant=v, patches_dir=options.patches_dir,
-                       assets_dir=options.assets_dir, screenshot_fallback=options.screenshot_fallback, now=now)
+                       assets_dir=options.assets_dir, screenshot_fallback=options.screenshot_fallback, now=now,
+                       custom_dir=options.custom_dir)
         report = verify(result.out_dir, tree.root, variant=v)
         for e in report.errors:
             out(f"error: {e}")
@@ -607,6 +611,15 @@ def _check_update(tree: KeyHelpTree, options: Options, out: Out) -> int:
                            f"{name} has {manifest.get('asset_hash')})")
     else:
         out(f"note: {options.assets_dir} not found; the built assets were not compared")
+    try:
+        current_custom = load_custom(options.custom_dir, options.assets_dir)
+        custom_sha = current_custom.sha256 if current_custom else None
+    except BuildError as exc:
+        custom_sha = f"unreadable ({exc})"
+    built_custom = (manifest.get("custom") or {}).get("sha256")
+    if custom_sha != built_custom:
+        reasons.append(f"the customization in {options.custom_dir} changed since the build" if custom_sha
+                       else f"the customization was removed from {options.custom_dir} since the build")
     if options.patches_dir.is_dir():
         try:
             current_patches = patch_set_sha256(options.patches_dir, v.patch_overlay, theme_dir=v.dir_name)

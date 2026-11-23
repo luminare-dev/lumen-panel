@@ -1,0 +1,8 @@
+{
+  "id": "favicon",
+  "file": "layout/base.twig",
+  "description": "Use the favicon of a customization (branding.json) instead of the white-label and default favicons. Without one the favicon block stays as it is.",
+  "mode": "replace",
+  "anchor": "{% if _white_label.favicon_url %}",
+  "text": "@@LUMEN_FAVICON@@"
+}

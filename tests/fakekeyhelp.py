@@ -44,6 +44,8 @@ def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]]) -> di
             f"{A.get('night-html-class', '<html>')}\n<head>\n"
             f"    {A.get('night-color-scheme', '')}\n"
             f"    {A.get('night-theme-color', '')}\n"
+            f"    {A.get('favicon', '')}\n        <link rel=\"shortcut icon\" href=\"{{{{ _white_label.favicon_url }}}}\">\n"
+            "    {% else %}\n        <link rel=\"icon\" href=\"/theme/bulma/assets/img/favicon/favicon.ico\">\n    {% endif %}\n"
             "    <title>{{ _app.page_title }}</title>\n"
             f"    {A.get('night-default-stylesheet', '<link rel=stylesheet href=/theme/bulma/assets/css/style.css>')}\n\n"
             f"    {A.get('base-stylesheet', '')}\n</head>\n"

@@ -471,7 +471,7 @@ class SeparationTest(Env):
     def test_dry_run_of_lumen_dark_writes_nothing(self):
         code, out = lines(inst.install, self.kh, dry_run=True, options=self.dark)
         self.assertEqual(code, 0, out)
-        self.assertIn("Lumen Dark, default theme 26.1.1, 12 patches", out)
+        self.assertIn("Lumen Dark, default theme 26.1.1, 13 patches", out)
         self.assertIn(f"swap it in at {self.dark_theme}", out)
         self.assertIn(str(self.backups / "lumen-dark"), out)
         self.assertEqual(self.theme_dirs(), ["bulma"])
