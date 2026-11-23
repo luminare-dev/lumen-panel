@@ -134,8 +134,8 @@ jobs:
       - name: Shared token code matches shared.lock (local copies and the locked source commit)
         run: python3 scripts/check_shared.py fetch
 
-      - name: Build the stylesheets
-        run: npm run build:css
+      - name: Build the stylesheets and the command palette
+        run: npm run build:css && npm run build:island
 
       - name: Compile every preset into a customization folder
         run: |
