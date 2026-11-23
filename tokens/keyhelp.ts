@@ -229,3 +229,28 @@ export function branding(tokens: Tokens): Branding {
 export function brandingJson(tokens: Tokens): string {
     return `${JSON.stringify(branding(tokens), null, 2)}\n`;
 }
+
+/** README.txt of a customization. */
+export function readme(tokens: Tokens): string {
+    return (
+        `Lumen customization for lumen-panel: ${tokens.meta.name.replace(/[^\x20-\x7e]/g, '')}\n\n` +
+        'Install on the panel server (a dry run; add --yes to install):\n' +
+        '  cd /opt/lumen-panel/generator\n' +
+        '  python3 -m lumen_panel apply-custom <this ZIP> --keyhelp /home/keyhelp/www/keyhelp\n\n' +
+        'Contents: lumen.tokens.json (the token file; import it or this ZIP in the customizer to edit it\n' +
+        'again), override-follow.css and override-dark.css (compiled from the tokens), branding.json and\n' +
+        'the uploaded files in custom/. No KeyHelp file is included.\n' +
+        'https://github.com/luminare-dev/lumen-panel\n'
+    );
+}
+
+/** The text files of a customization (uploads go into custom/ beside them), keyed by path. */
+export function customizationFiles(tokens: Tokens): Record<string, string> {
+    return {
+        'lumen.tokens.json': `${JSON.stringify(tokens, null, 2)}\n`,
+        'override-follow.css': compileKeyHelp(tokens, 'follow'),
+        'override-dark.css': compileKeyHelp(tokens, 'dark'),
+        'branding.json': brandingJson(tokens),
+        'README.txt': readme(tokens),
+    };
+}

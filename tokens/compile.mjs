@@ -14,36 +14,13 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalize } from "./core.ts";
-import { brandingJson, compileKeyHelp } from "./keyhelp.ts";
+import { customizationFiles } from "./keyhelp.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const PRESET_NAMES = ["luminare", "graphite", "aurora", "contrast"];
 
 export function preset(name) {
   return JSON.parse(readFileSync(join(here, "presets", `${name}.json`), "utf8"));
-}
-
-export function readme(tokens) {
-  return (
-    `Lumen customization for lumen-panel: ${tokens.meta.name.replace(/[^\x20-\x7e]/g, "")}\n\n` +
-    "Install on the panel server (dry run first, then with --yes):\n" +
-    "  python3 -m lumen_panel apply-custom --zip <this ZIP> --keyhelp /home/keyhelp/www/keyhelp --variant all\n\n" +
-    "Contents: lumen.tokens.json (the token file; import it in the customizer to edit it again),\n" +
-    "override-follow.css and override-dark.css (compiled from the tokens), branding.json and the\n" +
-    "uploaded files in custom/. No KeyHelp file is included.\n" +
-    "https://github.com/luminare-dev/lumen-panel\n"
-  );
-}
-
-/** The files of a customization folder (without uploads), keyed by relative path. */
-export function customizationFiles(tokens) {
-  return {
-    "lumen.tokens.json": `${JSON.stringify(tokens, null, 2)}\n`,
-    "override-follow.css": compileKeyHelp(tokens, "follow"),
-    "override-dark.css": compileKeyHelp(tokens, "dark"),
-    "branding.json": brandingJson(tokens),
-    "README.txt": readme(tokens),
-  };
 }
 
 function main(argv) {

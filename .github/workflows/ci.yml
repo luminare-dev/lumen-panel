@@ -1,5 +1,6 @@
 # Lint, tests, secret scan, the asset build and a generator build of both themes.
-# Required checks: "ci / lint-test", "assets", "secrets / gitleaks".
+# Required checks: "ci / lint-test", "assets", "secrets / gitleaks". The customizer job builds the
+# customizer page, compiles every preset and screenshots the preview in headless Chrome.
 name: ci
 
 on:
@@ -109,3 +110,112 @@ jobs:
           path: dist/assets
           if-no-files-found: error
           retention-days: 30
+
+  customizer:
+    name: customizer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Install the locked dependencies (no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Shared token code matches shared.lock (local copies and the locked source commit)
+        run: python3 scripts/check_shared.py fetch
+
+      - name: Build the stylesheets
+        run: npm run build:css
+
+      - name: Compile every preset into a customization folder
+        run: |
+          set -euo pipefail
+          for preset in luminare graphite aurora contrast; do
+            node --experimental-strip-types --no-warnings tokens/compile.mjs \
+              --preset "$preset" --out "dist/presets/$preset"
+          done
+          ls -l dist/presets/*
+
+      - name: Build the customizer page
+        run: |
+          node --no-warnings customizer/build.mjs --assets dist/assets \
+            --bulma node_modules/bulma/css/bulma.min.css --out dist/customizer/lumen-panel-customizer.html
+
+      - name: Parity (embedded compiler and tokens/*.ts, every preset and case)
+        run: |
+          node --experimental-strip-types --no-warnings tests/parity/run.mjs \
+            dist/customizer/lumen-panel-customizer.html
+
+      - name: The page makes no request (no URL outside the CSP-blocked set)
+        run: |
+          set -euo pipefail
+          page=dist/customizer/lumen-panel-customizer.html
+          grep -q "default-src 'none'" "$page"
+          if grep -o -E '(src|href)="https?://[^"]*"' "$page"; then
+            echo "error: the customizer page links an external resource" >&2
+            exit 1
+          fi
+
+      - name: Generator build of both themes with every compiled preset (fake panel tree)
+        run: |
+          set -euo pipefail
+          python3 tests/fakekeyhelp.py "$RUNNER_TEMP/keyhelp"
+          cd generator
+          for preset in luminare graphite aurora contrast; do
+            for variant in lumen lumen-dark; do
+              out="$RUNNER_TEMP/build-$preset-$variant"
+              python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp" \
+                --assets ../dist/assets --custom "../dist/presets/$preset" --out "$out" >/dev/null
+              python3 -m lumen_panel verify "$out" --keyhelp "$RUNNER_TEMP/keyhelp" >/dev/null
+            done
+          done
+          echo "8 builds verified"
+
+      - name: Screenshots of the preview (headless Chrome)
+        run: |
+          set -euo pipefail
+          google-chrome --version
+          page="file://$PWD/dist/customizer/lumen-panel-customizer.html"
+          mkdir -p screenshots
+          shot() { # name, hash
+            google-chrome --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+              --window-size=1440,1000 --virtual-time-budget=5000 \
+              --screenshot="screenshots/$1.png" "$page#$2" 2>/dev/null
+            test -s "screenshots/$1.png"
+          }
+          for preset in luminare graphite aurora contrast; do
+            for mode in light dark night; do
+              shot "$preset-$mode" "preset=$preset&mode=$mode"
+            done
+          done
+          shot luminare-login "preset=luminare&mode=light&screen=login"
+          shot aurora-night-login "preset=aurora&mode=night&screen=login"
+          ls -l screenshots
+
+      - name: Keep the customizer page and the compiled presets
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: customizer
+          path: |
+            dist/customizer
+            dist/presets
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: customizer-screenshots
+          path: screenshots
+          if-no-files-found: error
+          retention-days: 14
