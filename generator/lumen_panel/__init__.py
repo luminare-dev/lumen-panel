@@ -10,4 +10,8 @@ __version__ = "0.1.0"  # x-release-please-version
 
 THEME_DIR_NAME = "lumen"
 THEME_DISPLAY_NAME = "Lumen"
-BASE_THEME_DIR_NAME = "bulma"
+# KeyHelp's default theme folder: theme/default since KeyHelp 26.2, theme/bulma before. The
+# generator reads whichever this install has (keyhelp.py), first match wins.
+BASE_THEME_DIR_NAME = "default"
+LEGACY_BASE_THEME_DIR_NAME = "bulma"
+BASE_THEME_DIR_NAMES = (BASE_THEME_DIR_NAME, LEGACY_BASE_THEME_DIR_NAME)

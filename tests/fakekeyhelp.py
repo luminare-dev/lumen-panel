@@ -3,6 +3,10 @@
 The templates are minimal Twig skeletons of our own. The only lines they share with the real
 default theme are the patch anchors, which are read from patches/*.json and the variant overlays
 (patches/lumen-dark/*.json), so the fixture always matches the patch sets under test.
+
+Two layouts, like KeyHelp: "default" (theme/default, KeyHelp 26.2 and later, templates load their
+own files from {{ _app.theme.url }}) and "bulma" (theme/bulma, before 26.2, fixed /theme/bulma/
+paths). Each patch's anchor is the one of the layout (patches with "anchors").
 """
 
 from __future__ import annotations
@@ -16,27 +20,40 @@ ROOT = Path(__file__).resolve().parent.parent
 PATCHES = ROOT / "patches"
 
 
-def _patch_items(patches_dir: Path):
+LAYOUTS = ("default", "bulma")
+VERSIONS = {"default": "26.2", "bulma": "26.1.1"}
+
+
+def _patch_items(patches_dir: Path, layout: str):
     for path in sorted(patches_dir.glob("*.json")) + sorted(patches_dir.glob("*/*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
-        yield from data.get("patches", [data])
+        for item in data.get("patches", [data]):
+            if "anchors" in item:
+                item = {**item, "anchor": item["anchors"][layout]}
+            yield item
 
 
-def anchors(patches_dir: Path = PATCHES) -> dict[str, tuple[str, str]]:
+def anchors(patches_dir: Path = PATCHES, layout: str = "default") -> dict[str, tuple[str, str]]:
     """patch id -> (file, anchor), over Lumen's patch set and every variant overlay (an overlay
     patch with the id of a base patch uses the same anchor)."""
     out: dict[str, tuple[str, str]] = {}
-    for item in _patch_items(patches_dir):
+    for item in _patch_items(patches_dir, layout):
         out.setdefault(item["id"], (item["file"], item["anchor"]))
     return out
 
 
-def all_anchors(patches_dir: Path = PATCHES) -> set[tuple[str, str]]:
-    return {(item["file"], item["anchor"]) for item in _patch_items(patches_dir)}
+def all_anchors(patches_dir: Path = PATCHES, layout: str = "default") -> set[tuple[str, str]]:
+    return {(item["file"], item["anchor"]) for item in _patch_items(patches_dir, layout)}
 
 
-def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]]) -> dict[str, str]:
+def theme_url(layout: str) -> str:
+    """How the layout's templates refer to the default theme's own folder."""
+    return "{{ _app.theme.url }}" if layout == "default" else "/theme/bulma"
+
+
+def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]], layout: str = "default") -> dict[str, str]:
     A = {k: v[1] for k, v in a.items()}
+    url = theme_url(layout)
     body = A.get("night-body-class", "<body class=\"{{ _app.theme.is_dark_mode ? 'dark-mode' : 'default-mode' }}")
     files = {
         "layout/base.twig": (
@@ -45,13 +62,13 @@ def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]]) -> di
             f"    {A.get('night-color-scheme', '')}\n"
             f"    {A.get('night-theme-color', '')}\n"
             f"    {A.get('favicon', '')}\n        <link rel=\"shortcut icon\" href=\"{{{{ _white_label.favicon_url }}}}\">\n"
-            "    {% else %}\n        <link rel=\"icon\" href=\"/theme/bulma/assets/img/favicon/favicon.ico\">\n    {% endif %}\n"
+            f"    {{% else %}}\n        <link rel=\"icon\" href=\"{url}/assets/img/favicon/favicon.ico\">\n    {{% endif %}}\n"
             "    <title>{{ _app.page_title }}</title>\n"
-            f"    {A.get('night-default-stylesheet', '<link rel=stylesheet href=/theme/bulma/assets/css/style.css>')}\n\n"
+            f"    {A.get('night-default-stylesheet', f'<link rel=stylesheet href={url}/assets/css/style.css>')}\n\n"
             f"    {A.get('base-stylesheet', '')}\n</head>\n"
             f"{body}\">\n"
             "    {% block body_content %}{% endblock %}\n"
-            f"    <script src=\"/theme/bulma/assets/js/main.js\"></script>\n{A.get('base-island-block', '</body>')}\n</html>\n"
+            f"    <script src=\"{url}/assets/js/main.js\"></script>\n{A.get('base-island-block', '</body>')}\n</html>\n"
         ),
         "layout/intern.twig": (
             f"{A.get('intern-island', '')}\n\n{{% block body_content %}}\n<header id=\"header\">\n"
@@ -79,7 +96,8 @@ def _templates(a: dict[str, tuple[str, str]], every: set[tuple[str, str]]) -> di
         ),
         "views/extern/login.twig": (
             "{% extends 'layout/extern.twig' %}\n\n{% block content %}\n    {# {% if %} inside a comment is ignored #}\n"
-            "    <form method=\"post\">{{ csrf_field() }}</form>\n{% endblock %}\n"
+            "    <form method=\"post\">{{ csrf_field() }}</form>\n"
+            f"    <script src=\"{url}/assets/js/login.js\"></script>\n{{% endblock %}}\n"
         ),
         "views/intern/admin/dashboard.twig": (
             "{% extends 'layout/intern.twig' %}\n{% block content %}\n{% set rows = {'a': {'b': 1}} %}\n"
@@ -100,15 +118,17 @@ def tiny_png() -> bytes:
             + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
 
 
-def make_keyhelp(root: Path, *, version: str = "26.1.1", patches_dir: Path = PATCHES) -> Path:
-    bulma = root / "theme" / "bulma"
+def make_keyhelp(root: Path, *, version: str | None = None, patches_dir: Path = PATCHES,
+                 layout: str = "default") -> Path:
+    bulma = root / "theme" / layout
+    version = version or VERSIONS[layout]
     (bulma / "templates").mkdir(parents=True)
     (bulma / "_settings.json").write_text(json.dumps({
         "name": "Default Theme", "description": "fixture", "author": "test", "version": version,
         "website": "https://example.org", "path_to_templates": "templates/", "has_dark_mode": True,
     }, indent=4), encoding="utf-8")
     (bulma / "_screenshot.png").write_bytes(tiny_png())
-    for rel, content in _templates(anchors(patches_dir), all_anchors(patches_dir)).items():
+    for rel, content in _templates(anchors(patches_dir, layout), all_anchors(patches_dir, layout), layout).items():
         path = bulma / "templates" / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
@@ -116,8 +136,13 @@ def make_keyhelp(root: Path, *, version: str = "26.1.1", patches_dir: Path = PAT
     return root
 
 
+def base_dir(root: Path) -> Path:
+    """The fake's default theme folder (theme/default or theme/bulma)."""
+    return next(root / "theme" / n for n in LAYOUTS if (root / "theme" / n).is_dir())
+
+
 def set_version(root: Path, version: str) -> None:
-    path = root / "theme" / "bulma" / "_settings.json"
+    path = base_dir(root) / "_settings.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     data["version"] = version
     path.write_text(json.dumps(data, indent=4), encoding="utf-8")
@@ -154,13 +179,15 @@ def compiled_entry(cache_dir: Path, name: str, source_path: str, logical: str = 
     return path
 
 
-if __name__ == "__main__":  # used by CI: python3 tests/fakekeyhelp.py <folder>
-    import sys
+if __name__ == "__main__":  # used by CI: python3 tests/fakekeyhelp.py <folder> [--layout default|bulma]
+    import argparse
 
-    if len(sys.argv) != 2:
-        sys.exit("usage: python3 tests/fakekeyhelp.py <new folder>")
-    target = Path(sys.argv[1])
-    if target.exists():
-        sys.exit(f"{target}: already exists")
-    make_keyhelp(target)
-    print(f"fake panel tree written to {target}")
+    ap = argparse.ArgumentParser(description="write a fake KeyHelp tree for the generator")
+    ap.add_argument("folder", type=Path)
+    ap.add_argument("--layout", choices=LAYOUTS, default="default",
+                    help="theme/default (KeyHelp 26.2 and later, the default) or theme/bulma (older)")
+    args = ap.parse_args()
+    if args.folder.exists():
+        raise SystemExit(f"{args.folder}: already exists")
+    make_keyhelp(args.folder, layout=args.layout)
+    print(f"fake panel tree ({args.layout} layout, KeyHelp {VERSIONS[args.layout]}) written to {args.folder}")

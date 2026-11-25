@@ -5,7 +5,7 @@ a hash of the template's loader cache key, which is derived from the template's 
 compiled file ends with ``getSourceContext()``, which returns
 ``new Source("", "<logical name>", "<path of the .twig file>")``. That recorded path is the only
 attribution used here: an entry is selected only when every Source it records lies below
-``theme/lumen/templates/``. Entries of the default theme (theme/bulma/...) or of anything else
+``theme/lumen/templates/``. Entries of the default theme (theme/default/... or theme/bulma/...) or of anything else
 are never selected; a file that cannot be read or parsed is left alone.
 
 Why leaving the cache alone is still safe when nothing can be attributed: the Lumen templates have

@@ -17,6 +17,10 @@ Checks:
   5. every theme/<variant>/... file a template refers to exists below the theme folder, and no
      template refers to the folder of another variant;
   6. _screenshot.png exists;
+  2c. the build fits the install's layout (with --keyhelp): built from the same default theme
+     folder (theme/default since KeyHelp 26.2, theme/bulma before), no template still uses
+     {{ _app.theme.url }} (it would load the default theme's files from the variant's folder), and
+     no template loads files from the other layout's folder;
   7. for a variant without a dark mode (Lumen Dark): no template can load one of the default
      theme's dark stylesheets, and no patch text uses the panel's dark-mode switch, its dark
      stylesheets or its 'dark/' images (the Pro boundary).
@@ -29,10 +33,10 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import BASE_THEME_DIR_NAME, variants
+from . import BASE_THEME_DIR_NAMES, LEGACY_BASE_THEME_DIR_NAME, variants
 from .build import MANIFEST_NAME
-from .keyhelp import KeyHelpError, KeyHelpTree, list_files
-from .patches import PatchError, marker, patch_contents, patch_from_record, read_text_exact
+from .keyhelp import KeyHelpError, KeyHelpTree, layout_text, list_files
+from .patches import PatchError, marker, patch_contents, patch_from_record, read_text_exact, rebase
 from .twig import asset_references, check as twig_check
 from .variants import PRO_DARK_MODE_MARKERS, Variant
 
@@ -90,9 +94,17 @@ def _check_contents(templates_dir: Path, files: list[str], manifest: dict, live:
     if not isinstance(substitutions, dict):
         report.errors.append("_lumen_build.json: no substitutions (built by an older lumen-panel); rebuild")
         return
+    base_url = manifest.get("base_url")
+    base_url = base_url if isinstance(base_url, str) else None
     patched = {p.file for p in patches}
     for rel in files:
-        if rel not in patched and _sha(templates_dir / rel) != _sha(live / rel):
+        if rel in patched:
+            continue
+        want_bytes = (live / rel).read_bytes()
+        if rel.endswith(".twig"):
+            want_bytes = rebase(want_bytes.decode("utf-8", errors="surrogateescape"), base_url).encode(
+                "utf-8", errors="surrogateescape")
+        if (templates_dir / rel).read_bytes() != want_bytes:
             report.errors.append(f"templates/{rel}: content differs from the default theme (truncated, or the "
                                  "default theme changed since the build); rebuild")
     originals = {rel: read_text_exact(live / rel) if (live / rel).is_file() else None for rel in sorted(patched)}
@@ -103,12 +115,13 @@ def _check_contents(templates_dir: Path, files: list[str], manifest: dict, live:
         return
     for rel, content in sorted(want.items()):
         path = templates_dir / rel
-        if not path.is_file() or path.read_bytes() != content.encode("utf-8"):
+        if not path.is_file() or path.read_bytes() != rebase(content, base_url).encode("utf-8"):
             report.errors.append(f"templates/{rel}: is not the live default theme's file with the recorded patches "
                                  "applied; rebuild")
     if len(report.errors) == before:
-        report.passed.append(f"contents ({len(files) - len(want)} files equal the default theme, {len(want)} patched "
-                             "files reproduce exactly)")
+        where = f" with theme URLs pointed at {base_url}" if base_url else ""
+        report.passed.append(f"contents ({len(files) - len(want)} files equal the default theme{where}, {len(want)} "
+                             "patched files reproduce exactly)")
 
 
 def _variant_of(theme_dir: Path, manifest: dict | None, expected: Variant | None,
@@ -130,17 +143,57 @@ def _variant_of(theme_dir: Path, manifest: dict | None, expected: Variant | None
     return found
 
 
-def _check_pro_boundary(templates_dir: Path, files: list[str], manifest: dict, report: VerifyReport) -> None:
-    """A variant without a dark mode never loads or switches the panel's own dark mode."""
+def build_layout(manifest: dict) -> str:
+    """The default theme folder a build was made from (builds before KeyHelp 26.2 support: bulma)."""
+    name = manifest.get("base_theme", LEGACY_BASE_THEME_DIR_NAME)
+    return name if isinstance(name, str) else LEGACY_BASE_THEME_DIR_NAME
+
+
+def layout_mismatch(manifest: dict, tree: KeyHelpTree) -> str | None:
+    """Why a build does not fit this KeyHelp's layout, or None when it does (tree validated)."""
+    built = build_layout(manifest)
+    if built == tree.layout:
+        return None
+    return (f"built for {layout_text(built)}, but this panel is {tree.describe()}; its templates would load "
+            f"files from /theme/{built}/. Rebuild it here (install) instead of reusing this build")
+
+
+def _check_layout(templates_dir: Path, files: list[str], manifest: dict, tree: KeyHelpTree | None,
+                  report: VerifyReport) -> None:
     before = len(report.errors)
+    if tree is not None:
+        why = layout_mismatch(manifest, tree)
+        if why:
+            report.errors.append(f"{MANIFEST_NAME}: {why}")
+    # with --keyhelp, the folder this panel has; otherwise the one the build was made for
+    base = tree.layout if tree is not None else build_layout(manifest)
     for rel in files:
         if not rel.endswith(".twig"):
             continue
         src = (templates_dir / rel).read_text(encoding="utf-8", errors="replace")
-        for ref in asset_references(src, BASE_THEME_DIR_NAME):
+        if "_app.theme.url" in src:
+            report.errors.append(f"templates/{rel}: still uses _app.theme.url, which points at this theme's own "
+                                 "folder instead of the default theme's; rebuild")
+        for other in BASE_THEME_DIR_NAMES:
+            if other != base and asset_references(src, other):
+                report.errors.append(f"templates/{rel}: loads files from theme/{other}/, but the default theme "
+                                     f"is theme/{base}/; rebuild")
+    if len(report.errors) == before:
+        report.passed.append(f"layout (theme/{base})")
+
+
+def _check_pro_boundary(templates_dir: Path, files: list[str], manifest: dict, report: VerifyReport) -> None:
+    """A variant without a dark mode never loads or switches the panel's own dark mode."""
+    before = len(report.errors)
+    base = build_layout(manifest)
+    for rel in files:
+        if not rel.endswith(".twig"):
+            continue
+        src = (templates_dir / rel).read_text(encoding="utf-8", errors="replace")
+        for ref in asset_references(src, base):
             if ref.startswith("assets/css/") and "-dark" in ref:
                 report.errors.append(f"templates/{rel}: can load the default theme's dark stylesheet "
-                                     f"theme/bulma/{ref}; this variant has no dark mode")
+                                     f"theme/{base}/{ref}; this variant has no dark mode")
     for item in manifest.get("patches", []):
         text = item.get("text", "") if isinstance(item, dict) else ""
         used = [m for m in PRO_DARK_MODE_MARKERS if m in text]
@@ -174,9 +227,11 @@ def verify(theme_dir: Path, keyhelp_root: Path | None = None, variant: Variant |
         return report
 
     # 2. counterparts
+    tree: KeyHelpTree | None = None
     if keyhelp_root is not None:
         try:
-            expected = set(KeyHelpTree(keyhelp_root).validate().base_template_files())
+            tree = KeyHelpTree(keyhelp_root).validate()
+            expected = set(tree.base_template_files())
             against = "the default theme"
         except KeyHelpError as exc:
             report.errors.append(str(exc))
@@ -194,8 +249,11 @@ def verify(theme_dir: Path, keyhelp_root: Path | None = None, variant: Variant |
         report.passed.append(f"templates ({len(expected)} files match {against})")
 
     # 2b. contents
-    live = KeyHelpTree(keyhelp_root).base_templates if keyhelp_root is not None else None
+    live = tree.base_templates if tree is not None else None
     _check_contents(templates_dir, sorted(have & expected), manifest, live, report)
+
+    # 2c. layout
+    _check_layout(templates_dir, sorted(have), manifest, tree, report)
 
     # 3. patches present exactly once
     patch_ok = True
