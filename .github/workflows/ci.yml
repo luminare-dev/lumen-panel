@@ -70,7 +70,7 @@ jobs:
           cd generator
           for layout in bulma default; do
             for variant in lumen lumen-dark; do
-              rm -rf "$RUNNER_TEMP/$variant"
+              rm -rf "${RUNNER_TEMP:?}/$variant"
               python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp-$layout" \
                 --out "$RUNNER_TEMP/$variant"
               python3 -m lumen_panel verify "$RUNNER_TEMP/$variant" --variant "$variant" \
