@@ -60,16 +60,27 @@ jobs:
       - name: Contrast table is current and every pair passes
         run: python3 scripts/contrast.py --check
 
-      - name: Generator build and verify of both themes with the built assets (fake panel tree)
+      - name: Generator build and verify of both themes with the built assets (fake panel trees, 26.2 and 26.1)
         run: |
           set -euo pipefail
-          python3 tests/fakekeyhelp.py "$RUNNER_TEMP/keyhelp"
+          # theme/default (KeyHelp 26.2 and later) and theme/bulma (before 26.2)
+          for layout in default bulma; do
+            python3 tests/fakekeyhelp.py --layout "$layout" "$RUNNER_TEMP/keyhelp-$layout"
+          done
           cd generator
-          for variant in lumen lumen-dark; do
-            python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp" \
-              --out "$RUNNER_TEMP/$variant"
-            python3 -m lumen_panel verify "$RUNNER_TEMP/$variant" --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp"
-            test -f "$RUNNER_TEMP/$variant/assets/lumen-island.js"
+          for layout in bulma default; do
+            for variant in lumen lumen-dark; do
+              rm -rf "$RUNNER_TEMP/$variant"
+              python3 -m lumen_panel build --variant "$variant" --keyhelp "$RUNNER_TEMP/keyhelp-$layout" \
+                --out "$RUNNER_TEMP/$variant"
+              python3 -m lumen_panel verify "$RUNNER_TEMP/$variant" --variant "$variant" \
+                --keyhelp "$RUNNER_TEMP/keyhelp-$layout"
+              test -f "$RUNNER_TEMP/$variant/assets/lumen-island.js"
+              if grep -rl '_app.theme.url' "$RUNNER_TEMP/$variant/templates"; then
+                echo "error: a built template still loads the default theme's files from the active theme" >&2
+                exit 1
+              fi
+            done
           done
           # each theme folder holds its own stylesheets only
           test -f "$RUNNER_TEMP/lumen/assets/lumen.css"
@@ -82,7 +93,8 @@ jobs:
           set -euo pipefail
           test -f dist/assets/lumen-night.css
           test -f dist/assets/lumen-night-rtl.css
-          if grep -l -e 'style-dark' -e 'img/dark' -e 'is_dark_mode' -e 'has_dark_mode' -e '/theme/bulma/' \
+          if grep -l -e 'style-dark' -e 'img/dark' -e 'is_dark_mode' -e 'has_dark_mode' \
+              -e '/theme/bulma/' -e '/theme/default/' \
               dist/assets/lumen-night.css dist/assets/lumen-night-rtl.css; then
             echo "error: a Lumen Dark stylesheet refers to the panel's dark mode or its files" >&2
             exit 1
