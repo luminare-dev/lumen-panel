@@ -17,7 +17,8 @@
 
 Two themes for the KeyHelp hosting panel, **Lumen** (light, follows the panel's dark mode) and
 **Lumen Dark** (always dark), with a Ctrl+K command palette. A small generator builds them on the
-server from the panel's own default theme. Tested with KeyHelp 26.1.1.
+server from the panel's own default theme. Tested with KeyHelp 26.2 (`theme/default`) and 26.1.1
+(`theme/bulma`).
 
 [![ci](https://github.com/luminare-dev/lumen-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/luminare-dev/lumen-panel/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/luminare-dev/lumen-panel?sort=semver)](https://github.com/luminare-dev/lumen-panel/releases)

@@ -19,8 +19,10 @@ commands below are for Lumen; add `--variant lumen-dark` for Lumen Dark.
 
 ## Requirements
 
-- KeyHelp 26.1.x (26.1.1 tested) with the default theme `bulma` present and unmodified. Other
-  versions work as long as every patch anchor still fits, which the [dry run](#dry-run) checks.
+- KeyHelp 26.2 (tested) with the default theme in `theme/default`, or KeyHelp 26.1.x (26.1.1
+  tested) with it in `theme/bulma`, present and unmodified. Other versions work as long as every
+  patch anchor still fits, which the [dry run](#dry-run) checks. See
+  [KeyHelp 26.2](#keyhelp-262-themedefault) for what changed.
 - Ubuntu or Debian, as supported by KeyHelp (Ubuntu 24.04 tested).
 - A main administrator account in the panel and a root shell on the server.
 - Python 3.10 or later (standard library only) and git.
@@ -120,7 +122,9 @@ python3 -m lumen_panel install --keyhelp /home/keyhelp/www/keyhelp --dry-run
 ```
 
 This builds and verifies the theme in a temporary folder and writes nothing below the panel's web
-root. It should end with `dry run: ... nothing was written` and exit 0. If it reports
+root. Its first line names the panel it found, for example
+`dry run: panel is KeyHelp 26.2, default theme in theme/default`. It should end with
+`dry run: ... nothing was written` and exit 0. If it reports
 `the patch set does not fit this KeyHelp version`, see [After a KeyHelp update](#after-a-keyhelp-update);
 `assets incomplete` means `dist/assets/` needs to be fetched again. Exit codes are listed in
 [Configuration](configuration.md#exit-codes).
@@ -171,7 +175,8 @@ python3 -m lumen_panel uninstall --keyhelp /home/keyhelp/www/keyhelp --yes
 
 If pages still fail, set the theme back in KeyHelp's database as Keyweb describes
 ([forum](https://community.keyhelp.de/viewtopic.php?t=10272)):
-`UPDATE settings SET value = 'bulma' WHERE category = 'general' AND name = 'default_theme';`
+`UPDATE settings SET value = 'default' WHERE category = 'general' AND name = 'default_theme';`
+(`'bulma'` before KeyHelp 26.2).
 
 ### Roll back to the previous build
 
@@ -215,7 +220,8 @@ again. See also [Upgrading lumen-panel](upgrade.md).
 
 ## After a KeyHelp update
 
-A KeyHelp update replaces `theme/bulma` but keeps `theme/lumen`, whose templates are then older
+A KeyHelp update replaces the default theme (`theme/default`, `theme/bulma` before 26.2) but
+keeps `theme/lumen`, whose templates are then older
 than the panel. Read the [KeyHelp changelog](https://changelog.keyhelp.de/) first, then:
 
 ```bash
@@ -227,6 +233,42 @@ python3 -m lumen_panel sync --variant all --keyhelp /home/keyhelp/www/keyhelp
 If a patch anchor no longer fits, nothing is written and the previous build stays active. Check
 the panel, select **Default Theme** if pages break, and update lumen-panel or the anchors in
 `patches/` ([details](update.md#when-the-patch-set-does-not-fit-the-new-templates)).
+
+## KeyHelp 26.2 (theme/default)
+
+KeyHelp 26.2 moved the default theme from `theme/bulma` to `theme/default`, and its templates
+load their own CSS, JavaScript and images from `{{ _app.theme.url }}`, which is the folder of the
+*active* theme. lumen-panel 0.2 and later handle both layouts:
+
+- the generator reads the default theme from `theme/default`, or from `theme/bulma` on older
+  KeyHelp versions, and checks that the folder fits the version in its `_settings.json` (26.2 and
+  later: `theme/default`; before: `theme/bulma`). Anything else stops with
+  "lumen-panel does not know this layout" and changes nothing;
+- in the copied templates every `{{ _app.theme.url }}` is written out as the default theme's
+  folder (`/theme/default`), so Lumen keeps loading KeyHelp's files from there;
+- a build records the layout it was made for (`base_theme` in `_lumen_build.json`). `verify`,
+  `check-update` and `rollback` refuse a build made for the other layout, because its templates
+  would load files from a folder that no longer exists.
+
+A Lumen or Lumen Dark built on KeyHelp 26.1 loads `/theme/bulma/...` and breaks on 26.2 (no base
+stylesheet, no jQuery, no login script). Until it is rebuilt, select **Default Theme** in the
+panel. Then rebuild every installed theme with the new lumen-panel:
+
+```bash
+cd /opt/lumen-panel && git fetch --tags && git checkout --quiet vX.Y.Z   # a release with 26.2 support
+# fetch dist/assets for that tag (see "Get the built assets"), then:
+cd generator
+python3 -m lumen_panel install --variant lumen --keyhelp /home/keyhelp/www/keyhelp --dry-run
+python3 -m lumen_panel install --variant lumen --keyhelp /home/keyhelp/www/keyhelp
+python3 -m lumen_panel install --variant lumen-dark --keyhelp /home/keyhelp/www/keyhelp --dry-run
+python3 -m lumen_panel install --variant lumen-dark --keyhelp /home/keyhelp/www/keyhelp
+python3 -m lumen_panel check-update --variant all --keyhelp /home/keyhelp/www/keyhelp
+```
+
+`check-update` says `built for theme/bulma (KeyHelp before 26.2)` for an old build, and `sync`
+rebuilds it like after any other update. Backups made before 26.2 cannot be rolled back onto 26.2
+(`rollback` refuses them); select **Default Theme** instead. If you installed the units from
+`contrib/` before 26.2, copy them again: the old service only runs while `theme/bulma` exists.
 
 ## Route B: White Label only
 
