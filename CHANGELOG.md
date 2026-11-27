@@ -8,6 +8,13 @@ the Conventional Commit titles of the merged pull requests; do not edit entries 
 <!-- release-please inserts each new release above the first line that starts with "## ["
      (or "## " and a digit). Keep the "Origin" entry below as the last entry of this file. -->
 
+## [0.2.0](https://github.com/luminare-dev/lumen-panel/compare/v0.1.0...v0.2.0) (2026-11-27)
+
+
+### Added
+
+* web customizer with shared Lumen tokens ([#21](https://github.com/luminare-dev/lumen-panel/issues/21)) ([e18f486](https://github.com/luminare-dev/lumen-panel/commit/e18f4864729a7a3d8c0fa043d210c2817b4f3ae8))
+
 ## 0.1.0 (2026-10-21)
 
 
