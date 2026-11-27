@@ -3,7 +3,10 @@
   "file": "layout/popup.twig",
   "description": "The same header logo in popup windows (service details, whois). A customization (branding.json) can set its own logos or put KeyHelp's back.",
   "mode": "replace",
-  "anchor": "<img src=\"theme/bulma/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">",
+  "anchors": {
+    "default": "<img src=\"{{ _app.theme.url }}/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">",
+    "bulma": "<img src=\"theme/bulma/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">"
+  },
   "text": "@@LUMEN_HEADER_LOGO@@",
   "assets": [
     "brand/luminare-lockup-compact-light.svg",

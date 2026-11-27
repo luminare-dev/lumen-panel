@@ -57,9 +57,14 @@ STYLESHEET_KINDS = {
     "lumen-night-rtl.css": "dark",
 }
 
-# KeyHelp's own logo, the anchor the logo patches replace: an empty logo puts it back in Lumen.
-KEYHELP_LOGO = ("<img src=\"theme/bulma/assets/img/{{ _app.theme.is_dark_mode ? 'dark/' }}keyhelp"
-                "{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">")
+# KeyHelp's own logo, which the logo patches replace: an empty logo puts it back in Lumen. It is
+# loaded from the default theme's folder (base_url: /theme/default, or /theme/bulma before 26.2).
+def keyhelp_logo(base_url: str) -> str:
+    return (f"<img src=\"{base_url}/assets/img/{{{{ _app.theme.is_dark_mode ? 'dark/' }}}}keyhelp"
+            "{{ _app.is_pro ? '-pro' }}.svg?{{ _globals.cache_control }}\" alt=\"logo\">")
+
+
+KEYHELP_LOGO = keyhelp_logo("/theme/default")
 LOCKUP_SIZE = {"header": (127, 42), "login": (300, 114)}
 
 
@@ -310,7 +315,8 @@ DEFAULT_BRANDING = {
 }
 
 
-def logo_html(variant: Variant, place: str, branding: dict[str, str] | None, theme_dir: str, cache: str) -> str:
+def logo_html(variant: Variant, place: str, branding: dict[str, str] | None, theme_dir: str, cache: str,
+              base_url: str = "/theme/default") -> str:
     """The markup the header or login logo patch puts in place of KeyHelp's logo."""
     if branding is None:  # no customization: the Luminare lockups, as before customizations existed
         b = DEFAULT_BRANDING
@@ -329,7 +335,7 @@ def logo_html(variant: Variant, place: str, branding: dict[str, str] | None, the
             return f'<span class="lumen-logo lumen-logo--{place} lumen-logo--text">{name}</span>'
         return _img(dark, place, _alt(b, dark), theme_dir, cache)
     if light == "" and dark == "":
-        return KEYHELP_LOGO
+        return keyhelp_logo(base_url)
     if light == dark:
         return _img(light, place, _alt(b, light), theme_dir, cache)
     return ("{% if _app.theme.is_dark_mode %}" + _img(dark, place, _alt(b, dark), theme_dir, cache)
@@ -351,11 +357,12 @@ def favicon_html(branding: dict[str, str] | None, theme_dir: str, cache: str) ->
             "{% elseif _white_label.favicon_url %}")
 
 
-def substitutions(variant: Variant, custom: Custom | None, theme_dir: str, cache: str) -> dict[str, str]:
+def substitutions(variant: Variant, custom: Custom | None, theme_dir: str, cache: str,
+                  base_url: str = "/theme/default") -> dict[str, str]:
     b = custom.branding if custom else None
     return {
-        "LUMEN_HEADER_LOGO": logo_html(variant, "header", b, theme_dir, cache),
-        "LUMEN_LOGIN_LOGO": logo_html(variant, "login", b, theme_dir, cache),
+        "LUMEN_HEADER_LOGO": logo_html(variant, "header", b, theme_dir, cache, base_url),
+        "LUMEN_LOGIN_LOGO": logo_html(variant, "login", b, theme_dir, cache, base_url),
         "LUMEN_FAVICON": favicon_html(b, theme_dir, cache),
     }
 

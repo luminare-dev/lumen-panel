@@ -11,6 +11,24 @@ template text (it must occur exactly once; Lumen Dark's own patches are in `patc
 run `python3 -m unittest discover -s tests`, which also checks every anchor of both themes against
 the local install, and install again.
 
+## "KeyHelp ... keeps its default theme in theme/..., but this install has theme/..."
+
+**Cause:** the default theme's folder does not fit its version: KeyHelp 26.2 and later keep it in
+`theme/default`, older versions in `theme/bulma`. A KeyHelp update may still be running or have
+stopped halfway.
+
+**Fix:** nothing was changed. Wait for the update to finish (or repair it with KeyHelp's own
+tools), then run the dry run again.
+
+## "built for theme/bulma (KeyHelp before 26.2), but this panel is KeyHelp 26.2 ..."
+
+**Cause:** the theme, or the backup you want to roll back to, was built before KeyHelp 26.2. Its
+templates load the panel's files from `/theme/bulma/`, which 26.2 removed.
+
+**Fix:** select **Default Theme** in the panel, then rebuild with `install` (or `sync`); see
+[KeyHelp 26.2](install.md#keyhelp-262-themedefault). A backup from before 26.2 cannot go back on
+26.2.
+
 ## "assets incomplete: ... missing (run 'npm run build')"
 
 **Cause:** `dist/assets/` does not exist or is from an older build.

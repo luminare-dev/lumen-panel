@@ -10,7 +10,9 @@ Description=lumen-panel: rebuild when the default theme changes
 Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.md
 
 [Path]
+# theme/default since KeyHelp 26.2, theme/bulma before; a path that does not exist is not watched
 PathChanged=/home/keyhelp/www/keyhelp/theme/bulma/_settings.json
+PathChanged=/home/keyhelp/www/keyhelp/theme/default/_settings.json
 Unit=lumen-panel-sync.service
 
 [Install]

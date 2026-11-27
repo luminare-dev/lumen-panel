@@ -1,6 +1,7 @@
 # Keeping the theme current after a KeyHelp update
 
-A KeyHelp update replaces the default theme (`theme/bulma`) but leaves `theme/lumen` and
+A KeyHelp update replaces the default theme (`theme/default`, `theme/bulma` before KeyHelp 26.2)
+but leaves `theme/lumen` and
 `theme/lumen-dark` alone, so their copied templates go stale. The generator notices this and
 rebuilds from the new default theme already on the server; no Node.js is needed. Read the
 [KeyHelp changelog](https://changelog.keyhelp.de/) before each update.
@@ -16,7 +17,9 @@ python3 -m lumen_panel sync --variant all --keyhelp /home/keyhelp/www/keyhelp   
 ```
 
 A rebuild is due when the default theme, the generator version, the built assets or the patch set
-differ from the theme's build record (`_lumen_build.json`). `sync` then runs `install` for that
+differ from the theme's build record (`_lumen_build.json`), or when the build was made for the
+other default-theme folder (KeyHelp 26.2 moved it from `theme/bulma` to `theme/default`; see
+[KeyHelp 26.2](install.md#keyhelp-262-themedefault)). `sync` then runs `install` for that
 theme; themes that are not installed are skipped. Exit 75 means another run was active or the
 default theme changed mid-copy: try again a few minutes later.
 
@@ -25,7 +28,7 @@ default theme changed mid-copy: try again a few minutes later.
 | File | What it does |
 |---|---|
 | [`contrib/lumen-panel-sync.service`](../contrib/lumen-panel-sync.service) | waits 120 s, then runs `python3 -m lumen_panel sync --variant all` in a sandbox with a 200 MB memory limit; exit 75 retries after 10 minutes |
-| [`contrib/lumen-panel-sync.path`](../contrib/lumen-panel-sync.path) | starts the service when `theme/bulma/_settings.json` changes (every panel update) |
+| [`contrib/lumen-panel-sync.path`](../contrib/lumen-panel-sync.path) | starts the service when `theme/default/_settings.json` (or `theme/bulma/_settings.json` before KeyHelp 26.2) changes (every panel update) |
 | [`contrib/lumen-panel-sync.timer`](../contrib/lumen-panel-sync.timer) | daily fallback at 05:30, catches up after a reboot |
 
 The units assume `/opt/lumen-panel` and `/home/keyhelp/www/keyhelp`; adapt them with

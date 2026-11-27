@@ -20,13 +20,15 @@ sys.path.insert(0, str(ROOT / "generator"))
 sys.path.insert(0, str(ROOT / "tests"))
 
 from lumen_panel.build import build  # noqa: E402
+from lumen_panel.keyhelp import KeyHelpTree  # noqa: E402
 from lumen_panel.patches import load_patches  # noqa: E402
 from lumen_panel.twig import asset_references  # noqa: E402
 from lumen_panel.variants import LUMEN_DARK, VARIANTS  # noqa: E402
 from lumen_panel.verify import verify  # noqa: E402
 
 KEYHELP = Path(os.environ.get("LUMEN_KEYHELP_ROOT", "/home/keyhelp/www/keyhelp"))
-TEMPLATES = KEYHELP / "theme" / "bulma" / "templates"
+TREE = KeyHelpTree(KEYHELP)   # theme/default since KeyHelp 26.2, theme/bulma before
+TEMPLATES = TREE.base_templates
 
 
 @unittest.skipUnless((TEMPLATES / "layout" / "base.twig").is_file(), "no KeyHelp install on this machine")
@@ -34,7 +36,7 @@ class LiveAnchorTest(unittest.TestCase):
     def test_every_anchor_occurs_exactly_once(self):
         contents: dict[str, str] = {}
         for variant in VARIANTS.values():
-            for patch in load_patches(ROOT / "patches", variant.patch_overlay):
+            for patch in load_patches(ROOT / "patches", variant.patch_overlay, TREE.layout):
                 text = contents.setdefault(patch.file, (TEMPLATES / patch.file).read_text(encoding="utf-8"))
                 self.assertEqual(text.count(patch.anchor), 1,
                                  f"{variant.name}: {patch.source}: {patch.id} in {patch.file}")
@@ -53,7 +55,7 @@ class LiveAnchorTest(unittest.TestCase):
         self.assertTrue(any(p.startswith("pro boundary") for p in report.passed), report.passed)
         stylesheets: set[str] = set()
         for twig in (out / "templates").rglob("*.twig"):
-            refs = asset_references(twig.read_text(encoding="utf-8", errors="replace"), "bulma")
+            refs = asset_references(twig.read_text(encoding="utf-8", errors="replace"), TREE.layout)
             stylesheets.update(r for r in refs if r.startswith("assets/css/"))
         self.assertEqual(stylesheets, {"assets/css/style.css", "assets/css/style-rtl.css"},
                          "Lumen Dark loads only the default theme's standard stylesheets")

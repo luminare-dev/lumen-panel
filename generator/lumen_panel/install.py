@@ -7,7 +7,9 @@ for Lumen (/root/backups/lumen-panel, as before Lumen Dark existed), <backup roo
 for Lumen Dark.
 
 Rules this module keeps (docs/install.md explains them):
-  * the default theme (theme/bulma) is only ever read;
+  * the default theme (theme/default, theme/bulma before KeyHelp 26.2) is only ever read;
+  * a build only goes live on the layout it was made for: a saved theme built for theme/bulma
+    is refused on a KeyHelp with theme/default (and the other way round);
   * one run per variant at a time: install, rollback, sync, uninstall, hold and release take an
     exclusive lock on <backups>/.lock and exit 75 while another run holds it;
   * an existing theme/<variant> is never deleted: it is moved to <backups>/<timestamp>/<variant>;
@@ -46,14 +48,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterator
 
-from . import __version__
+from . import BASE_THEME_DIR_NAMES, __version__
 from .build import (DEFAULT_ASSETS, DEFAULT_CUSTOM, DEFAULT_PATCHES, MANIFEST_NAME, REPO_ROOT, BuildError, asset_hash,
                     build, load_custom)
 from .keyhelp import KeyHelpTree, tree_sha256
 from .patches import PatchError, patch_set_sha256
 from .twigcache import find_theme_entries
 from .variants import DEFAULT_VARIANT, LUMEN, Variant
-from .verify import verify
+from .verify import layout_mismatch, verify
 
 DEFAULT_BACKUP_ROOT = Path("/root/backups/lumen-panel")
 DEFAULT_OWNER = "keyhelp:keyhelp"
@@ -448,6 +450,7 @@ def _install(tree: KeyHelpTree, options: Options, ts: str, now: _dt.datetime | N
     backup = _new_backup(options, ts)
     _clear_leftovers(tree, backup, out, v)
     staging = tree.theme_root / (v.staging_prefix + ts)
+    out(f"panel: {tree.describe()}")
     try:
         result = build(tree.root, staging, variant=v, patches_dir=options.patches_dir,
                        assets_dir=options.assets_dir, screenshot_fallback=options.screenshot_fallback, now=now,
@@ -472,6 +475,7 @@ def _dry_run(tree: KeyHelpTree, options: Options, ts: str, now: _dt.datetime | N
     v = options.variant
     target = tree.theme(v)
     ok = True
+    out(f"dry run: panel is {tree.describe()}")
     with tempfile.TemporaryDirectory(prefix="lumen-dry-run-") as tmp:
         result = build(tree.root, Path(tmp) / v.dir_name, variant=v, patches_dir=options.patches_dir,
                        assets_dir=options.assets_dir, screenshot_fallback=options.screenshot_fallback, now=now,
@@ -556,6 +560,14 @@ def rollback(keyhelp_root: Path, backup_dir: Path, *, options: Options = Options
     v = options.variant
     tree = KeyHelpTree(keyhelp_root).validate()
     source = _saved_theme(backup_dir, v)
+    try:
+        saved = json.loads((source / MANIFEST_NAME).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        saved = {}
+    why = layout_mismatch(saved if isinstance(saved, dict) else {}, tree)
+    if why:
+        raise InstallError(f"{source}: refused, this saved theme was {why}. To get the panel back now, select "
+                           "the Default Theme in KeyHelp (Configuration -> Appearance -> Theme)")
     owner = _resolve_owner(options.owner)
     ts = timestamp(now)
     with run_lock(options):
@@ -595,6 +607,9 @@ def _check_update(tree: KeyHelpTree, options: Options, out: Out) -> int:
         manifest = {}
     name = v.display_name
     base_version = tree.base_version()
+    why = layout_mismatch(manifest, tree)
+    if why:
+        reasons.append(f"{name} was {why}")
     if settings.get("lumen_base_version") != base_version:
         reasons.append(f"default theme is {base_version}, {name} was built from {settings.get('lumen_base_version')}")
     if manifest.get("base_templates_sha256") != tree_sha256(tree.base_templates):
@@ -710,7 +725,7 @@ def detect_active(panel_url: str, *, insecure: bool = False, timeout: float = 10
     folder = f"/theme/{variant.dir_name}/".encode("ascii")
     if folder + b"assets/lumen" in body:
         return True
-    if b"/theme/bulma/assets/css/style" in body and folder not in body:
+    if folder not in body and any(f"/theme/{n}/assets/css/style".encode("ascii") in body for n in BASE_THEME_DIR_NAMES):
         return False
     return None
 
