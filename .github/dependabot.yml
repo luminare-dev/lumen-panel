@@ -13,9 +13,14 @@ updates:
       prefix: ci
       include: scope
     labels: [dependencies]
+    open-pull-requests-limit: 5
     groups:
       actions:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns: ["*"]
+        update-types: ["major"]
 
   - package-ecosystem: pip
     directory: /
@@ -28,9 +33,14 @@ updates:
       prefix: build
       include: scope
     labels: [dependencies]
+    open-pull-requests-limit: 5
     groups:
       dev-tools:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      dev-tools-major:
+        patterns: ["*"]
+        update-types: ["major"]
 
   - package-ecosystem: npm
     directory: /
@@ -47,10 +57,19 @@ updates:
     groups:
       react:
         patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "@vitejs/plugin-react"]
+        update-types: ["minor", "patch"]
       build-tools:
         patterns: ["vite", "lightningcss", "typescript"]
+        update-types: ["minor", "patch"]
       test-tools:
         patterns: ["vitest", "fast-check", "jsdom", "@testing-library/*"]
+        update-types: ["minor", "patch"]
+      npm:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      npm-major:
+        patterns: ["*"]
+        update-types: ["major"]
     ignore:
       # The gallery mirrors the panel's default theme, which is built on Bulma 0.9.4.
       - dependency-name: bulma
