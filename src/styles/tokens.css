@@ -6,6 +6,11 @@
  *
  * The light block applies by default. The dark block applies when KeyHelp renders a page in
  * dark mode (body.dark-mode); the -dark builds also apply it to :root.
+ *
+ * Components use the role tokens (--lm-surface, --lm-primary ...), never a brand colour, so a
+ * customization (a Lumen token file compiled by tokens/keyhelp.ts) only has to set these roles.
+ * The exceptions are fixed on purpose: the white plates behind logos drawn for light
+ * backgrounds and the editors that stay light in Lumen Dark.
  */
 
 :root {
@@ -90,6 +95,9 @@
   --lm-info-tint: #E9EDF9; /* mix(royal 10%, white) */
   --lm-info-text: #1A3A9C; /* mix(royal 75%, night) */
   --lm-overlay: rgb(10 18 36 / 55%);
+  --lm-delete-hover: var(--lm-slate-700);
+  --lm-selection: var(--lm-royal);
+  --lm-on-selection: var(--lm-white);
   --lm-hover-filter: brightness(0.92);
   --lm-shadow-1: 0 1px 2px rgb(10 18 36 / 5%);
   --lm-shadow-2: 0 12px 32px rgb(10 18 36 / 12%);
@@ -138,6 +146,9 @@ body.dark-mode {
   --lm-info-tint: #142B3E; /* mix(lumen 12%, night) */
   --lm-info-text: var(--lm-lumen);
   --lm-overlay: rgb(3 6 14 / 72%);
+  --lm-delete-hover: var(--lm-slate-700);
+  --lm-selection: var(--lm-royal);
+  --lm-on-selection: var(--lm-white);
   --lm-hover-filter: brightness(1.12);
   --lm-shadow-1: 0 1px 2px rgb(0 0 0 / 30%);
   --lm-shadow-2: 0 16px 40px rgb(0 0 0 / 45%);

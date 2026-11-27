@@ -7,6 +7,8 @@
     check-update  --keyhelp ROOT                 0 current, 10 rebuild needed, 3 not installed
     sync          --keyhelp ROOT                 check-update, then install when a rebuild is needed
     uninstall     --keyhelp ROOT [--panel-url URL] [--yes]   move theme/<variant> to the backups
+    apply-custom  ZIP --keyhelp ROOT [--yes]     check a customizer ZIP, then (--yes) install it and rebuild
+                  --reset --keyhelp ROOT [--yes] remove the customization and rebuild
     hold                                         stop sync from rebuilding (also set by rollback)
     release                                      let sync rebuild again
     version                                      print the generator version
@@ -29,7 +31,8 @@ import sys
 from pathlib import Path
 
 from . import __version__, variants
-from .build import DEFAULT_ASSETS, DEFAULT_PATCHES, BuildError, SourceChangedError, build
+from .apply import apply_custom
+from .build import DEFAULT_ASSETS, DEFAULT_CUSTOM, DEFAULT_PATCHES, BuildError, SourceChangedError, build
 from .install import (DEFAULT_BACKUP_ROOT, DEFAULT_OWNER, EXIT_FAILED, EXIT_NOT_INSTALLED, EXIT_OK,
                       EXIT_REBUILD_NEEDED, EXIT_TEMPFAIL, EXIT_USAGE, BusyError, InstallError, Options, PostSwapError,
                       check_update, hold, install, installed, release, rollback, sync, uninstall)
@@ -59,6 +62,8 @@ def _common(p: argparse.ArgumentParser, *, keyhelp: bool = True, deploy: bool = 
                             "own folders below theme/)")
     p.add_argument("--patches", type=Path, default=DEFAULT_PATCHES, help="patch folder (default: %(default)s)")
     p.add_argument("--assets", type=Path, default=DEFAULT_ASSETS, help="built assets (default: %(default)s)")
+    p.add_argument("--custom", type=Path, default=DEFAULT_CUSTOM,
+                   help="customization folder, used when it exists (default: %(default)s)")
     p.add_argument("--screenshot", type=Path, default=None,
                    help="pre-rendered preview used without PyMuPDF (default: the variant's file in assets/brand/)")
     if deploy:
@@ -94,6 +99,8 @@ def parser() -> argparse.ArgumentParser:
     c.add_argument("--keyhelp", type=Path, required=True)
     c.add_argument("--patches", type=Path, default=DEFAULT_PATCHES, help="patch folder to compare (default: %(default)s)")
     c.add_argument("--assets", type=Path, default=DEFAULT_ASSETS, help="built assets to compare (default: %(default)s)")
+    c.add_argument("--custom", type=Path, default=DEFAULT_CUSTOM,
+                   help="customization folder to compare (default: %(default)s)")
     c.add_argument("--backup-root", type=Path, default=DEFAULT_BACKUP_ROOT,
                    help="where a hold is recorded (default: %(default)s)")
     _variant_option(c, allow_all=True)
@@ -112,6 +119,12 @@ def parser() -> argparse.ArgumentParser:
         h.add_argument("--backup-root", type=Path, default=DEFAULT_BACKUP_ROOT,
                        help="where the hold is recorded (default: %(default)s)")
         _variant_option(h, allow_all=True)
+    a = sub.add_parser("apply-custom", help="install a customizer ZIP and rebuild (dry run without --yes)")
+    a.add_argument("source", type=Path, nargs="?", help="customizer ZIP, or a customization folder (a backup)")
+    _common(a, deploy=True)
+    _variant_option(a, allow_all=True, default="all")
+    a.add_argument("--reset", action="store_true", help="remove the customization instead")
+    a.add_argument("--yes", action="store_true", help="write: replace the customization and install")
     sub.add_parser("version", help="print the version")
     return p
 
@@ -123,6 +136,7 @@ def _options(args: argparse.Namespace, variant: variants.Variant | None = None) 
                    screenshot_fallback=getattr(args, "screenshot", None),
                    backup_root=getattr(args, "backup_root", DEFAULT_BACKUP_ROOT),
                    owner=getattr(args, "owner", DEFAULT_OWNER),
+                   custom_dir=getattr(args, "custom", DEFAULT_CUSTOM),
                    variant=variant or variants.get(name if name and name != ALL else variants.DEFAULT_VARIANT.name))
 
 
@@ -139,6 +153,8 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError:  # not the main thread (embedded use): keep the default handling
         previous = None
     try:
+        if args.command == "apply-custom":
+            return _run(args)
         if getattr(args, "variant", None) == ALL:
             if args.command in ("hold", "release"):
                 return _run_each(args)
@@ -204,7 +220,7 @@ def _run(args: argparse.Namespace, variant: variants.Variant | None = None) -> i
         if args.command == "build":
             v = variants.get(args.variant)
             result = build(args.keyhelp, args.out, variant=v, patches_dir=args.patches, assets_dir=args.assets,
-                           screenshot_fallback=args.screenshot)
+                           screenshot_fallback=args.screenshot, custom_dir=args.custom)
             print(f"built {result.out_dir} ({v.display_name}) from default theme {result.base_version}: "
                   f"{len(result.patches)} patches, assets {result.asset_hash}, screenshot {result.screenshot}")
             report = verify(result.out_dir, args.keyhelp, variant=v)
@@ -220,6 +236,12 @@ def _run(args: argparse.Namespace, variant: variants.Variant | None = None) -> i
                 print(f"ok: {passed}")
             return 0 if report.ok else EXIT_FAILED
         options = _options(args, variant)
+        if args.command == "apply-custom":
+            if bool(args.source) == bool(args.reset):
+                print("error: give a ZIP (or folder) or --reset", file=sys.stderr)
+                return EXIT_USAGE
+            chosen = list(variants.VARIANTS.values()) if args.variant == ALL else [variants.get(args.variant)]
+            return apply_custom(args.keyhelp, args.source, chosen, options=options, reset=args.reset, yes=args.yes)
         if args.command == "install":
             return install(args.keyhelp, dry_run=args.dry_run, options=options)
         if args.command == "rollback":

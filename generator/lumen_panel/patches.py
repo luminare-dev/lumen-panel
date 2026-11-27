@@ -8,10 +8,18 @@ Each ``patches/*.json`` file holds one patch object or ``{"patches": [...]}``:
       "description": "why the patch exists",
       "mode": "insert_before" | "insert_after" | "replace",
       "anchor": "{% block page_css %}{% endblock %}",
-      "text": "<link ...>",                  may use @@LUMEN_VERSION@@, @@LUMEN_ASSET_HASH@@ and
-                                             @@LUMEN_THEME_DIR@@ (lumen, lumen-dark)
+      "text": "<link ...>",                  may use @@LUMEN_VERSION@@, @@LUMEN_ASSET_HASH@@,
+                                             @@LUMEN_THEME_DIR@@ (lumen, lumen-dark) and
+                                             @@LUMEN_BASE_URL@@ (/theme/default, /theme/bulma)
       "assets": ["lumen.css", ...]           files below assets/ the text refers to (checked by verify)
     }
+
+Where the default theme's layouts differ (keyhelp.py: theme/default since KeyHelp 26.2,
+theme/bulma before), a patch gives one anchor per layout instead of "anchor":
+
+      "anchors": {"default": "<img src=\"{{ _app.theme.url }}/assets/...", "bulma": "<img src=\"theme/bulma/..."}
+
+The build picks the anchor of the layout it reads; the build record keeps only that one.
 
 The anchor must occur exactly once in the file at the time the patch is applied. If it does not
 (a KeyHelp update changed the template), nothing is written and every failing patch is listed.
@@ -37,6 +45,7 @@ MODES = ("insert_before", "insert_after", "replace")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,62}$")
 TOKEN_RE = re.compile(r"@@([A-Z][A-Z0-9_]*)@@")
 REQUIRED_KEYS = ("id", "file", "mode", "anchor", "text", "description")
+LAYOUTS = ("default", "bulma")   # keyhelp.BASE_THEME_DIR_NAMES
 # Template variables a patch text may rely on; each must still occur in the file it patches.
 VAR_RE = re.compile(r"(?<![\w.])_(?:app|globals)(?:\.[A-Za-z_][A-Za-z0-9_]*)+")
 
@@ -93,7 +102,27 @@ def patch_files(directory: Path, overlay: str | None = None) -> list[tuple[str, 
     return [files[name] for name in sorted(files)]
 
 
-def load_patches(directory: Path, overlay: str | None = None) -> list[Patch]:
+def _resolve_anchor(item: dict, layout: str, source: str, problems: list[str]) -> bool:
+    """Put the anchor of ``layout`` into item["anchor"] when the patch has "anchors"."""
+    anchors = item.get("anchors")
+    if anchors is None:
+        return True
+    where = f"{source} [{item.get('id')}]"
+    if "anchor" in item:
+        problems.append(f"{where}: give either 'anchor' or 'anchors', not both")
+        return False
+    if not isinstance(anchors, dict) or not anchors or any(k not in LAYOUTS for k in anchors) \
+            or not all(isinstance(a, str) and a for a in anchors.values()):
+        problems.append(f"{where}: 'anchors' must map layouts ({', '.join(LAYOUTS)}) to non-empty strings")
+        return False
+    if layout not in anchors:
+        problems.append(f"{where}: no anchor for the theme/{layout} layout")
+        return False
+    item["anchor"] = anchors[layout]
+    return True
+
+
+def load_patches(directory: Path, overlay: str | None = None, layout: str = LAYOUTS[0]) -> list[Patch]:
     files = patch_files(directory, overlay)
     if not files:
         raise PatchError([f"{directory}: no patch files (*.json)"])
@@ -112,6 +141,9 @@ def load_patches(directory: Path, overlay: str | None = None) -> list[Patch]:
         for item in items:
             if not isinstance(item, dict):
                 problems.append(f"{source}: every patch must be a JSON object")
+                continue
+            item = dict(item)
+            if not _resolve_anchor(item, layout, source, problems):
                 continue
             missing = [k for k in REQUIRED_KEYS if not isinstance(item.get(k), str) or not item.get(k)]
             if missing:
@@ -204,6 +236,18 @@ def patch_contents(originals: dict[str, str | None], patches: list[Patch],
     if failures:
         raise PatchError(failures)
     return contents
+
+
+# KeyHelp 26.2 templates load the default theme's own files from {{ _app.theme.url }}, the folder
+# of the *active* theme. Copied into theme/lumen that would point at the Lumen folder, which has
+# none of them, so the build points every such reference at the default theme's folder.
+THEME_URL_RE = re.compile(r"\{\{\s*_app\.theme\.url\s*\}\}")
+
+
+def rebase(content: str, base_url: str | None) -> str:
+    """``content`` with every {{ _app.theme.url }} written out as ``base_url`` (/theme/default).
+    None (a build record from before 26.2 support): unchanged."""
+    return content if base_url is None else THEME_URL_RE.sub(base_url, content)
 
 
 def read_text_exact(path: Path) -> str:

@@ -11,3 +11,6 @@ node_modules/
 .env.*
 !.env.example
 server.cfg
+
+# a customization applied on this server (apply-custom)
+/custom/

@@ -17,7 +17,8 @@
 
 Two themes for the KeyHelp hosting panel, **Lumen** (light, follows the panel's dark mode) and
 **Lumen Dark** (always dark), with a Ctrl+K command palette. A small generator builds them on the
-server from the panel's own default theme. Tested with KeyHelp 26.1.1.
+server from the panel's own default theme. Tested with KeyHelp 26.2 (`theme/default`) and 26.1.1
+(`theme/bulma`).
 
 [![ci](https://github.com/luminare-dev/lumen-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/luminare-dev/lumen-panel/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/luminare-dev/lumen-panel?sort=semver)](https://github.com/luminare-dev/lumen-panel/releases)
@@ -56,6 +57,16 @@ Then select **Lumen** under **Configuration** → **Appearance** → **Theme**. 
 `python3 -m lumen_panel sync --variant all --keyhelp /home/keyhelp/www/keyhelp`, or install the
 optional systemd units in `contrib/` ([docs/update.md](docs/update.md)).
 
+## Customize
+
+Colours for both modes, fonts, text size, radius, spacing, shadows, logos, favicon, login
+background and custom CSS come from a Lumen token file, the same format as the other Lumen
+themes. The offline customizer page (`lumen-panel-customizer.html`, from the `customizer` CI
+artifact) edits it with a live preview and downloads a customization ZIP; on the server,
+`python3 -m lumen_panel apply-custom <zip> --keyhelp /home/keyhelp/www/keyhelp` checks it (dry
+run) and installs it with `--yes`, with backups and an undo command. See
+[docs/customize.md](docs/customize.md).
+
 ## Development
 
 ```bash
@@ -66,7 +77,7 @@ python3 -m unittest discover -s tests
 
 ## Documentation and links
 
-[Install](docs/install.md) · [After a KeyHelp update](docs/update.md) ·
+[Install](docs/install.md) · [Customize](docs/customize.md) · [After a KeyHelp update](docs/update.md) ·
 [Upgrading](docs/upgrade.md) · [Configuration](docs/configuration.md) ·
 [Troubleshooting](docs/troubleshooting.md) · [Runbook](docs/runbook.md) ·
 [Contrast table](docs/contrast.md) · [Changelog](CHANGELOG.md)
@@ -83,7 +94,9 @@ Keyweb AG.
 
 [MIT](LICENSE). The project name, logo and the files in `docs/brand/` and `assets/brand/` are not
 licensed (see [NOTICE](NOTICE)). The Sora font has its own licence
-([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). A customization ZIP holds only the compiled overrides, the
+token file and your own uploads, never a KeyHelp file. The customizer page embeds Bulma (MIT) for
+its preview.
 
 <!-- byline:studio -->
 *a [Luminare Development](https://luminare.tech/open-source/) open-source project*

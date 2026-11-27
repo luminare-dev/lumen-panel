@@ -21,7 +21,9 @@ Documentation=https://github.com/luminare-dev/lumen-panel/blob/main/docs/update.
 # An Assert, not a Condition: a missing build marks the unit as failed (systemctl --failed)
 # instead of skipping it silently.
 AssertPathExists=/opt/lumen-panel/dist/assets/lumen.css
-ConditionPathIsDirectory=/home/keyhelp/www/keyhelp/theme/bulma
+# The default theme: theme/default since KeyHelp 26.2, theme/bulma before ("|": either one).
+ConditionPathIsDirectory=|/home/keyhelp/www/keyhelp/theme/default
+ConditionPathIsDirectory=|/home/keyhelp/www/keyhelp/theme/bulma
 StartLimitIntervalSec=3h
 StartLimitBurst=6
 
@@ -53,7 +55,7 @@ MemorySwapMax=0
 # Create the backup folder once before the first run: install -d -m 700 /root/backups/lumen-panel
 ProtectSystem=strict
 ReadWritePaths=/home/keyhelp/www/keyhelp/theme /home/keyhelp/www/keyhelp/cache/twig /root/backups/lumen-panel
-ReadOnlyPaths=-/home/keyhelp/www/keyhelp/theme/bulma
+ReadOnlyPaths=-/home/keyhelp/www/keyhelp/theme/default -/home/keyhelp/www/keyhelp/theme/bulma
 PrivateTmp=true
 PrivateNetwork=true
 PrivateDevices=true

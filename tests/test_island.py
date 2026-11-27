@@ -7,6 +7,7 @@ from __future__ import annotations
 import configparser
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -16,7 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TOKENS = ROOT / "src" / "styles" / "tokens.css"
 PALETTE_CSS = ROOT / "island" / "src" / "palette.css"
-KEYHELP_THEME = Path("/home/keyhelp/www/keyhelp/theme/bulma")
+_KEYHELP = Path(os.environ.get("LUMEN_KEYHELP_ROOT", "/home/keyhelp/www/keyhelp"))
+# the default theme: theme/default since KeyHelp 26.2, theme/bulma before
+KEYHELP_THEME = next((_KEYHELP / "theme" / n for n in ("default", "bulma") if (_KEYHELP / "theme" / n).is_dir()),
+                     _KEYHELP / "theme" / "default")
 
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "generator"))
@@ -134,7 +138,11 @@ class ContribUnitsTest(unittest.TestCase):
         self.assertEqual(set(writable), {f"{keyhelp}/theme", f"{keyhelp}/cache/twig", "/root/backups/lumen-panel"})
         self.assertEqual(svc["PrivateNetwork"], "true")
         self.assertIn("MemoryMax", svc)
-        self.assertEqual(svc["ReadOnlyPaths"], f"-{keyhelp}/theme/bulma", "the default theme stays read-only")
+        self.assertEqual(svc["ReadOnlyPaths"].split(), [f"-{keyhelp}/theme/default", f"-{keyhelp}/theme/bulma"],
+                         "the default theme stays read-only (theme/default since KeyHelp 26.2, theme/bulma before)")
+        text = (ROOT / "contrib" / "lumen-panel-sync.service").read_text(encoding="utf-8")
+        for base in ("default", "bulma"):
+            self.assertIn(f"\nConditionPathIsDirectory=|{keyhelp}/theme/{base}\n", text)
         self.assertEqual(svc["CapabilityBoundingSet"].split(), ["CAP_CHOWN", "CAP_DAC_OVERRIDE"])
         for key in ("ProtectProc", "ProcSubset", "PrivateIPC", "RemoveIPC"):
             self.assertIn(key, svc)
@@ -148,7 +156,10 @@ class ContribUnitsTest(unittest.TestCase):
 
     def test_path_unit_watches_the_default_theme(self):
         path = self.unit("lumen-panel-sync.path")
-        self.assertTrue(path["Path"]["PathChanged"].endswith("/theme/bulma/_settings.json"))
+        text = (ROOT / "contrib" / "lumen-panel-sync.path").read_text(encoding="utf-8")
+        watched = [ln.split("=", 1)[1] for ln in text.splitlines() if ln.startswith("PathChanged=")]
+        self.assertEqual([w.rsplit("/", 2)[-2:] for w in watched],
+                         [["bulma", "_settings.json"], ["default", "_settings.json"]])
         self.assertEqual(path["Path"]["Unit"], "lumen-panel-sync.service")
         self.assertEqual(path["Install"]["WantedBy"], "paths.target")
 

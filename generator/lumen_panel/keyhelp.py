@@ -2,17 +2,26 @@
 
 Nothing in this module writes. The build, install and update commands use it to find the
 default theme's templates and version, and to locate the Twig cache.
+
+Two layouts are known (the "layout" is the name of the default theme's folder):
+
+    default  KeyHelp 26.2 and later: theme/default; templates refer to their own files with
+             {{ _app.theme.url }}, which is the folder of the *active* theme
+    bulma    KeyHelp before 26.2: theme/bulma; templates refer to /theme/bulma/... directly
+
+validate() refuses an install whose folder and version do not fit one of them.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from . import BASE_THEME_DIR_NAME, THEME_DIR_NAME
+from . import BASE_THEME_DIR_NAME, BASE_THEME_DIR_NAMES, LEGACY_BASE_THEME_DIR_NAME, THEME_DIR_NAME
 
 if TYPE_CHECKING:
     from .variants import Variant
@@ -20,6 +29,31 @@ if TYPE_CHECKING:
 
 class KeyHelpError(Exception):
     """The given folder does not look like a KeyHelp install (or the default theme is broken)."""
+
+
+# The first KeyHelp version with theme/default (and {{ _app.theme.url }} in its templates).
+DEFAULT_LAYOUT_SINCE = (26, 2)
+_VERSION_RE = re.compile(r"^(\d+)\.(\d+)(?:\.(\d+))?")
+
+
+def parse_version(text: str) -> tuple[int, ...] | None:
+    """(26, 2) for "26.2", (26, 1, 1) for "26.1.1"; None when it does not start with a version."""
+    m = _VERSION_RE.match(text.strip())
+    return tuple(int(g) for g in m.groups() if g is not None) if m else None
+
+
+def layout_for_version(version: str) -> str | None:
+    """The layout a KeyHelp version ships (None: not a version number)."""
+    parsed = parse_version(version)
+    if parsed is None:
+        return None
+    return BASE_THEME_DIR_NAME if parsed[:2] >= DEFAULT_LAYOUT_SINCE else LEGACY_BASE_THEME_DIR_NAME
+
+
+def layout_text(layout: str) -> str:
+    since = ".".join(map(str, DEFAULT_LAYOUT_SINCE))
+    return (f"theme/{layout} (KeyHelp {since} and later)" if layout == BASE_THEME_DIR_NAME
+            else f"theme/{layout} (KeyHelp before {since})")
 
 
 @dataclass(frozen=True)
@@ -31,8 +65,22 @@ class KeyHelpTree:
         return self.root / "theme"
 
     @property
+    def layout(self) -> str:
+        """The default theme's folder name: "default" (KeyHelp 26.2+) or "bulma" (older), the
+        first one that has a _settings.json; "default" when neither has one (validate fails)."""
+        for name in BASE_THEME_DIR_NAMES:
+            if (self.theme_root / name / "_settings.json").is_file():
+                return name
+        return BASE_THEME_DIR_NAME
+
+    @property
+    def base_url(self) -> str:
+        """The URL path of the default theme's folder, which the built templates load its files from."""
+        return f"/theme/{self.layout}"
+
+    @property
     def base_theme(self) -> Path:
-        return self.theme_root / BASE_THEME_DIR_NAME
+        return self.theme_root / self.layout
 
     @property
     def base_templates(self) -> Path:
@@ -58,14 +106,27 @@ class KeyHelpTree:
         if not self.root.is_dir():
             raise KeyHelpError(f"{self.root}: not a folder")
         if not self.base_settings_file.is_file():
-            raise KeyHelpError(f"{self.base_settings_file}: missing; is {self.root} the KeyHelp web root "
-                               "(for example /home/keyhelp/www/keyhelp)?")
+            tried = " or ".join(f"theme/{n}/_settings.json" for n in BASE_THEME_DIR_NAMES)
+            raise KeyHelpError(f"{self.root}: no default theme ({tried} missing); is {self.root} the KeyHelp web "
+                               "root (for example /home/keyhelp/www/keyhelp)?")
         if not (self.base_templates / "layout" / "base.twig").is_file():
             raise KeyHelpError(f"{self.base_templates}/layout/base.twig: missing; the default theme is incomplete")
         settings = self.base_settings()
         if not isinstance(settings.get("version"), str) or not settings["version"].strip():
             raise KeyHelpError(f"{self.base_settings_file}: no 'version' string")
+        version = settings["version"].strip()
+        want = layout_for_version(version)
+        if want is None:
+            raise KeyHelpError(f"{self.base_settings_file}: version {version!r} is not a KeyHelp version number")
+        if want != self.layout:
+            raise KeyHelpError(f"KeyHelp {version} keeps its default theme in {layout_text(want)}, but this install "
+                               f"has {layout_text(self.layout)}; lumen-panel does not know this layout (a KeyHelp "
+                               "update may be half done). Nothing was changed.")
         return self
+
+    def describe(self) -> str:
+        """"KeyHelp 26.2, default theme in theme/default" (call after validate)."""
+        return f"KeyHelp {self.base_version()}, default theme in theme/{self.layout}"
 
     def base_settings(self) -> dict:
         try:

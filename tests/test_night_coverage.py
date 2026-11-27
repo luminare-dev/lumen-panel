@@ -25,8 +25,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 STYLES = ROOT / "src" / "styles"
 KEYHELP = Path(os.environ.get("LUMEN_KEYHELP_ROOT", "/home/keyhelp/www/keyhelp"))
-BASE_CSS = KEYHELP / "theme" / "bulma" / "assets" / "css" / "style.css"
-VENDOR = KEYHELP / "theme" / "bulma" / "assets" / "vendor"
+# theme/default since KeyHelp 26.2, theme/bulma before
+BASE_THEME = next((KEYHELP / "theme" / n for n in ("default", "bulma") if (KEYHELP / "theme" / n / "_settings.json").is_file()),
+                  KEYHELP / "theme" / "default")
+BASE_CSS = BASE_THEME / "assets" / "css" / "style.css"
+VENDOR = BASE_THEME / "assets" / "vendor"
 # The editor stylesheets the 26.1.1 templates load (in the page's CSS block, after Lumen's).
 VENDOR_CSS = ("codemirror/codemirror.min.css", "codemirror/addon/dialog/dialog.css",
               "codemirror/addon/scroll/simplescrollbars.css", "codemirror/addon/search/matchesonscrollbar.css",

@@ -1,0 +1,125 @@
+<!-- Mock of the panel for the customizer preview: our own markup with the class names of the
+     panel's templates (no KeyHelp file), example data only. The customizer shows one screen at a
+     time (data-screen) and fills the logos (data-logo). -->
+<div data-screen="dashboard">
+<header id="header">
+  <nav id="top-nav" aria-label="Panel">
+    <div class="level is-mobile">
+      <div class="level-left">
+        <a class="level-item" href="#dashboard"><figure><span class="mock-logo" data-logo="header"></span></figure></a>
+        <div class="level-item is-hidden-touch has-padding-left-medium has-text-grey">panel.example.org | 09:41</div>
+      </div>
+      <div class="level-left">
+        <a class="level-item" href="#dashboard">
+          <span class="icon is-large"><span class="fa-stack fa-1x">
+            <svg class="fa fa-square fa-stack-2x" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="currentColor"/></svg>
+            <svg class="fa fa-user fa-stack-1x fa-inverse" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </span></span>
+          <span class="is-hidden-mobile">admin</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+</header>
+<section id="sidebar" aria-label="Navigation">
+  <nav id="sidebar-navigation" class="menu has-margin-x-xsmall">
+    <div class="has-margin-bottom-medium">
+      <p class="menu-label has-margin-bottom-small"><span class="icon is-medium"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M4 5h16v6H4zM4 13h16v6H4z" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Server</p>
+      <ul class="menu-list">
+        <li><a href="#dashboard" class="is-active" aria-current="page">Dashboard</a></li>
+        <li><a href="#dashboard">Server status</a></li>
+        <li><a href="#dashboard">Services</a></li>
+      </ul>
+    </div>
+    <div class="has-margin-bottom-medium">
+      <p class="menu-label has-margin-bottom-small"><span class="icon is-medium"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM3 12h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Accounts</p>
+      <ul class="menu-list">
+        <li><a href="#dashboard">Clients</a></li>
+        <li><a href="#dashboard">Domains</a></li>
+        <li><a href="#dashboard">E-mail addresses</a></li>
+        <li><a href="#dashboard">Databases</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="menu-label has-margin-bottom-small"><span class="icon is-medium"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Configuration</p>
+      <ul class="menu-list">
+        <li><a href="#dashboard">Settings</a></li>
+        <li><a href="#dashboard">Appearance</a></li>
+      </ul>
+    </div>
+  </nav>
+</section>
+<section id="content-wrapper">
+  <main id="content">
+    <nav class="breadcrumb is-small has-margin-bottom-none" aria-label="Breadcrumb">
+      <ul><li><a href="#dashboard">Server</a></li><li class="is-active"><a href="#dashboard" aria-current="page">Dashboard</a></li></ul>
+    </nav>
+    <div class="content-title"><h1 class="title is-4">Dashboard</h1></div>
+    <div class="columns">
+      <div class="column is-7">
+        <div class="card has-margin-bottom-large">
+          <div class="card-header is-collapsible"><div class="card-header-icon"><span class="icon is-medium"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div><div class="card-header-title">Server information</div></div>
+          <div class="card-content">
+            <div class="table-container"><table class="table is-fullwidth is-striped is-hoverable"><tbody>
+              <tr><th style="width:34%">Hostname</th><td>panel.example.org</td></tr>
+              <tr><th>IP addresses</th><td>192.0.2.10, 2001:db8::10</td></tr>
+              <tr><th>Operating system</th><td>Linux, 64 bit</td></tr>
+              <tr><th>Uptime</th><td>12 days <span class="has-text-grey">(since 2026-11-11)</span></td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-5">
+        <div class="card has-margin-bottom-large">
+          <div class="card-header"><div class="card-header-icon"><span class="icon is-medium"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M4 15a8 8 0 1 1 16 0M12 15l4-5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div><div class="card-header-title">Utilisation</div></div>
+          <div class="card-content">
+            <div class="usage-indicator"><div class="level has-margin-bottom-xsmall is-mobile"><div class="level-left"><p class="level-item has-text-weight-bold">CPU</p></div><div class="level-right"><p class="level-item">23 %</p></div></div><progress class="progress is-xsmall" data-load-level="low" value="23" max="100">23 %</progress></div>
+            <div class="usage-indicator"><div class="level has-margin-bottom-xsmall is-mobile"><div class="level-left"><p class="level-item has-text-weight-bold">Memory</p></div><div class="level-right"><p class="level-item">84 %</p></div></div><progress class="progress is-xsmall" data-load-level="medium" value="84" max="100">84 %</progress></div>
+            <div class="usage-indicator"><div class="level has-margin-bottom-xsmall is-mobile"><div class="level-left"><p class="level-item has-text-weight-bold">Disk /</p></div><div class="level-right"><p class="level-item">186 GB / 200 GB</p></div></div><progress class="progress is-xsmall" data-load-level="high" value="93" max="100">93 %</progress></div>
+          </div>
+          <div class="card-footer"><div class="card-footer-item"><a href="#dashboard">Show details</a></div></div>
+        </div>
+      </div>
+    </div>
+    <article class="message is-warning"><div class="message-body"><strong>Warning:</strong> The certificate for app.example.net expires in 9 days.</div></article>
+    <div class="card has-margin-bottom-large">
+      <div class="card-header"><div class="card-header-icon"><span class="icon is-medium"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div><div class="card-header-title">Domains</div></div>
+      <div class="card-content">
+        <div class="field is-grouped has-margin-bottom-medium">
+          <p class="control is-expanded"><input class="input" type="search" placeholder="Search domains" aria-label="Search domains"></p>
+          <p class="control"><button class="button is-link" type="button">Add domain</button></p>
+          <p class="control"><button class="button" type="button">Export</button></p>
+          <p class="control"><button class="button is-danger is-outlined" type="button">Delete</button></p>
+        </div>
+        <div class="table-container"><table class="table is-fullwidth is-striped is-hoverable has-valigned-cells">
+          <thead><tr><th class="is-narrow"><label class="checkbox"><input type="checkbox" aria-label="Select all"></label></th><th>Domain</th><th>Account</th><th>Certificate</th><th class="has-text-right">Status</th></tr></thead>
+          <tbody>
+            <tr><td><label class="checkbox"><input type="checkbox" checked aria-label="Select example.org"></label></td><td><a href="#dashboard">example.org</a></td><td class="has-text-grey">web1</td><td>Let's Encrypt</td><td class="has-text-right"><span class="tag is-success">Active</span></td></tr>
+            <tr><td><label class="checkbox"><input type="checkbox" aria-label="Select app.example.net"></label></td><td><a href="#dashboard">app.example.net</a></td><td class="has-text-grey">web2</td><td>Let's Encrypt</td><td class="has-text-right"><span class="tag is-warning">Expires soon</span></td></tr>
+            <tr><td><label class="checkbox"><input type="checkbox" aria-label="Select blog.example.com"></label></td><td><a href="#dashboard">blog.example.com</a></td><td class="has-text-grey">web3</td><td>none</td><td class="has-text-right"><span class="tag is-danger">Locked</span></td></tr>
+            <tr><td><label class="checkbox"><input type="checkbox" aria-label="Select mail.example.org"></label></td><td><a href="#dashboard">mail.example.org</a></td><td class="has-text-grey">web1</td><td>Custom</td><td class="has-text-right"><span class="tag is-info">Redirect</span></td></tr>
+          </tbody>
+        </table></div>
+        <nav class="pagination is-small" aria-label="pagination"><ul class="pagination-list"><li><a class="pagination-link is-current" aria-current="page">1</a></li><li><a class="pagination-link">2</a></li><li><a class="pagination-link">3</a></li></ul></nav>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"><div class="content has-text-centered"><p>Preview with example data. Not affiliated with or endorsed by Keyweb AG.</p></div></footer>
+</section>
+</div>
+<div data-screen="login" hidden>
+  <div class="hero is-primary is-fullheight lumen-extern">
+    <div class="hero-body"><div class="container"><div class="columns is-centered"><div class="column is-6-tablet is-5-desktop is-4-widescreen">
+      <div class="box">
+        <figure class="has-margin-y-medium"><span class="mock-logo" data-logo="login"></span></figure>
+        <form>
+          <div class="field has-margin-bottom-medium"><label class="label" for="l-user">Username</label><input id="l-user" class="input" type="text" value="admin" autocomplete="off"></div>
+          <div class="field has-margin-bottom-medium"><label class="label" for="l-pass">Password</label><input id="l-pass" class="input" type="password" value="example" autocomplete="off"></div>
+          <button class="button is-link is-fullwidth" type="button">Log in</button>
+        </form>
+        <p class="has-text-centered has-text-link has-margin-top-medium"><a href="#login">Forgot your password?</a></p>
+      </div>
+      <div class="has-text-centered is-size-7 has-text-grey-lighter"><p>Preview with example data</p></div>
+    </div></div></div></div>
+  </div>
+</div>

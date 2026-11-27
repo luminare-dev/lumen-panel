@@ -44,7 +44,8 @@ FORCE_RE = re.compile(r"\{%-?\s*set\s[^%]*\b(?:is_dark_mode|has_dark_mode)\b")
 
 def dark_stylesheets(src: str) -> list[str]:
     """Every default-theme stylesheet a template can load that is one of its dark builds."""
-    return [r for r in asset_references(src, "bulma") if r.startswith("assets/css/") and "-dark" in r]
+    return [r for base in ("default", "bulma") for r in asset_references(src, base)
+            if r.startswith("assets/css/") and "-dark" in r]
 
 
 class VariantDefinitionTest(unittest.TestCase):
@@ -74,7 +75,7 @@ class VariantDefinitionTest(unittest.TestCase):
                 for prefix in v.leftover_prefixes:
                     for folder in (o.staging_prefix + "20261021T000000000000Z", o.parking_prefix + "x"):
                         self.assertFalse(folder.startswith(prefix), (prefix, folder))
-            self.assertNotIn("bulma", names)
+            self.assertFalse({"default", "bulma"} & set(names))
         self.assertEqual(set(LUMEN.stylesheets) & set(LUMEN_DARK.stylesheets), set())
 
     def test_the_folder_defaults_to_the_variant_name(self):
@@ -169,8 +170,8 @@ class ProBoundaryTest(Env):
             self.assertEqual(dark_stylesheets(text), [], twig)
             self.assertNotRegex(text, FORCE_RE, twig)
         base = (out / "templates" / "layout" / "base.twig").read_text(encoding="utf-8")
-        self.assertIn("/theme/bulma/assets/css/style{{ _app.text_direction == 'rtl' ? '-rtl' }}.css", base)
-        self.assertEqual([r for r in asset_references(base, "bulma") if r.startswith("assets/css/")],
+        self.assertIn(self.base_url + "/assets/css/style{{ _app.text_direction == 'rtl' ? '-rtl' }}.css", base)
+        self.assertEqual([r for r in asset_references(base, self.layout) if r.startswith("assets/css/")],
                          ["assets/css/style-rtl.css", "assets/css/style.css"])
         report = verify(out, self.kh)
         self.assertTrue(report.ok, report.errors)
@@ -191,10 +192,10 @@ class ProBoundaryTest(Env):
         good = build(self.kh, self.tmp / "again" / "lumen-dark", variant=LUMEN_DARK, assets_dir=self.assets,
                      screenshot_fallback=self.shot).out_dir
         extra = good / "templates" / "layout" / "views.twig"
-        extra.write_text("<link href=\"/theme/bulma/assets/css/style{{ _app.theme.is_dark_mode ? '-dark' }}.css\">",
+        extra.write_text(f"<link href=\"{self.base_url}/assets/css/style{{{{ _app.theme.is_dark_mode ? '-dark' }}}}.css\">",
                          encoding="utf-8")
         errors = "\n".join(verify(good).errors)
-        self.assertIn("can load the default theme's dark stylesheet theme/bulma/assets/css/style-dark.css", errors)
+        self.assertIn(f"can load the default theme's dark stylesheet theme/{self.layout}/assets/css/style-dark.css", errors)
 
     def test_lumen_dark_patches_add_no_dark_mode_branch(self):
         """The panel's own templates keep their dark-mode branches where Lumen Dark leaves them
@@ -207,7 +208,7 @@ class ProBoundaryTest(Env):
         dark_images = re.compile(r"(?<![\w-])dark/")
         for rel in manifest["patched_files"]:
             built = (out / "templates" / rel).read_text(encoding="utf-8")
-            original = (self.bulma / "templates" / rel).read_text(encoding="utf-8")
+            original = (self.base / "templates" / rel).read_text(encoding="utf-8")
             self.assertLessEqual(built.count("is_dark_mode"), original.count("is_dark_mode"), rel)
             self.assertLessEqual(len(dark_images.findall(built)), len(dark_images.findall(original)), rel)
             self.assertEqual(dark_images.findall(built), [], f"{rel}: every logo is lumen-panel's own")
@@ -222,7 +223,8 @@ class ProBoundaryTest(Env):
         self.assertTrue(sources)
         for path in sources + built:
             css = path.read_text(encoding="utf-8")
-            for needle in ("style-dark", "img/dark", "/theme/bulma/", "is_dark_mode", "has_dark_mode"):
+            for needle in ("style-dark", "img/dark", "/theme/bulma/", "/theme/default/", "is_dark_mode",
+                           "has_dark_mode"):
                 self.assertNotIn(needle, css, f"{path.relative_to(ROOT)}: {needle}")
 
 
@@ -334,7 +336,7 @@ class SeparationTest(Env):
         self.assertEqual(code, 0, out)
         self.assertIn("select 'Lumen Dark' and save", out)
         self.assertIn("uninstall --variant lumen-dark --keyhelp", out)
-        self.assertEqual(self.theme_dirs(), ["bulma", "lumen", "lumen-dark"])
+        self.assertEqual(self.theme_dirs(), [self.layout, "lumen", "lumen-dark"])
         self.assertTrue(verify(self.lumen, self.kh).ok)
         self.assertTrue(verify(self.dark_theme, self.kh).ok)
         self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["name"], "Lumen")
@@ -358,10 +360,10 @@ class SeparationTest(Env):
         dark_entry = fk.compiled_entry(self.cache, "ab" + "2" * 30,
                                        f"{self.dark_theme.resolve()}/templates/layout/base.twig")
         dark_rel = fk.compiled_entry(self.cache, "ac" + "3" * 30, "theme/lumen-dark/templates/layout/intern.twig")
-        bulma_entry = fk.compiled_entry(self.cache, "ad" + "4" * 30, f"{self.bulma.resolve()}/templates/layout/base.twig")
+        bulma_entry = fk.compiled_entry(self.cache, "ad" + "4" * 30, f"{self.base.resolve()}/templates/layout/base.twig")
         for name in (".lumen-staging-20261021T030000000000Z", ".lumen-dark-staging-20261021T030000000000Z"):
             (self.kh / "theme" / name).mkdir()
-        fk.set_version(self.kh, "26.2.0")
+        fk.set_version(self.kh, self.newer(5))
         with self.at("3Z"):
             code, out = lines(inst.install, self.kh, options=self.dark)
         self.assertEqual(code, 0, out)
@@ -375,7 +377,7 @@ class SeparationTest(Env):
         self.assertTrue((saved / "lumen-dark" / "_settings.json").is_file())
         self.assertEqual(len(list((saved / "twig-cache").rglob("*.php"))), 2)
         self.assertTrue((saved / "stale" / ".lumen-dark-staging-20261021T030000000000Z").is_dir())
-        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.1.1",
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], self.version,
                          "Lumen is not rebuilt by a Lumen Dark install")
 
     def test_hold_rollback_and_check_update_are_per_variant(self):
@@ -383,7 +385,7 @@ class SeparationTest(Env):
         with self.at("4Z"):
             self.assertEqual(lines(inst.install, self.kh, options=self.dark)[0], 0)
         first_dark = next((self.backups / "lumen-dark").glob("*4Z"))
-        fk.set_version(self.kh, "26.1.3")
+        fk.set_version(self.kh, self.newer(3))
         with self.at("5Z"):
             self.assertEqual(lines(inst.install, self.kh, options=self.dark)[0], 0)
         second_dark = next((self.backups / "lumen-dark").glob("*5Z"))
@@ -396,7 +398,7 @@ class SeparationTest(Env):
         self.assertIn("a saved 'Lumen Dark' theme, not 'Lumen'", str(ctx.exception))
         code, out = lines(inst.rollback, self.kh, second_dark, options=self.dark)
         self.assertEqual(code, 0, out)
-        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], "26.1.1")
+        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], self.version)
         self.assertTrue((self.backups / "lumen-dark" / "HOLD").is_file())
         self.assertFalse((self.backups / "HOLD").exists(), "Lumen is not held")
         code, out = lines(inst.check_update, self.kh, options=self.dark)
@@ -404,11 +406,11 @@ class SeparationTest(Env):
         self.assertIn("run install --variant lumen-dark to resume", out)
         code, out = lines(inst.sync, self.kh, options=self.dark)
         self.assertEqual(code, 0)
-        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], "26.1.1",
+        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], self.version,
                          "the held variant is not rebuilt")
         code, out = lines(inst.sync, self.kh, options=self.options)
         self.assertEqual(code, 0, out)
-        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.1.3",
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], self.newer(3),
                          "Lumen still follows the panel")
         self.assertEqual(lines(inst.release, self.dark)[0], 0)
         self.assertFalse((self.backups / "lumen-dark" / "HOLD").exists())
@@ -420,7 +422,7 @@ class SeparationTest(Env):
         self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], 0)
         code, out = lines(inst.check_update, self.kh, options=self.dark)
         self.assertEqual(code, 0, out)
-        self.assertIn("up to date (Lumen Dark, default theme 26.1.1", out)
+        self.assertIn(f"up to date (Lumen Dark, default theme {self.version}", out)
         night = self.assets / "lumen-night.css"
         night.write_text(night.read_text(encoding="utf-8") + "a{}\n", encoding="utf-8")
         self.assertEqual(lines(inst.check_update, self.kh, options=self.options)[0], 0)
@@ -440,7 +442,7 @@ class SeparationTest(Env):
     def test_uninstall_one_keeps_the_other(self):
         self.assertEqual(lines(inst.install, self.kh, options=self.options)[0], 0)
         self.assertEqual(lines(inst.install, self.kh, options=self.dark)[0], 0)
-        page = b'<link href="/theme/bulma/assets/css/style.css?1"><link href="/theme/lumen-dark/assets/lumen-night.css?v=1">'
+        page = f'<link href="{self.base_url}/assets/css/style.css?1"><link href="/theme/lumen-dark/assets/lumen-night.css?v=1">'.encode()
 
         class Resp(io.BytesIO):
             def __enter__(self):
@@ -460,7 +462,7 @@ class SeparationTest(Env):
         with self.at("6Z"):
             code, out = lines(inst.uninstall, self.kh, options=self.dark, confirmed=True)
         self.assertEqual(code, 0, out)
-        self.assertEqual(self.theme_dirs(), ["bulma", "lumen"])
+        self.assertEqual(self.theme_dirs(), [self.layout, "lumen"])
         self.assertTrue(verify(self.lumen, self.kh).ok)
         backup = next((self.backups / "lumen-dark").glob("*6Z"))
         self.assertTrue((backup / "lumen-dark" / "_settings.json").is_file())
@@ -471,10 +473,10 @@ class SeparationTest(Env):
     def test_dry_run_of_lumen_dark_writes_nothing(self):
         code, out = lines(inst.install, self.kh, dry_run=True, options=self.dark)
         self.assertEqual(code, 0, out)
-        self.assertIn("Lumen Dark, default theme 26.1.1, 12 patches", out)
+        self.assertIn(f"Lumen Dark, default theme {self.version}, 13 patches", out)
         self.assertIn(f"swap it in at {self.dark_theme}", out)
         self.assertIn(str(self.backups / "lumen-dark"), out)
-        self.assertEqual(self.theme_dirs(), ["bulma"])
+        self.assertEqual(self.theme_dirs(), [self.layout])
         self.assertFalse(self.backups.exists())
 
     def cli(self, *args: str) -> tuple[int, str]:
@@ -504,23 +506,23 @@ class SeparationTest(Env):
         code, out = self.cli("check-update", "--variant", "all")
         self.assertEqual(code, 0, out)
         self.assertIn("== Lumen Dark (theme/lumen-dark)", out)
-        fk.set_version(self.kh, "26.2.0")
+        fk.set_version(self.kh, self.newer(5))
         self.assertEqual(self.cli("check-update", "--variant", "all")[0], inst.EXIT_REBUILD_NEEDED)
         code, out = self.cli("sync", "--variant", "all")
         self.assertEqual(code, 0, out)
-        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], "26.2.0")
+        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], self.newer(5))
         self.assertFalse(self.lumen.exists(), "sync never installs a variant that is not installed")
         self.assertEqual(self.cli("check-update", "--variant", "all")[0], 0)
 
     def test_cli_variant_all_reports_the_worst_result(self):
         self.assertEqual(self.cli("install")[0], 0)
         self.assertEqual(self.cli("install", "--variant", "lumen-dark")[0], 0)
-        fk.set_version(self.kh, "26.2.0")
+        fk.set_version(self.kh, self.newer(5))
         with inst.run_lock(self.options):            # Lumen busy: Lumen Dark still syncs
             code, out = self.cli("sync", "--variant", "all")
         self.assertEqual(code, inst.EXIT_TEMPFAIL, out)
-        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], "26.2.0")
-        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], "26.1.1")
+        self.assertEqual(json.loads((self.dark_theme / "_settings.json").read_text())["lumen_base_version"], self.newer(5))
+        self.assertEqual(json.loads((self.lumen / "_settings.json").read_text())["lumen_base_version"], self.version)
 
     def test_cli_variant_all_retries_a_busy_theme_before_reporting_the_other_ones_failure(self):
         """A busy Lumen (75) and a Lumen Dark whose own patch no longer fits (1): sync --variant all
@@ -528,8 +530,8 @@ class SeparationTest(Env):
         and the run exits 1 for Lumen Dark."""
         self.assertEqual(self.cli("install")[0], 0)
         self.assertEqual(self.cli("install", "--variant", "lumen-dark")[0], 0)
-        fk.set_version(self.kh, "26.2.0")
-        base = self.bulma / "templates" / "layout" / "base.twig"
+        fk.set_version(self.kh, self.newer(5))
+        base = self.base / "templates" / "layout" / "base.twig"
         text = base.read_text(encoding="utf-8")
         self.assertIn('<meta name="theme-color" content="#ffffff">', text)
         base.write_text(text.replace('<meta name="theme-color" content="#ffffff">',
@@ -541,8 +543,8 @@ class SeparationTest(Env):
         self.assertIn("[night-theme-color]: anchor not found", out)
         code, out = self.cli("sync", "--variant", "all")
         self.assertEqual(code, inst.EXIT_FAILED, out)
-        self.assertEqual(self.settings_of(self.lumen)["lumen_base_version"], "26.2.0", "Lumen follows the panel")
-        self.assertEqual(self.settings_of(self.dark_theme)["lumen_base_version"], "26.1.1",
+        self.assertEqual(self.settings_of(self.lumen)["lumen_base_version"], self.newer(5), "Lumen follows the panel")
+        self.assertEqual(self.settings_of(self.dark_theme)["lumen_base_version"], self.version,
                          "Lumen Dark keeps its previous build")
 
     def test_cli_screenshot_needs_a_single_variant(self):
@@ -580,7 +582,7 @@ class SeparationTest(Env):
         code, out = self.cli("sync", "--variant", "all")
         self.assertEqual(code, 0, out)
         self.assertIn("Lumen Dark is not installed", out)
-        self.assertEqual(self.theme_dirs(), ["bulma", "lumen"])
+        self.assertEqual(self.theme_dirs(), [self.layout, "lumen"])
         moved = list((self.backups / "lumen-dark").glob("*/stale/.lumen-dark-staging-20261021T030000000000Z"))
         self.assertEqual(len(moved), 1, out)
         lumen_left = self.kh / "theme" / ".lumen-previous-20261021T040000000000Z"
@@ -588,7 +590,7 @@ class SeparationTest(Env):
         stale.mkdir()
         code, out = lines(inst.sync, self.kh, options=self.dark)
         self.assertEqual(code, 0, out)
-        self.assertEqual(self.theme_dirs(), [".lumen-previous-20261021T040000000000Z", "bulma", "lumen"],
+        self.assertEqual(self.theme_dirs(), [".lumen-previous-20261021T040000000000Z", self.layout, "lumen"],
                          "Lumen's leftover waits for a run of Lumen")
         self.assertFalse(stale.exists())
 
